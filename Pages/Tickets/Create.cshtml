@@ -1,0 +1,62 @@
+﻿@page
+@model WebApplication1.Pages.Tickets.CreateModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Create</h1>
+
+<h4>Ticket</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group">
+                <span class="text-danger">*</span>
+                <label asp-for="Ticket.Title" class="control-label"></label>
+                <input asp-for="Ticket.Title" class="form-control" aria-required="true" />
+                <span asp-validation-for="Ticket.Title" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <span class="text-danger">*</span>
+                <label asp-for="Ticket.Description" class="control-label"></label>
+                <textarea asp-for="Ticket.Description" class="form-control" rows="4" aria-required="true"></textarea>
+                <span asp-validation-for="Ticket.Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Ticket.Severity" class="control-label"></label>
+                <select asp-for="Ticket.Severity" class="form-select"
+                        asp-items="Html.GetEnumSelectList<WebApplication1.Models.Severity>()"></select>
+                <span asp-validation-for="Ticket.Severity" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Ticket.SlaDueAt" class="form-label">Deadline</label>
+                <input asp-for="Ticket.SlaDueAt" type="datetime-local" class="form-control" />
+                <div class="form-text">Leave empty to auto-calculate from Severity.</div>
+                <span asp-validation-for="Ticket.SlaDueAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Ticket.CustomerName" class="control-label"></label>
+                <input asp-for="Ticket.CustomerName" class="form-control" />
+                <span asp-validation-for="Ticket.CustomerName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-page="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

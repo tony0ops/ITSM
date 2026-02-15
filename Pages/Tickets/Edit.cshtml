@@ -1,0 +1,87 @@
+﻿@page
+@model WebApplication1.Pages.Tickets.EditModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>Ticket</h4>
+<hr />
+<div class="row">
+    <div class="col-md-5">
+        <form method="post">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <input type="hidden" asp-for="Ticket.Id" />
+
+            <div class="mb-3">
+                <label asp-for="Ticket.Number" class="form-label"></label>
+                <input asp-for="Ticket.Number" class="form-control" readonly />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.Title" class="form-label"></label>
+                <input asp-for="Ticket.Title" class="form-control" />
+                <span asp-validation-for="Ticket.Title" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.Description" class="form-label"></label>
+                <textarea asp-for="Ticket.Description" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Ticket.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.Severity" class="form-label"></label>
+                <select asp-for="Ticket.Severity"
+                        class="form-select"
+                        asp-items="Html.GetEnumSelectList<Severity>()">
+                </select>
+                <span asp-validation-for="Ticket.Severity" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.Status" class="form-label"></label>
+                <select asp-for="Ticket.Status"
+                        class="form-select"
+                        asp-items="Html.GetEnumSelectList<TicketStatus>()">
+                </select>
+                <span asp-validation-for="Ticket.Status" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.SlaDueAt" class="form-label">Deadline</label>
+                <input asp-for="Ticket.SlaDueAt"
+                       type="datetime-local"
+                       class="form-control"
+                       asp-format="{0:yyyy-MM-ddTHH:mm}"
+                       step="60" />
+                <div class="form-text">Clear the field and Save to auto-calculate again from Severity.</div>
+                <span asp-validation-for="Ticket.SlaDueAt" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.CustomerName" class="form-label"></label>
+                <input asp-for="Ticket.CustomerName" class="form-control" />
+                <span asp-validation-for="Ticket.CustomerName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.AssigneeUserId" class="form-label"></label>
+                <input asp-for="Ticket.AssigneeUserId" class="form-control" />
+                <span asp-validation-for="Ticket.AssigneeUserId" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-page="./Index" class="btn btn-link">Back to List</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

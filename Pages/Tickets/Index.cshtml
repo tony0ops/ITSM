@@ -1,0 +1,103 @@
+﻿@page
+@model WebApplication1.Pages.Tickets.IndexModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "Tickets";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Tickets</h1>
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input class="form-control" name="q" value="@Model.Q" placeholder="Search title/description/customer..." />
+    </div>
+
+    <div class="col-md-2">
+        <select class="form-select" name="status">
+            <option value="">All statuses</option>
+            @foreach (var s in Enum.GetValues<WebApplication1.Models.TicketStatus>())
+            {
+                <option value="@s" selected="@(Model.Status == s)">@s</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <select class="form-select" name="severity">
+            <option value="">All severities</option>
+            @foreach (var s in Enum.GetValues<WebApplication1.Models.Severity>())
+            {
+                <option value="@s" selected="@(Model.Severity == s)">@s</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <select class="form-select" name="sla">
+            <option value="">All SLA</option>
+            <option value="atrisk" selected="@(Model.Sla == "atrisk")">At risk</option>
+            <option value="green" selected="@(Model.Sla == "green")">Green</option>
+            <option value="yellow" selected="@(Model.Sla == "yellow")">Yellow</option>
+            <option value="red" selected="@(Model.Sla == "red")">Red</option>
+            <option value="breached" selected="@(Model.Sla == "breached")">Breached</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100" type="submit">Filter</button>
+    </div>
+</form>
+<p>
+    <a asp-page="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Number</th>
+            <th>Title</th>
+            <th>Severity</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>SLA Due</th>
+            <th>SLA</th>
+            <th>Customer</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Ticket)
+        {
+            var now = DateTime.Now;
+            var state = SlaPolicy.GetState(item, now);
+            var remaining = SlaPolicy.FormatRemaining(item, now);
+
+            var badgeClass = state switch
+            {
+                SlaState.Green => "bg-success",
+                SlaState.Yellow => "bg-warning text-dark",
+                SlaState.Red => "bg-danger",
+                SlaState.Breached => "bg-danger",
+                _ => "bg-secondary"
+            };
+            <tr>
+                <td>@item.Number</td>
+                <td>@item.Title</td>
+                <td>@item.Severity</td>
+                <td>@item.Status</td>
+                <td>@item.CreatedAt</td>
+                <td>@item.SlaDueAt</td>
+                <td>
+                    <span class="badge @badgeClass">@state</span>
+                    <small class="text-muted ms-1">@remaining</small>
+                </td>
+                <td>@item.CustomerName</td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
