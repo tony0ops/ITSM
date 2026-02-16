@@ -28,6 +28,12 @@ namespace WebApplication1.Pages.Tickets
         public WebApplication1.Models.Severity? Severity { get; set; }
 
         [BindProperty(SupportsGet = true)]
+        public WebApplication1.Models.TicketCategory? Category { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public WebApplication1.Models.AssignmentGroup? Group { get; set; }
+
+        [BindProperty(SupportsGet = true)]
         public string? Sla { get; set; }
 
         public IList<Ticket> Ticket { get;set; } = default!;
@@ -50,6 +56,12 @@ namespace WebApplication1.Pages.Tickets
 
             if (Severity.HasValue)
                 query = query.Where(t => t.Severity == Severity.Value);
+
+            if (Category.HasValue)
+                query = query.Where(t => t.Category == Category.Value);
+
+            if (Group.HasValue)
+                query = query.Where(t => t.AssignedGroup == Group.Value);
 
             var list = await query
                 .OrderByDescending(t => t.CreatedAt)

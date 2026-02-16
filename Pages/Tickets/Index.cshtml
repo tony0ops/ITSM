@@ -9,7 +9,7 @@
 
 <h1>Tickets</h1>
 <form method="get" class="row g-2 mb-3">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <input class="form-control" name="q" value="@Model.Q" placeholder="Search title/description/customer..." />
     </div>
 
@@ -34,6 +34,28 @@
     </div>
 
     <div class="col-md-2">
+        <select class="form-select" name="category">
+            <option value="">All Categories</option>
+            @foreach (var c in Enum.GetValues<TicketCategory>())
+            {
+                <option value="@c" selected="@(Model.Category == c)">@c.ToString().Replace("GeneralRequest", "General")</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <select class="form-select" name="group">
+            <option value="">All Groups</option>
+            @foreach (var g in Enum.GetValues<AssignmentGroup>())
+            {
+                <option value="@g" selected="@(Model.Group == g)">@g.ToString().Replace("_", " ")</option>
+            }
+        </select>
+    </div>
+</form>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-2">
         <select class="form-select" name="sla">
             <option value="">All SLA</option>
             <option value="atrisk" selected="@(Model.Sla == "atrisk")">At risk</option>
@@ -44,10 +66,11 @@
         </select>
     </div>
 
-    <div class="col-md-2">
+    <div class="col-md-1">
         <button class="btn btn-primary w-100" type="submit">Filter</button>
     </div>
 </form>
+
 <p>
     <a asp-page="Create">Create New</a>
 </p>
@@ -56,12 +79,12 @@
         <tr>
             <th>Number</th>
             <th>Title</th>
+            <th>Category</th>
             <th>Severity</th>
             <th>Status</th>
+            <th>Assigned To</th>
             <th>Created</th>
-            <th>SLA Due</th>
             <th>SLA</th>
-            <th>Customer</th>
             <th></th>
         </tr>
     </thead>
@@ -112,6 +135,11 @@
                     <a asp-page="./Details" asp-route-id="@item.Id">@item.Title</a>
                 </td>
                 <td>
+                    <span class="badge bg-secondary">
+                        @item.Category.ToString().Replace("GeneralRequest", "General")
+                    </span>
+                </td>
+                <td>
                     <span class="badge @severityBadge">
                         @item.Severity
                     </span>
@@ -125,8 +153,17 @@
                         @item.Status.ToString().Replace("WaitingOn", "Waiting on ")
                     </span>
                 </td>
+                <td>
+                    @if (item.AssignedGroup != AssignmentGroup.Unassigned)
+                    {
+                        <span class="badge bg-dark">@item.AssignedGroup.ToString().Replace("_", " ")</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Unassigned</span>
+                    }
+                </td>
                 <td>@item.CreatedAt.ToString("g")</td>
-                <td>@(item.SlaDueAt?.ToString("g") ?? "-")</td>
                 <td>
                     @if (SlaPolicy.IsSlaPaused(item.Status))
                     {
@@ -139,7 +176,6 @@
                         </span>
                     }
                 </td>
-                <td>@item.CustomerName</td>
                 <td>
                     <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
                     <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info ms-1">Details</a>

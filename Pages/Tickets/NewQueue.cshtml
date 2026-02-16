@@ -1,0 +1,83 @@
+@page
+@model WebApplication1.Pages.Tickets.NewQueueModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "New Tickets Queue";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1> New Tickets Queue</h1>
+<p class="lead">Unassigned tickets waiting for assignment</p>
+
+@if (Model.Tickets.Count == 0)
+{
+    <div class="alert alert-info" role="alert">
+        <strong>Great!</strong> No new tickets in the queue. All tickets have been assigned.
+    </div>
+}
+else
+{
+    <p class="mb-3">
+        <span class="badge bg-primary">@Model.Tickets.Count</span>
+        unassigned tickets
+    </p>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Severity</th>
+                <th>Created</th>
+                <th>SLA</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Tickets)
+            {
+                var now = DateTime.Now;
+                var state = SlaPolicy.GetState(item, now);
+                var remaining = SlaPolicy.FormatRemaining(item, now);
+
+                var badgeClass = state switch
+                {
+                    SlaState.Green => "bg-success",
+                    SlaState.Yellow => "bg-warning text-dark",
+                    SlaState.Red => "bg-danger",
+                    SlaState.Breached => "bg-danger",
+                    _ => "bg-secondary"
+                };
+
+                var severityBadge = item.Severity switch
+                {
+                    Severity.Critical => "bg-danger",
+                    Severity.High => "bg-warning text-dark",
+                    Severity.Medium => "bg-primary",
+                    Severity.Low => "bg-info text-dark",
+                    Severity.Info => "bg-secondary",
+                    _ => "bg-secondary"
+                };
+
+                <tr>
+                    <td>@item.Number</td>
+                    <td><a asp-page="./Details" asp-route-id="@item.Id">@item.Title</a></td>
+                    <td><span class="badge bg-secondary">@item.Category.ToString().Replace("GeneralRequest", "General")</span></td>
+                    <td><span class="badge @severityBadge">@item.Severity</span></td>
+                    <td>@item.CreatedAt.ToString("g")</td>
+                    <td><span class="badge @badgeClass">@state - @remaining</span></td>
+                    <td>
+                        <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Assign</a>
+                        <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info ms-1">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div>
+    <a asp-page="./Index" class="btn btn-secondary mt-3">Back to All Tickets</a>
+</div>

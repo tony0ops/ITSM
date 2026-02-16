@@ -19,6 +19,10 @@ public class Ticket
     public Severity Severity { get; set; } = Severity.Medium;
     public TicketStatus Status { get; set; } = TicketStatus.New;
 
+    // NEW: Categorization
+    public TicketCategory Category { get; set; } = TicketCategory.GeneralRequest;
+    public AssignmentGroup AssignedGroup { get; set; } = AssignmentGroup.Unassigned;
+
     [Column("CreatedUtc")]
     public DateTime CreatedAt { get; set; }
 

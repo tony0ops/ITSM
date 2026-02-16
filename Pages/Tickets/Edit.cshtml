@@ -38,6 +38,22 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
+                    <label asp-for="Ticket.Category" class="form-label"></label>
+                    <select asp-for="Ticket.Category" class="form-select"
+                            asp-items="Html.GetEnumSelectList<TicketCategory>()"></select>
+                    <span asp-validation-for="Ticket.Category" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.AssignedGroup" class="form-label">Assignment Group</label>
+                <select asp-for="Ticket.AssignedGroup" class="form-select"
+                        asp-items="Html.GetEnumSelectList<AssignmentGroup>()"></select>
+                <span asp-validation-for="Ticket.AssignedGroup" class="text-danger"></span>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
                     <label asp-for="Ticket.Status" class="form-label"></label>
                     <select asp-for="Ticket.Status" class="form-select"
                             asp-items="Html.GetEnumSelectList<TicketStatus>()"></select>
@@ -48,7 +64,7 @@
                 </div>
             </div>
 
-            <!-- Show pause reason field when switching to paused status -->
+            
             @if (Model.Ticket.Status == TicketStatus.WaitingOnCustomer ||
                         Model.Ticket.Status == TicketStatus.WaitingOnVendor)
             {
@@ -59,7 +75,7 @@
                 </div>
             }
 
-            <!-- Show resolution notes for resolved/closed/cancelled tickets -->
+            
             @if (Model.Ticket.Status == TicketStatus.Resolved ||
                         Model.Ticket.Status == TicketStatus.Closed ||
                         Model.Ticket.Status == TicketStatus.Cancelled)

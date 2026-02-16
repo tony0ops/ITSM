@@ -1,6 +1,7 @@
 ﻿@page
 @model WebApplication1.Pages.Tickets.CreateModel
 @using Microsoft.AspNetCore.Mvc.Rendering
+@using WebApplication1.Models
 
 @{
     ViewData["Title"] = "Create";
@@ -27,11 +28,20 @@
                 <textarea asp-for="Ticket.Description" class="form-control" rows="4" aria-required="true"></textarea>
                 <span asp-validation-for="Ticket.Description" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Ticket.Severity" class="control-label"></label>
-                <select asp-for="Ticket.Severity" class="form-select"
-                        asp-items="Html.GetEnumSelectList<WebApplication1.Models.Severity>()"></select>
-                <span asp-validation-for="Ticket.Severity" class="text-danger"></span>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Ticket.Severity" class="form-label"></label>
+                    <select asp-for="Ticket.Severity" class="form-select"
+                            asp-items="Html.GetEnumSelectList<Severity>()"></select>
+                    <span asp-validation-for="Ticket.Severity" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Ticket.Category" class="form-label"></label>
+                    <select asp-for="Ticket.Category" class="form-select"
+                            asp-items="Html.GetEnumSelectList<TicketCategory>()"></select>
+                    <span asp-validation-for="Ticket.Category" class="text-danger"></span>
+                </div>
             </div>
             <div class="mb-3">
                 <label asp-for="Ticket.SlaDueAt" class="form-label">Deadline</label>

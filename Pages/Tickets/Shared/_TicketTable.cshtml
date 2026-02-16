@@ -1,0 +1,103 @@
+@using WebApplication1.Models
+
+@if (Model?.Count == 0)
+{
+    <div class="alert alert-info" role="alert">
+        <strong>No tickets.</strong> All tickets in this category are resolved or closed.
+    </div>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Number</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>SLA</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null)
+            {
+                @foreach (var item in Model)
+                {
+                    var now = DateTime.Now;
+                    var state = SlaPolicy.GetState(item, now);
+                    var remaining = SlaPolicy.FormatRemaining(item, now);
+
+                    var badgeClass = state switch
+                    {
+                        SlaState.Green => "bg-success",
+                        SlaState.Yellow => "bg-warning text-dark",
+                        SlaState.Red => "bg-danger",
+                        SlaState.Breached => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+
+                    var severityBadge = item.Severity switch
+                    {
+                        Severity.Critical => "bg-danger",
+                        Severity.High => "bg-warning text-dark",
+                        Severity.Medium => "bg-primary",
+                        Severity.Low => "bg-info text-dark",
+                        Severity.Info => "bg-secondary",
+                        _ => "bg-secondary"
+                    };
+
+                    var statusBadge = item.Status switch
+                    {
+                        TicketStatus.New => "bg-primary",
+                        TicketStatus.Assigned => "bg-info text-dark",
+                        TicketStatus.InProgress => "bg-warning text-dark",
+                        TicketStatus.WaitingOnCustomer => "bg-secondary",
+                        TicketStatus.WaitingOnVendor => "bg-secondary",
+                        TicketStatus.Resolved => "bg-success",
+                        TicketStatus.Closed => "bg-dark",
+                        TicketStatus.Cancelled => "bg-danger",
+                        _ => "bg-light text-dark"
+                    };
+
+                    <tr>
+                        <td><strong>@item.Number</strong></td>
+                        <td><a asp-page="/Tickets/Details" asp-route-id="@item.Id">@item.Title</a></td>
+                        <td><span class="badge bg-secondary">@item.Category.ToString().Replace("GeneralRequest", "General")</span></td>
+                        <td><span class="badge @severityBadge">@item.Severity</span></td>
+                        <td>
+                            <span class="badge @statusBadge">
+                                @if (item.Status == TicketStatus.WaitingOnCustomer || item.Status == TicketStatus.WaitingOnVendor)
+                                {
+                                    <text>Paused</text>
+                                }
+                                @item.Status.ToString().Replace("WaitingOn", "Waiting on ")
+                            </span>
+                        </td>
+                        <td>@item.CreatedAt.ToString("g")</td>
+                        <td>
+                            @if (SlaPolicy.IsSlaPaused(item.Status))
+                            {
+                                <span class="badge bg-info">Paused</span>
+                            }
+                            else
+                            {
+                                <span class="badge @badgeClass">
+                                    @state - @remaining
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-page="/Tickets/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Update</a>
+                            <a asp-page="/Tickets/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info ms-1">Details</a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-page="/Tickets/MyGroupQueue">My Group</a>

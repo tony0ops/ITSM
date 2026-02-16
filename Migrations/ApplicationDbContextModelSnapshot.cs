@@ -215,8 +215,14 @@ namespace WebApplication1.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AssignedGroup")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("AssigneeUserId")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("TEXT")
