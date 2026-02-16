@@ -19,7 +19,6 @@ public class Ticket
     public Severity Severity { get; set; } = Severity.Medium;
     public TicketStatus Status { get; set; } = TicketStatus.New;
 
-    // Neutral naming in class (still stored in existing DB columns)
     [Column("CreatedUtc")]
     public DateTime CreatedAt { get; set; }
 
@@ -33,4 +32,22 @@ public class Ticket
 
     [Column("ClosedUtc")]
     public DateTime? ClosedAt { get; set; }
+
+    // NEW: SLA Pause tracking
+    public DateTime? SlaPausedAt { get; set; }
+
+    [Column(TypeName = "TEXT")]
+    public TimeSpan TotalPausedDuration { get; set; } = TimeSpan.Zero;
+
+    [StringLength(500)]
+    public string? PauseReason { get; set; }
+
+    // NEW: Resolution tracking
+    [StringLength(2000)]
+    public string? ResolutionNotes { get; set; }
+
+    public DateTime? ResolvedAt { get; set; }
+
+    // Navigation property (from Phase 1)
+    public ICollection<TicketActivity> Activities { get; set; } = new List<TicketActivity>();
 }

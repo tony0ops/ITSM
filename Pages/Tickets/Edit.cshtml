@@ -3,25 +3,19 @@
 @using WebApplication1.Models
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Ticket";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Edit</h1>
+<h1>Edit Ticket</h1>
 
-<h4>Ticket</h4>
+<h4>Ticket: @Model.Ticket.Number</h4>
 <hr />
 <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-8">
         <form method="post">
-            <div asp-validation-summary="All" class="text-danger"></div>
-
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Ticket.Id" />
-
-            <div class="mb-3">
-                <label asp-for="Ticket.Number" class="form-label"></label>
-                <input asp-for="Ticket.Number" class="form-control" readonly />
-            </div>
 
             <div class="mb-3">
                 <label asp-for="Ticket.Title" class="form-label"></label>
@@ -35,23 +29,48 @@
                 <span asp-validation-for="Ticket.Description" class="text-danger"></span>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Ticket.Severity" class="form-label"></label>
-                <select asp-for="Ticket.Severity"
-                        class="form-select"
-                        asp-items="Html.GetEnumSelectList<Severity>()">
-                </select>
-                <span asp-validation-for="Ticket.Severity" class="text-danger"></span>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Ticket.Severity" class="form-label"></label>
+                    <select asp-for="Ticket.Severity" class="form-select"
+                            asp-items="Html.GetEnumSelectList<Severity>()"></select>
+                    <span asp-validation-for="Ticket.Severity" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Ticket.Status" class="form-label"></label>
+                    <select asp-for="Ticket.Status" class="form-select"
+                            asp-items="Html.GetEnumSelectList<TicketStatus>()"></select>
+                    <span asp-validation-for="Ticket.Status" class="text-danger"></span>
+                    <div class="form-text">
+                        ⏸️ <strong>WaitingOnCustomer</strong> or <strong>WaitingOnVendor</strong> will pause SLA timer
+                    </div>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Ticket.Status" class="form-label"></label>
-                <select asp-for="Ticket.Status"
-                        class="form-select"
-                        asp-items="Html.GetEnumSelectList<TicketStatus>()">
-                </select>
-                <span asp-validation-for="Ticket.Status" class="text-danger"></span>
-            </div>
+            <!-- Show pause reason field when switching to paused status -->
+            @if (Model.Ticket.Status == TicketStatus.WaitingOnCustomer ||
+                        Model.Ticket.Status == TicketStatus.WaitingOnVendor)
+            {
+                <div class="mb-3">
+                    <label asp-for="Ticket.PauseReason" class="form-label">Pause Reason</label>
+                    <input asp-for="Ticket.PauseReason" class="form-control" placeholder="Why is the SLA being paused?" />
+                    <span asp-validation-for="Ticket.PauseReason" class="text-danger"></span>
+                </div>
+            }
+
+            <!-- Show resolution notes for resolved/closed/cancelled tickets -->
+            @if (Model.Ticket.Status == TicketStatus.Resolved ||
+                        Model.Ticket.Status == TicketStatus.Closed ||
+                        Model.Ticket.Status == TicketStatus.Cancelled)
+            {
+                <div class="mb-3">
+                    <label asp-for="Ticket.ResolutionNotes" class="form-label">Resolution Notes</label>
+                    <textarea asp-for="Ticket.ResolutionNotes" class="form-control" rows="3"
+                              placeholder="Describe how this was resolved or why it was cancelled"></textarea>
+                    <span asp-validation-for="Ticket.ResolutionNotes" class="text-danger"></span>
+                </div>
+            }
 
             <div class="mb-3">
                 <label asp-for="Ticket.SlaDueAt" class="form-label">Deadline</label>
@@ -76,12 +95,16 @@
                 <span asp-validation-for="Ticket.AssigneeUserId" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="btn btn-primary">Save</button>
-            <a asp-page="./Index" class="btn btn-link">Back to List</a>
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-page="./Details" asp-route-id="@Model.Ticket.Id" class="btn btn-secondary">Cancel</a>
+            </div>
         </form>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

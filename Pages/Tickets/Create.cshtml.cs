@@ -65,6 +65,20 @@ namespace WebApplication1.Pages.Tickets
             _context.Tickets.Add(Ticket);
             await _context.SaveChangesAsync();
 
+            // Log ticket creation activity
+            var userName = User.Identity?.Name ?? "Anonymous";
+            var activity = new TicketActivity
+            {
+                TicketId = Ticket.Id,
+                Type = ActivityType.Created,
+                CreatedAt = DateTime.Now,
+                UserId = User.Identity?.Name ?? "",
+                UserName = userName,
+                Description = $"Ticket created: {Ticket.Title}"
+            };
+            _context.TicketActivities.Add(activity);
+            await _context.SaveChangesAsync();
+
             return RedirectToPage("./Index");
         }
     }

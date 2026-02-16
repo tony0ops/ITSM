@@ -1,12 +1,197 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\tickets\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\tickets\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\webapplication1.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:webapplication1.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\activitytype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\activitytype.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\slapolicy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\slapolicy.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\tickets\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\tickets\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\tickets\\edit.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\tickets\\edit.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\tickets\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\tickets\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\severity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\severity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\ticket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\ticket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\ticketstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\ticketstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\ticketactivity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\ticketactivity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Index.cshtml",
+              "RelativeDocumentMoniker": "Pages\\Tickets\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Index.cshtml",
+              "RelativeToolTip": "Pages\\Tickets\\Index.cshtml",
+              "ViewState": "AgIAAIIAAAAAAAAAAAASwJcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-15T20:39:26.752Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ActivityType.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\ActivityType.cs",
+              "RelativeDocumentMoniker": "Models\\ActivityType.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\ActivityType.cs",
+              "RelativeToolTip": "Models\\ActivityType.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T20:38:42.43Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Details.cshtml",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Details.cshtml",
+              "RelativeDocumentMoniker": "Pages\\Tickets\\Details.cshtml",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Details.cshtml",
+              "RelativeToolTip": "Pages\\Tickets\\Details.cshtml",
+              "ViewState": "AgIAAPQAAAAAAAAAAAAnwPsAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-15T19:40:25.436Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Edit.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Edit.cshtml.cs",
+              "RelativeDocumentMoniker": "Pages\\Tickets\\Edit.cshtml.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Edit.cshtml.cs",
+              "RelativeToolTip": "Pages\\Tickets\\Edit.cshtml.cs",
+              "ViewState": "AgIAAC4AAAAAAAAAAAAYwN0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T19:39:54.403Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Edit.cshtml",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Edit.cshtml",
+              "RelativeDocumentMoniker": "Pages\\Tickets\\Edit.cshtml",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Edit.cshtml",
+              "RelativeToolTip": "Pages\\Tickets\\Edit.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-15T19:39:37.341Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "SlaPolicy.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\SlaPolicy.cs",
+              "RelativeDocumentMoniker": "Models\\SlaPolicy.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\SlaPolicy.cs",
+              "RelativeToolTip": "Models\\SlaPolicy.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T19:38:51.072Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "WebApplication1.csproj",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\WebApplication1.csproj",
+              "RelativeDocumentMoniker": "WebApplication1.csproj",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\WebApplication1.csproj",
+              "RelativeToolTip": "WebApplication1.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-02-15T19:30:48.941Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Severity.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Severity.cs",
+              "RelativeDocumentMoniker": "Models\\Severity.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Severity.cs",
+              "RelativeToolTip": "Models\\Severity.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T20:39:44.231Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Ticket.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Ticket.cs",
+              "RelativeDocumentMoniker": "Models\\Ticket.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Ticket.cs",
+              "RelativeToolTip": "Models\\Ticket.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T19:36:21.105Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "TicketStatus.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\TicketStatus.cs",
+              "RelativeDocumentMoniker": "Models\\TicketStatus.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\TicketStatus.cs",
+              "RelativeToolTip": "Models\\TicketStatus.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T19:35:51.576Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "TicketActivity.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\TicketActivity.cs",
+              "RelativeDocumentMoniker": "Models\\TicketActivity.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\TicketActivity.cs",
+              "RelativeToolTip": "Models\\TicketActivity.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-15T19:35:50.704Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

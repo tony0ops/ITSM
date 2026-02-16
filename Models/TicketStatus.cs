@@ -5,6 +5,9 @@ public enum TicketStatus
     New,
     Assigned,
     InProgress,
+    WaitingOnCustomer,   
+    WaitingOnVendor,      
     Resolved,
-    Closed
+    Closed,
+    Cancelled            
 }

@@ -24,14 +24,44 @@ public static class SlaPolicy
     private const double RedPercent = 0.10;     // <= 10% remaining
     private const double YellowPercent = 0.25;  // <= 25% remaining
 
+    // NEW: Check if ticket SLA should be paused based on status
+    public static bool IsSlaPaused(TicketStatus status)
+    {
+        return status == TicketStatus.WaitingOnCustomer ||
+               status == TicketStatus.WaitingOnVendor;
+    }
+
+    // UPDATED: Calculate effective due date accounting for pauses
     public static DateTime GetEffectiveDueAt(Ticket t)
-        => t.SlaDueAt ?? (t.CreatedAt + GetSlaDuration(t.Severity));
+    {
+        var baseDeadline = t.SlaDueAt ?? (t.CreatedAt + GetSlaDuration(t.Severity));
+
+        // Add total paused duration
+        var totalPause = t.TotalPausedDuration;
+
+        // If currently paused, add the current pause duration
+        if (t.SlaPausedAt.HasValue && IsSlaPaused(t.Status))
+        {
+            var currentPauseDuration = DateTime.Now - t.SlaPausedAt.Value;
+            totalPause += currentPauseDuration;
+        }
+
+        return baseDeadline.Add(totalPause);
+    }
 
     public static SlaState GetState(Ticket t)
         => GetState(t, DateTime.Now);
 
     public static SlaState GetState(Ticket t, DateTime now)
-        => GetState(t.CreatedAt, GetEffectiveDueAt(t), now);
+    {
+        // If SLA is currently paused, return a special state or frozen state
+        if (IsSlaPaused(t.Status))
+        {
+            return SlaState.Green; // Or create a new SlaState.Paused if you want
+        }
+
+        return GetState(t.CreatedAt, GetEffectiveDueAt(t), now);
+    }
 
     public static SlaState GetState(DateTime createdAt, DateTime dueAt, DateTime now)
     {
@@ -77,6 +107,12 @@ public static class SlaPolicy
 
     public static string FormatRemaining(Ticket t, DateTime now)
     {
+        // If paused, show "Paused" instead of time
+        if (IsSlaPaused(t.Status))
+        {
+            return "⏸️ Paused";
+        }
+
         var dueAt = GetEffectiveDueAt(t);
         var remaining = dueAt - now;
 
@@ -96,5 +132,14 @@ public static class SlaPolicy
             return $"{(int)ts.TotalHours}h {ts.Minutes}m";
 
         return $"{Math.Max(0, ts.Minutes)}m";
+    }
+
+    // NEW: Format paused duration
+    public static string FormatPausedDuration(TimeSpan duration)
+    {
+        if (duration == TimeSpan.Zero)
+            return "None";
+
+        return FormatDuration(duration);
     }
 }

@@ -30,7 +30,7 @@ namespace WebApplication1.Pages.Tickets
                 return NotFound();
             }
 
-            var ticket =  await _context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
+            var ticket = await _context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
             if (ticket == null)
             {
                 return NotFound();
@@ -50,6 +50,8 @@ namespace WebApplication1.Pages.Tickets
             ModelState.Remove("Ticket.Number");
             ModelState.Remove("Ticket.CreatedAt");
             ModelState.Remove("Ticket.ClosedAt");
+            ModelState.Remove("Ticket.SlaPausedAt");
+            ModelState.Remove("Ticket.TotalPausedDuration");
 
             if (!ModelState.IsValid)
             {
@@ -63,11 +65,118 @@ namespace WebApplication1.Pages.Tickets
                 return Page();
             }
 
+            // Track changes for activity log
+            var activities = new List<TicketActivity>();
+            var userName = User.Identity?.Name ?? "System";
+
+            // Track status change
+            if (existing.Status != Ticket.Status)
+            {
+                // Handle SLA pause/resume logic
+                var wasSlaPaused = SlaPolicy.IsSlaPaused(existing.Status);
+                var willBeSlaPaused = SlaPolicy.IsSlaPaused(Ticket.Status);
+
+                if (!wasSlaPaused && willBeSlaPaused)
+                {
+                    // Pausing SLA
+                    existing.SlaPausedAt = DateTime.Now;
+                    existing.PauseReason = Ticket.PauseReason ?? "Waiting for response";
+
+                    activities.Add(new TicketActivity
+                    {
+                        TicketId = existing.Id,
+                        Type = ActivityType.StatusChanged,
+                        CreatedAt = DateTime.Now,
+                        UserId = User.Identity?.Name ?? "system",
+                        UserName = userName,
+                        Description = $"SLA paused: {existing.PauseReason}",
+                        OldValue = existing.Status.ToString(),
+                        NewValue = Ticket.Status.ToString(),
+                        IsInternal = true
+                    });
+                }
+                else if (wasSlaPaused && !willBeSlaPaused)
+                {
+                    // Resuming SLA
+                    if (existing.SlaPausedAt.HasValue)
+                    {
+                        var pauseDuration = DateTime.Now - existing.SlaPausedAt.Value;
+                        existing.TotalPausedDuration += pauseDuration;
+                        existing.SlaPausedAt = null;
+                        existing.PauseReason = null;
+
+                        activities.Add(new TicketActivity
+                        {
+                            TicketId = existing.Id,
+                            Type = ActivityType.StatusChanged,
+                            CreatedAt = DateTime.Now,
+                            UserId = User.Identity?.Name ?? "system",
+                            UserName = userName,
+                            Description = $"SLA resumed (was paused for {SlaPolicy.FormatPausedDuration(pauseDuration)})",
+                            OldValue = existing.Status.ToString(),
+                            NewValue = Ticket.Status.ToString(),
+                            IsInternal = true
+                        });
+                    }
+                }
+                else
+                {
+                    // Regular status change
+                    activities.Add(new TicketActivity
+                    {
+                        TicketId = existing.Id,
+                        Type = ActivityType.StatusChanged,
+                        CreatedAt = DateTime.Now,
+                        UserId = User.Identity?.Name ?? "system",
+                        UserName = userName,
+                        Description = "Status changed",
+                        OldValue = existing.Status.ToString(),
+                        NewValue = Ticket.Status.ToString(),
+                        IsInternal = false
+                    });
+                }
+
+                existing.Status = Ticket.Status;
+            }
+
+            // Track severity change
+            if (existing.Severity != Ticket.Severity)
+            {
+                activities.Add(new TicketActivity
+                {
+                    TicketId = existing.Id,
+                    Type = ActivityType.SeverityChanged,
+                    CreatedAt = DateTime.Now,
+                    UserId = User.Identity?.Name ?? "system",
+                    UserName = userName,
+                    Description = "Severity changed",
+                    OldValue = existing.Severity.ToString(),
+                    NewValue = Ticket.Severity.ToString(),
+                    IsInternal = false
+                });
+            }
+
+            // Track reassignment
+            if (existing.AssigneeUserId != Ticket.AssigneeUserId)
+            {
+                activities.Add(new TicketActivity
+                {
+                    TicketId = existing.Id,
+                    Type = ActivityType.Reassigned,
+                    CreatedAt = DateTime.Now,
+                    UserId = User.Identity?.Name ?? "system",
+                    UserName = userName,
+                    Description = "Ticket reassigned",
+                    OldValue = existing.AssigneeUserId ?? "Unassigned",
+                    NewValue = Ticket.AssigneeUserId ?? "Unassigned",
+                    IsInternal = false
+                });
+            }
+
             // Update allowed fields
             existing.Title = Ticket.Title;
             existing.Description = Ticket.Description;
             existing.Severity = Ticket.Severity;
-            existing.Status = Ticket.Status;
             existing.CustomerName = Ticket.CustomerName;
             existing.AssigneeUserId = Ticket.AssigneeUserId;
 
@@ -79,14 +188,30 @@ namespace WebApplication1.Pages.Tickets
             else
                 existing.SlaDueAt = existing.CreatedAt + SlaPolicy.GetSlaDuration(existing.Severity);
 
-            // Optional: set/clear ClosedAt automatically (v1 behaviour)
-            if (existing.Status is TicketStatus.Resolved or TicketStatus.Closed)
+            // Handle resolution statuses
+            if (existing.Status == TicketStatus.Resolved)
+            {
+                existing.ResolvedAt ??= DateTime.Now;
+                existing.ResolutionNotes = Ticket.ResolutionNotes;
+            }
+
+            // Set/clear ClosedAt automatically
+            if (existing.Status is TicketStatus.Resolved or TicketStatus.Closed or TicketStatus.Cancelled)
                 existing.ClosedAt ??= DateTime.Now;
             else
+            {
                 existing.ClosedAt = null;
+                existing.ResolvedAt = null;
+            }
+
+            // Save all activities
+            if (activities.Any())
+            {
+                _context.TicketActivities.AddRange(activities);
+            }
 
             await _context.SaveChangesAsync();
-            return RedirectToPage("./Index");
+            return RedirectToPage("./Details", new { id = existing.Id });
         }
 
         private bool TicketExists(int id)

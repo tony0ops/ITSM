@@ -6,63 +6,251 @@
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Details</h1>
+<h1>Ticket Details</h1>
 
-<div>
-    <h4>Ticket</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.Title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Title)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.Description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Description)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.Severity)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Severity)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Status)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.CreatedAt)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.CreatedAt)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.SlaDueAt)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.SlaDueAt)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.CustomerName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.CustomerName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.AssigneeUserId)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.AssigneeUserId)
-        </dd>
-    </dl>
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4>@Model.Ticket.Number - @Model.Ticket.Title</h4>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">@Model.Ticket.Description</dd>
+                    
+                    <dt class="col-sm-3">Severity</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-@(Model.Ticket.Severity switch {
+                            WebApplication1.Models.Severity.Critical => "danger",
+                            WebApplication1.Models.Severity.High => "warning",
+                            WebApplication1.Models.Severity.Medium => "info",
+                            _ => "secondary"
+                        })">@Model.Ticket.Severity</span>
+                    </dd>
+                    
+                    <dt class="col-sm-3">Status</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-@(Model.Ticket.Status switch {
+                            WebApplication1.Models.TicketStatus.New => "primary",
+                            WebApplication1.Models.TicketStatus.InProgress => "info",
+                            WebApplication1.Models.TicketStatus.Resolved => "success",
+                            WebApplication1.Models.TicketStatus.Closed => "secondary",
+                            _ => "secondary"
+                        })">@Model.Ticket.Status</span>
+                    </dd>
+                    
+                    <dt class="col-sm-3">Created</dt>
+                    <dd class="col-sm-9">@Model.Ticket.CreatedAt.ToString("g")</dd>
+                    
+                    <dt class="col-sm-3">SLA Due</dt>
+                    <dd class="col-sm-9">@(Model.Ticket.SlaDueAt?.ToString("g") ?? "N/A")</dd>
+                    
+                    <dt class="col-sm-3">Customer</dt>
+                    <dd class="col-sm-9">@(Model.Ticket.CustomerName ?? "N/A")</dd>
+                    
+                    <dt class="col-sm-3">Assignee</dt>
+                    <dd class="col-sm-9">@(Model.Ticket.AssigneeUserId ?? "Unassigned")</dd>
+                    
+                    @if (Model.Ticket.ClosedAt.HasValue)
+                    {
+                        <dt class="col-sm-3">Closed</dt>
+                        <dd class="col-sm-9">@Model.Ticket.ClosedAt.Value.ToString("g")</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <!-- SLA Pause Information -->
+        @if (Model.Ticket.SlaPausedAt.HasValue)
+        {
+            <div class="alert alert-info">
+                <h5>⏸️ SLA Currently Paused</h5>
+                <p><strong>Paused Since:</strong> @Model.Ticket.SlaPausedAt.Value.ToString("g")</p>
+                <p><strong>Reason:</strong> @(Model.Ticket.PauseReason ?? "Not specified")</p>
+                <p><strong>Current Pause Duration:</strong> @WebApplication1.Models.SlaPolicy.FormatPausedDuration(DateTime.Now - Model.Ticket.SlaPausedAt.Value)</p>
+            </div>
+        }
+
+        @if (Model.Ticket.TotalPausedDuration > TimeSpan.Zero)
+        {
+            <dl class="row">
+                <dt class="col-sm-3">Total Time Paused</dt>
+                <dd class="col-sm-9">@WebApplication1.Models.SlaPolicy.FormatPausedDuration(Model.Ticket.TotalPausedDuration)</dd>
+            </dl>
+        }
+
+        <!-- Resolution Information -->
+        @if (Model.Ticket.Status == WebApplication1.Models.TicketStatus.Resolved || 
+             Model.Ticket.Status == WebApplication1.Models.TicketStatus.Closed ||
+             Model.Ticket.Status == WebApplication1.Models.TicketStatus.Cancelled)
+        {
+            <hr />
+            <h5>Resolution Details</h5>
+            <dl class="row">
+                @if (Model.Ticket.ResolvedAt.HasValue)
+                {
+                    <dt class="col-sm-3">Resolved At</dt>
+                    <dd class="col-sm-9">@Model.Ticket.ResolvedAt.Value.ToString("g")</dd>
+                }
+                
+                @if (!string.IsNullOrEmpty(Model.Ticket.ResolutionNotes))
+                {
+                    <dt class="col-sm-3">Resolution Notes</dt>
+                    <dd class="col-sm-9">@Model.Ticket.ResolutionNotes</dd>
+                }
+                
+                @if (Model.Ticket.ClosedAt.HasValue)
+                {
+                    <dt class="col-sm-3">Closed At</dt>
+                    <dd class="col-sm-9">@Model.Ticket.ClosedAt.Value.ToString("g")</dd>
+                }
+            </dl>
+        }
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>Time Tracking</h5>
+            </div>
+            <div class="card-body">
+                <p class="h3">@(Model.TotalTimeSpent.Hours)h @(Model.TotalTimeSpent.Minutes)m</p>
+                <p class="text-muted">Total time spent</p>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#logTimeModal">
+                    ⏱️ Log Time
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
-<div>
-    <a asp-page="./Edit" asp-route-id="@Model.Ticket.Id">Edit</a> |
-    <a asp-page="./Index">Back to List</a>
+
+<div class="mb-3">
+    <a asp-page="./Edit" asp-route-id="@Model.Ticket.Id" class="btn btn-primary">Edit</a>
+    <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+</div>
+
+<!-- Activity History Section -->
+<div class="card">
+    <div class="card-header">
+        <h4>Activity History</h4>
+    </div>
+    <div class="card-body">
+        @if (Model.Activities.Any())
+        {
+            <div class="list-group">
+                @foreach (var activity in Model.Activities)
+                {
+                    var bgClass = activity.IsInternal ? "bg-warning bg-opacity-10" : "";
+                    var icon = activity.Type switch {
+                        WebApplication1.Models.ActivityType.Created => "🎫",
+                        WebApplication1.Models.ActivityType.StatusChanged => "🔄",
+                        WebApplication1.Models.ActivityType.Reassigned => "👤",
+                        WebApplication1.Models.ActivityType.TimeRegistered => "⏱️",
+                        WebApplication1.Models.ActivityType.InternalNote => "📝",
+                        WebApplication1.Models.ActivityType.CustomerComment => "💬",
+                        WebApplication1.Models.ActivityType.SeverityChanged => "⚠️",
+                        _ => "📌"
+                    };
+                    var badgeClass = activity.Type switch {
+                        WebApplication1.Models.ActivityType.Created => "bg-success",
+                        WebApplication1.Models.ActivityType.StatusChanged => "bg-primary",
+                        WebApplication1.Models.ActivityType.Reassigned => "bg-info",
+                        WebApplication1.Models.ActivityType.TimeRegistered => "bg-secondary",
+                        WebApplication1.Models.ActivityType.InternalNote => "bg-warning",
+                        WebApplication1.Models.ActivityType.CustomerComment => "bg-info",
+                        WebApplication1.Models.ActivityType.SeverityChanged => "bg-danger",
+                        _ => "bg-secondary"
+                    };
+
+                    <div class="list-group-item @bgClass">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                <span class="me-2">@icon</span>
+                                <span class="badge @badgeClass">@activity.Type</span>
+                                @if (activity.IsInternal)
+                                {
+                                    <span class="badge bg-warning text-dark ms-1">Internal</span>
+                                }
+                            </h6>
+                            <small class="text-muted">@activity.CreatedAt.ToString("g")</small>
+                        </div>
+                        
+                        <p class="mb-1">
+                            <strong>@activity.UserName</strong>
+                            @if (!string.IsNullOrEmpty(activity.Description))
+                            {
+                                <span> - @activity.Description</span>
+                            }
+                        </p>
+                        
+                        @if (activity.TimeSpent.HasValue)
+                        {
+                            <p class="mb-1">
+                                <strong>Time logged:</strong> @(activity.TimeSpent.Value.Hours)h @(activity.TimeSpent.Value.Minutes)m
+                            </p>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(activity.OldValue) || !string.IsNullOrEmpty(activity.NewValue))
+                        {
+                            <p class="mb-1 small">
+                                <span class="text-danger">@activity.OldValue</span>
+                                <span class="text-muted">→</span>
+                                <span class="text-success">@activity.NewValue</span>
+                            </p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">No activity history yet.</p>
+        }
+    </div>
+</div>
+
+<!-- Log Time Modal -->
+<div class="modal fade" id="logTimeModal" tabindex="-1" aria-labelledby="logTimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="LogTime" asp-route-id="@Model.Ticket.Id">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logTimeModalLabel">⏱️ Log Time</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Time Spent</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="Hours" class="form-label">Hours</label>
+                                <input type="number" class="form-control" asp-for="Hours" min="0" max="24" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="Minutes" class="form-label">Minutes</label>
+                                <input type="number" class="form-control" asp-for="Minutes" min="0" max="59" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="TimeDescription" class="form-label">Work Notes</label>
+                        <textarea asp-for="TimeDescription" class="form-control" rows="3" placeholder="Describe the work done..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" asp-for="IsInternal" />
+                        <label class="form-check-label" asp-for="IsInternal">
+                            Internal note (not visible to customer)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Log Time</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>

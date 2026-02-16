@@ -1,0 +1,24 @@
+# .NET Core
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+*.suo
+*.userprefs
+
+# NuGet Packages
+*.nupkg
+packages/
+
+# Other
+.DS_Store
+Thumbs.db
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal

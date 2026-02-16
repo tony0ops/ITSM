@@ -9,4 +9,5 @@ public class ApplicationDbContext : IdentityDbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }
     public DbSet<Ticket> Tickets => Set<Ticket>();
+    public DbSet<TicketActivity> TicketActivities => Set<TicketActivity>();
 }

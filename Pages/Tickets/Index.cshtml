@@ -80,22 +80,70 @@
                 SlaState.Breached => "bg-danger",
                 _ => "bg-secondary"
             };
+            
+            // Severity badge color
+            var severityBadge = item.Severity switch
+            {
+                Severity.Critical => "bg-danger",
+                Severity.High => "bg-warning text-dark",
+                Severity.Medium => "bg-primary",
+                Severity.Low => "bg-info text-dark",
+                Severity.Info => "bg-secondary",
+                _ => "bg-secondary"
+            };
+            
+            // Status badge color
+            var statusBadge = item.Status switch
+            {
+                TicketStatus.New => "bg-primary",
+                TicketStatus.Assigned => "bg-info text-dark",
+                TicketStatus.InProgress => "bg-warning text-dark",
+                TicketStatus.WaitingOnCustomer => "bg-secondary",
+                TicketStatus.WaitingOnVendor => "bg-secondary",
+                TicketStatus.Resolved => "bg-success",
+                TicketStatus.Closed => "bg-dark",
+                TicketStatus.Cancelled => "bg-danger",
+                _ => "bg-light text-dark"
+            };
+            
             <tr>
                 <td>@item.Number</td>
-                <td>@item.Title</td>
-                <td>@item.Severity</td>
-                <td>@item.Status</td>
-                <td>@item.CreatedAt</td>
-                <td>@item.SlaDueAt</td>
                 <td>
-                    <span class="badge @badgeClass">@state</span>
-                    <small class="text-muted ms-1">@remaining</small>
+                    <a asp-page="./Details" asp-route-id="@item.Id">@item.Title</a>
+                </td>
+                <td>
+                    <span class="badge @severityBadge">
+                        @item.Severity
+                    </span>
+                </td>
+                <td>
+                    <span class="badge @statusBadge">
+                        @if (item.Status == TicketStatus.WaitingOnCustomer || item.Status == TicketStatus.WaitingOnVendor)
+                        {
+                            <text>⏸️ </text>
+                        }
+                        @item.Status.ToString().Replace("WaitingOn", "Waiting on ")
+                    </span>
+                </td>
+                <td>@item.CreatedAt.ToString("g")</td>
+                <td>@(item.SlaDueAt?.ToString("g") ?? "-")</td>
+                <td>
+                    @if (SlaPolicy.IsSlaPaused(item.Status))
+                    {
+                        <span class="badge bg-info">⏸️ Paused</span>
+                    }
+                    else
+                    {
+                        <span class="badge @badgeClass">
+                            @state - @remaining
+                        </span>
+                    }
                 </td>
                 <td>@item.CustomerName</td>
                 <td>
-                    <a asp-page="./Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-page="./Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-page="./Delete" asp-route-id="@item.Id">Delete</a>
+                    <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info ms-1">Details</a>
+                    <a asp-page="./Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger ms-1">Delete</a>
                 </td>
             </tr>
         }
