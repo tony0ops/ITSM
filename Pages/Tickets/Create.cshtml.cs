@@ -58,6 +58,11 @@ namespace WebApplication1.Pages.Tickets
             ModelState.Remove("Ticket.CreatedAt");
             ModelState.Remove("Ticket.Status");
             ModelState.Remove("Ticket.ClosedAt");
+            ModelState.Remove("Ticket.SlaPausedAt");
+            ModelState.Remove("Ticket.TotalPausedDuration");
+            ModelState.Remove("Ticket.PauseReason");
+            ModelState.Remove("Ticket.ResolutionNotes");
+            ModelState.Remove("Ticket.ResolvedAt");
 
             if (!ModelState.IsValid)
                 return Page();
