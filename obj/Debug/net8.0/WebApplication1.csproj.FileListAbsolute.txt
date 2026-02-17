@@ -288,8 +288,8 @@ C:\Users\Me\Downloads\WebApplication1-main_Change1\WebApplication1-main\WebAppli
 C:\Users\Me\Downloads\WebApplication1-main_Change1\WebApplication1-main\WebApplication1\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\bin\Debug\net8.0\appsettings.json
-C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\bin\Debug\net8.0\WebApplication1.staticwebassets.endpoints.json
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\bin\Debug\net8.0\WebApplication1.staticwebassets.runtime.json
+C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\bin\Debug\net8.0\WebApplication1.staticwebassets.endpoints.json
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\bin\Debug\net8.0\WebApplication1.exe
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\bin\Debug\net8.0\WebApplication1.deps.json
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\bin\Debug\net8.0\WebApplication1.runtimeconfig.json
@@ -574,4 +574,3 @@ C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0\WebApplication1.pdb
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0\WebApplication1.genruntimeconfig.cache
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0\ref\WebApplication1.dll
-C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

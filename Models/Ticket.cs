@@ -19,7 +19,7 @@ public class Ticket
     public Severity Severity { get; set; } = Severity.Medium;
     public TicketStatus Status { get; set; } = TicketStatus.New;
 
-    // NEW: Categorization
+    // Categorization
     public TicketCategory Category { get; set; } = TicketCategory.GeneralRequest;
     public AssignmentGroup AssignedGroup { get; set; } = AssignmentGroup.Unassigned;
 
@@ -29,15 +29,20 @@ public class Ticket
     [Column("SlaDueUtc")]
     public DateTime? SlaDueAt { get; set; }
 
+    // UPDATED: Customer relationship (Phase 4)
+    public int? CustomerId { get; set; }
+    public Customer? Customer { get; set; }
+
+    // DEPRECATED: Keep for backward compatibility, will be removed in future phase
     [StringLength(200)]
     public string? CustomerName { get; set; }
 
     public string? AssigneeUserId { get; set; }
 
-    [Column("ClosedUtc")]
+    [Column("ClosedUtc")]   
     public DateTime? ClosedAt { get; set; }
 
-    // NEW: SLA Pause tracking
+    // SLA Pause tracking
     public DateTime? SlaPausedAt { get; set; }
 
     [Column(TypeName = "TEXT")]
@@ -46,12 +51,12 @@ public class Ticket
     [StringLength(500)]
     public string? PauseReason { get; set; }
 
-    // NEW: Resolution tracking
+    // Resolution tracking
     [StringLength(2000)]
     public string? ResolutionNotes { get; set; }
 
     public DateTime? ResolvedAt { get; set; }
 
-    // Navigation property (from Phase 1)
+    // Navigation property
     public ICollection<TicketActivity> Activities { get; set; } = new List<TicketActivity>();
 }
