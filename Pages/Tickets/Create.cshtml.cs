@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 
@@ -19,15 +20,25 @@ namespace WebApplication1.Pages.Tickets
             _context = context;
         }
 
+        // NEW: Customer dropdown list
+        public SelectList CustomerList { get; set; } = default!;
+
         public IActionResult OnGet()
         {
+            // Load active customers for dropdown, ordered by company name
+            CustomerList = new SelectList(
+                _context.Customers
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.CompanyName),
+                "Id",
+                "CompanyName"
+            );
             return Page();
         }
 
         [BindProperty]
         public Ticket Ticket { get; set; } = default!;
 
-        // For more information, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
             // System fields (local time)
@@ -53,6 +64,16 @@ namespace WebApplication1.Pages.Tickets
             Ticket.Status = TicketStatus.New;
             Ticket.ClosedAt = null;
 
+            // NEW: Set CustomerName from Customer for backward compatibility
+            if (Ticket.CustomerId.HasValue)
+            {
+                var customer = await _context.Customers.FindAsync(Ticket.CustomerId.Value);
+                if (customer != null)
+                {
+                    Ticket.CustomerName = customer.CompanyName;
+                }
+            }
+
             // Remove prior validation errors for system fields
             ModelState.Remove("Ticket.Number");
             ModelState.Remove("Ticket.CreatedAt");
@@ -63,9 +84,21 @@ namespace WebApplication1.Pages.Tickets
             ModelState.Remove("Ticket.PauseReason");
             ModelState.Remove("Ticket.ResolutionNotes");
             ModelState.Remove("Ticket.ResolvedAt");
+            ModelState.Remove("Ticket.CustomerName");  // NEW: Don't validate deprecated field
+            ModelState.Remove("Ticket.Customer");      // NEW: Don't validate navigation property
 
             if (!ModelState.IsValid)
+            {
+                // Reload customer list if validation fails
+                CustomerList = new SelectList(
+                    _context.Customers
+                        .Where(c => c.IsActive)
+                        .OrderBy(c => c.CompanyName),
+                    "Id",
+                    "CompanyName"
+                );
                 return Page();
+            }
 
             _context.Tickets.Add(Ticket);
             await _context.SaveChangesAsync();

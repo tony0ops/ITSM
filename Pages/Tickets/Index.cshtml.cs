@@ -40,7 +40,10 @@ namespace WebApplication1.Pages.Tickets
 
         public async Task OnGetAsync()
         {
-            var query = _context.Tickets.AsQueryable();
+            // NEW: Include customer data
+            var query = _context.Tickets
+                .Include(t => t.Customer)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(Q))
             {
@@ -48,6 +51,7 @@ namespace WebApplication1.Pages.Tickets
                     t.Title.Contains(Q) ||
                     t.Description.Contains(Q) ||
                     (t.CustomerName != null && t.CustomerName.Contains(Q)) ||
+                    (t.Customer != null && t.Customer.CompanyName.Contains(Q)) ||
                     (t.Number != null && t.Number.Contains(Q)));
             }
 

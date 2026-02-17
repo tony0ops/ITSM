@@ -29,17 +29,21 @@ public class Ticket
     [Column("SlaDueUtc")]
     public DateTime? SlaDueAt { get; set; }
 
-    // UPDATED: Customer relationship (Phase 4)
+    // UPDATED: Customer relationship (Phase 4C)
+    // Foreign key to Customer table
     public int? CustomerId { get; set; }
+    
+    // Navigation property to Customer
     public Customer? Customer { get; set; }
 
-    // DEPRECATED: Keep for backward compatibility, will be removed in future phase
+    // DEPRECATED: Keep for backward compatibility with existing tickets
+    // Will be phased out in future release
     [StringLength(200)]
     public string? CustomerName { get; set; }
 
     public string? AssigneeUserId { get; set; }
 
-    [Column("ClosedUtc")]   
+    [Column("ClosedUtc")]
     public DateTime? ClosedAt { get; set; }
 
     // SLA Pause tracking

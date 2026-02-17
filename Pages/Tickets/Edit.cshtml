@@ -64,7 +64,6 @@
                 </div>
             </div>
 
-            
             @if (Model.Ticket.Status == TicketStatus.WaitingOnCustomer ||
                         Model.Ticket.Status == TicketStatus.WaitingOnVendor)
             {
@@ -75,7 +74,6 @@
                 </div>
             }
 
-            
             @if (Model.Ticket.Status == TicketStatus.Resolved ||
                         Model.Ticket.Status == TicketStatus.Closed ||
                         Model.Ticket.Status == TicketStatus.Cancelled)
@@ -99,10 +97,16 @@
                 <span asp-validation-for="Ticket.SlaDueAt" class="text-danger"></span>
             </div>
 
+            <!-- NEW: Customer Dropdown (replaces old text input) -->
             <div class="mb-3">
-                <label asp-for="Ticket.CustomerName" class="form-label"></label>
-                <input asp-for="Ticket.CustomerName" class="form-control" />
-                <span asp-validation-for="Ticket.CustomerName" class="text-danger"></span>
+                <label asp-for="Ticket.CustomerId" class="form-label">Customer</label>
+                <select asp-for="Ticket.CustomerId" class="form-select" asp-items="Model.CustomerList">
+                    <option value="">-- Select Customer (Optional) --</option>
+                </select>
+                <span asp-validation-for="Ticket.CustomerId" class="text-danger"></span>
+                <div class="form-text">
+                    <a asp-page="/Customers/Create" target="_blank">+ Add New Customer</a>
+                </div>
             </div>
 
             <div class="mb-3">

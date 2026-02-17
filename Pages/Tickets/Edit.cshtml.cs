@@ -23,6 +23,9 @@ namespace WebApplication1.Pages.Tickets
         [BindProperty]
         public Ticket Ticket { get; set; } = default!;
 
+        // NEW: Customer list for dropdown
+        public SelectList CustomerList { get; set; } = default!;
+
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
@@ -35,6 +38,16 @@ namespace WebApplication1.Pages.Tickets
             {
                 return NotFound();
             }
+
+            // NEW: Load customer list
+            CustomerList = new SelectList(
+                _context.Customers
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.CompanyName),
+                "Id",
+                "CompanyName"
+            );
+
             Ticket = ticket;
             return Page();
         }
@@ -52,6 +65,8 @@ namespace WebApplication1.Pages.Tickets
             ModelState.Remove("Ticket.ClosedAt");
             ModelState.Remove("Ticket.SlaPausedAt");
             ModelState.Remove("Ticket.TotalPausedDuration");
+            ModelState.Remove("Ticket.CustomerName");
+            ModelState.Remove("Ticket.Customer");
 
             if (!ModelState.IsValid)
             {
@@ -179,6 +194,22 @@ namespace WebApplication1.Pages.Tickets
             existing.Severity = Ticket.Severity;
             existing.CustomerName = Ticket.CustomerName;
             existing.AssigneeUserId = Ticket.AssigneeUserId;
+
+            // Update customer reference
+            if (Ticket.CustomerId.HasValue && Ticket.CustomerId != existing.CustomerId)
+            {
+                var customer = await _context.Customers.FindAsync(Ticket.CustomerId.Value);
+                if (customer != null)
+                {
+                    existing.CustomerId = Ticket.CustomerId.Value;
+                    existing.CustomerName = customer.CompanyName;
+                }
+            }
+            else if (!Ticket.CustomerId.HasValue && existing.CustomerId.HasValue)
+            {
+                existing.CustomerId = null;
+                existing.CustomerName = null;
+            }
 
             // SLA logic:
             // - if user set a deadline => keep it
