@@ -1,0 +1,218 @@
+﻿@page
+@model WebApplication1.Pages.Customers.DetailsModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Customer Details</h1>
+    <div>
+        <a asp-page="./Edit" asp-route-id="@Model.Customer.Id" class="btn btn-primary">Edit</a>
+        <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Customer Info -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">@Model.Customer.CompanyName</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.Customer.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Created</dt>
+                    <dd class="col-sm-8">@Model.Customer.CreatedAt.ToString("g")</dd>
+
+                    <dt class="col-sm-4">Address</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Customer.Address))
+                        {
+                            <text>@Model.Customer.Address</text><br />
+                            <text>@Model.Customer.City, @Model.Customer.State @Model.Customer.PostalCode</text><br />
+                            <text>@Model.Customer.Country</text>
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Contacts</h5>
+            </div>
+            <div class="card-body">
+                <h6>Primary Contact</h6>
+                <dl class="row">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">@(Model.Customer.PrimaryContactName ?? "-")</dd>
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Customer.PrimaryEmail))
+                        {
+                            <a href="mailto:@Model.Customer.PrimaryEmail">@Model.Customer.PrimaryEmail</a>
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </dd>
+                    <dt class="col-sm-4">Phone</dt>
+                    <dd class="col-sm-8">@(Model.Customer.PrimaryPhone ?? "-")</dd>
+                </dl>
+
+                <hr />
+
+                <h6>Escalation Contact</h6>
+                <dl class="row">
+                    <dt class="col-sm-4">Name</dt>
+                    <dd class="col-sm-8">@(Model.Customer.EscalationContactName ?? "-")</dd>
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.Customer.EscalationEmail))
+                        {
+                            <a href="mailto:@Model.Customer.EscalationEmail">@Model.Customer.EscalationEmail</a>
+                        }
+                        else
+                        {
+                            <text>-</text>
+                        }
+                    </dd>
+                    <dt class="col-sm-4">Phone</dt>
+                    <dd class="col-sm-8">@(Model.Customer.EscalationPhone ?? "-")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- Billing & Stats -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Account Management</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">Account Manager</dt>
+                    <dd class="col-sm-7">@(Model.Customer.AccountManager ?? "-")</dd>
+
+                    <dt class="col-sm-5">Hourly Rate</dt>
+                    <dd class="col-sm-7">@Model.Customer.HourlyRate.ToString("C")</dd>
+
+                    <dt class="col-sm-5">Total Hours Billed</dt>
+                    <dd class="col-sm-7">@Model.TotalHoursBilled.ToString("F2") hrs</dd>
+
+                    <dt class="col-sm-5">Total Revenue</dt>
+                    <dd class="col-sm-7"><strong>@Model.TotalRevenue.ToString("C")</strong></dd>
+
+                    <dt class="col-sm-5">Notes</dt>
+                    <dd class="col-sm-7">@(Model.Customer.Notes ?? "-")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0">Ticket Statistics</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-5">Total Tickets</dt>
+                    <dd class="col-sm-7"><span class="badge bg-primary">@Model.Tickets.Count</span></dd>
+
+                    <dt class="col-sm-5">Open Tickets</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-info">
+                            @Model.Tickets.Count(t => t.Status != TicketStatus.Closed && t.Status != TicketStatus.Resolved)
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-5">Closed Tickets</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-success">
+                            @Model.Tickets.Count(t => t.Status == TicketStatus.Closed || t.Status == TicketStatus.Resolved)
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tickets List -->
+<div class="card mt-4">
+    <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">Tickets (@Model.Tickets.Count)</h5>
+    </div>
+    <div class="card-body">
+        @if (!Model.Tickets.Any())
+        {
+            <p class="text-muted">No tickets found for this customer.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Number</th>
+                            <th>Title</th>
+                            <th>Status</th>
+                            <th>Severity</th>
+                            <th>Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ticket in Model.Tickets)
+                        {
+                            <tr>
+                                <td>@ticket.Number</td>
+                                <td>@ticket.Title</td>
+                                <td>
+                                    <span class="badge bg-@(ticket.Status switch {
+                                        TicketStatus.New => "primary",
+                                        TicketStatus.InProgress => "info",
+                                        TicketStatus.Resolved => "success",
+                                        TicketStatus.Closed => "secondary",
+                                        _ => "secondary"
+                                    })">@ticket.Status</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-@(ticket.Severity switch {
+                                        Severity.Critical => "danger",
+                                        Severity.High => "warning text-dark",
+                                        Severity.Medium => "info",
+                                        _ => "secondary"
+                                    })">@ticket.Severity</span>
+                                </td>
+                                <td>@ticket.CreatedAt.ToString("g")</td>
+                                <td>
+                                    <a asp-page="/Tickets/Details" asp-route-id="@ticket.Id" class="btn btn-sm btn-outline-info">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

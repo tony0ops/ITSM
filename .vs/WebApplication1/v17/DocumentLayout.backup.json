@@ -3,24 +3,36 @@
   "WorkspaceRootPath": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\details.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\details.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\edit.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\edit.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\edit.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\ticket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\ticket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\customers\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:pages\\customers\\index.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\data\\applicationdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -29,6 +41,14 @@
     {
       "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\customer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\customer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\app.db||{25834150-CD7E-11D0-92DF-00A0C9138C45}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:app.db||{25834150-CD7E-11D0-92DF-00A0C9138C45}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\models\\ticket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|solutionrelative:models\\ticket.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B88AAD2C-6FB4-40A1-801A-6CA6568CFFF3}|WebApplication1.csproj|c:\\users\\me\\desktop\\project\\itsmm\\webapplication\\webapplication\\pages\\tickets\\create.cshtml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -118,37 +138,115 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Create.cshtml.cs",
-              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Create.cshtml.cs",
-              "RelativeDocumentMoniker": "Pages\\Customers\\Create.cshtml.cs",
-              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Create.cshtml.cs",
-              "RelativeToolTip": "Pages\\Customers\\Create.cshtml.cs",
-              "ViewState": "AgIAAAsAAAAAAAAAAAAAwCcAAAABAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "Details.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Details.cshtml.cs",
+              "RelativeDocumentMoniker": "Pages\\Customers\\Details.cshtml.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Details.cshtml.cs",
+              "RelativeToolTip": "Pages\\Customers\\Details.cshtml.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAqwDUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-17T21:27:28.623Z",
+              "WhenOpened": "2026-02-17T22:04:48.967Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
+              "Title": "Details.cshtml",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Details.cshtml",
+              "RelativeDocumentMoniker": "Pages\\Customers\\Details.cshtml",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Details.cshtml",
+              "RelativeToolTip": "Pages\\Customers\\Details.cshtml",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAqwNkAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-17T22:04:47.107Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Edit.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Edit.cshtml.cs",
+              "RelativeDocumentMoniker": "Pages\\Customers\\Edit.cshtml.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Edit.cshtml.cs",
+              "RelativeToolTip": "Pages\\Customers\\Edit.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-17T22:03:19.903Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Edit.cshtml",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Edit.cshtml",
+              "RelativeDocumentMoniker": "Pages\\Customers\\Edit.cshtml",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Edit.cshtml",
+              "RelativeToolTip": "Pages\\Customers\\Edit.cshtml",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAqwJAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-17T22:03:09.586Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "Create.cshtml",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Create.cshtml",
               "RelativeDocumentMoniker": "Pages\\Customers\\Create.cshtml",
               "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Create.cshtml",
               "RelativeToolTip": "Pages\\Customers\\Create.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAI8AAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAHEAAAAAAAAAAAAqwI8AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-02-17T21:27:18.741Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 9,
+              "Title": "Customer.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Customer.cs",
+              "RelativeDocumentMoniker": "Models\\Customer.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Customer.cs",
+              "RelativeToolTip": "Models\\Customer.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAA8wFAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-17T21:18:42.298Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ApplicationDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Data\\ApplicationDbContext.cs",
+              "RelativeDocumentMoniker": "Data\\ApplicationDbContext.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Data\\ApplicationDbContext.cs",
+              "RelativeToolTip": "Data\\ApplicationDbContext.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-17T21:21:40.097Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Index.cshtml",
+              "RelativeDocumentMoniker": "Pages\\Customers\\Index.cshtml",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Index.cshtml",
+              "RelativeToolTip": "Pages\\Customers\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-02-17T21:26:49.659Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "Index.cshtml.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Index.cshtml.cs",
               "RelativeDocumentMoniker": "Pages\\Customers\\Index.cshtml.cs",
@@ -161,46 +259,31 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Index.cshtml",
-              "RelativeDocumentMoniker": "Pages\\Customers\\Index.cshtml",
-              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Index.cshtml",
-              "RelativeToolTip": "Pages\\Customers\\Index.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2026-02-17T21:26:49.659Z",
-              "EditorCaption": ""
+              "DocumentIndex": 10,
+              "Title": "app.db",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\app.db",
+              "RelativeDocumentMoniker": "app.db",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\app.db",
+              "RelativeToolTip": "app.db",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAICSURBVDhPrZXNa9JhAIAfx6iZBM7EpWBTpzMdW6tZsA5F0K1T3QZBHwuCgsFYTiaYRFGE7NAH0aAoYtCl/8EOoRteNkhL13TiRqMlBFux\u002BfupXRL09Wfp6Dm9H8/7wHt5XxV/mPJ5M1C2VOaNUa3IJc6HQqEFcYdyuayqjKd8t8p37t6vFRQIBvyo1eofmz\u002B3zyhF28SFZrh8ZVS7X9MR9nq9g\u002BLeroIHjaaG0V0F\u002BUu0vVarZXV9g\u002BRyDrfDgtGgA0Cr1RIM\u002BKs1bXsbYaCTRsFf2zssflqmsFNgc2uLxFKadDaHw2ZmfGJS1AkG/NrKWPHK8VSGbxt5SqUingEXxaJMdvUrubV1Ua1DMTjosiPLMnaLGeshE05bN7Is0e9yiGodisF4Ko0kFYgnv7CUzrKYSCFJEu8jMVGtQzFo7NJjNOiRJInwh3mKsoxB38nw0BFRrUMx2KXXcXp4iAGXg469e3A7bZw9dZJMLsdNX4CFj3G\u002B5/PiMWgUrNBtNjFy4RzOHitPXrzm\u002BatZ\u002BnrtPHo2w8zLN6IO/wpW43b00Ndr58boJfpdh\u002Bl12EQFWgkmPieZj8WYfvyUSHSOSDQqKtBK8OrFEcauXyManWNyfIx7wduiAq0E9Qd0eI4d5d3bWU4c96DR7BMVaCXYLP89WPViT2RA1cQXoER55cHDaSvAb9pFqY18f9aRAAAAAElFTkSuQmCC",
+              "WhenOpened": "2026-02-17T21:42:56.185Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "ApplicationDbContext.cs",
-              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Data\\ApplicationDbContext.cs",
-              "RelativeDocumentMoniker": "Data\\ApplicationDbContext.cs",
-              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Data\\ApplicationDbContext.cs",
-              "RelativeToolTip": "Data\\ApplicationDbContext.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAAAAAAAAAAAAA==",
+              "Title": "Create.cshtml.cs",
+              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Create.cshtml.cs",
+              "RelativeDocumentMoniker": "Pages\\Customers\\Create.cshtml.cs",
+              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Customers\\Create.cshtml.cs",
+              "RelativeToolTip": "Pages\\Customers\\Create.cshtml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-17T21:21:40.097Z",
+              "WhenOpened": "2026-02-17T21:27:28.623Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Customer.cs",
-              "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Customer.cs",
-              "RelativeDocumentMoniker": "Models\\Customer.cs",
-              "ToolTip": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Customer.cs",
-              "RelativeToolTip": "Models\\Customer.cs",
-              "ViewState": "AgIAAEUAAAAAAAAAAAAuwFAAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-02-17T21:18:42.298Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 12,
               "Title": "Create.cshtml.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Create.cshtml.cs",
               "RelativeDocumentMoniker": "Pages\\Tickets\\Create.cshtml.cs",
@@ -213,7 +296,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 15,
               "Title": "Index.cshtml.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Index.cshtml.cs",
               "RelativeDocumentMoniker": "Pages\\Tickets\\Index.cshtml.cs",
@@ -226,7 +309,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 11,
               "Title": "Ticket.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Ticket.cs",
               "RelativeDocumentMoniker": "Models\\Ticket.cs",
@@ -239,7 +322,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 16,
               "Title": "_TicketTable.cshtml",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Shared\\_TicketTable.cshtml",
               "RelativeDocumentMoniker": "Pages\\Tickets\\Shared\\_TicketTable.cshtml",
@@ -252,7 +335,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 14,
               "Title": "Edit.cshtml.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Edit.cshtml.cs",
               "RelativeDocumentMoniker": "Pages\\Tickets\\Edit.cshtml.cs",
@@ -265,7 +348,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 13,
               "Title": "Create.cshtml",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Create.cshtml",
               "RelativeDocumentMoniker": "Pages\\Tickets\\Create.cshtml",
@@ -278,7 +361,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 17,
               "Title": "MyGroupQueue.cshtml.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\MyGroupQueue.cshtml.cs",
               "RelativeDocumentMoniker": "Pages\\Tickets\\MyGroupQueue.cshtml.cs",
@@ -291,7 +374,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 18,
               "Title": "MyGroupQueue.cshtml",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\MyGroupQueue.cshtml",
               "RelativeDocumentMoniker": "Pages\\Tickets\\MyGroupQueue.cshtml",
@@ -304,7 +387,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 21,
               "Title": "NewQueue.cshtml.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\NewQueue.cshtml.cs",
               "RelativeDocumentMoniker": "Pages\\Tickets\\NewQueue.cshtml.cs",
@@ -317,7 +400,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 20,
               "Title": "NewQueue.cshtml",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\NewQueue.cshtml",
               "RelativeDocumentMoniker": "Pages\\Tickets\\NewQueue.cshtml",
@@ -330,7 +413,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 22,
               "Title": "Edit.cshtml",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Edit.cshtml",
               "RelativeDocumentMoniker": "Pages\\Tickets\\Edit.cshtml",
@@ -343,7 +426,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 23,
               "Title": "AssignmentGroup.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\AssignmentGroup.cs",
               "RelativeDocumentMoniker": "Models\\AssignmentGroup.cs",
@@ -356,7 +439,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 19,
               "Title": "Index.cshtml",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Index.cshtml",
               "RelativeDocumentMoniker": "Pages\\Tickets\\Index.cshtml",
@@ -369,7 +452,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 24,
               "Title": "TicketCategory.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\TicketCategory.cs",
               "RelativeDocumentMoniker": "Models\\TicketCategory.cs",
@@ -382,7 +465,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 29,
               "Title": "Details.cshtml",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Pages\\Tickets\\Details.cshtml",
               "RelativeDocumentMoniker": "Pages\\Tickets\\Details.cshtml",
@@ -394,7 +477,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 28,
               "Title": "SlaPolicy.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\SlaPolicy.cs",
               "RelativeDocumentMoniker": "Models\\SlaPolicy.cs",
@@ -406,7 +489,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 25,
               "Title": "TicketActivity.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\TicketActivity.cs",
               "RelativeDocumentMoniker": "Models\\TicketActivity.cs",
@@ -419,7 +502,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 27,
               "Title": "ActivityType.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\ActivityType.cs",
               "RelativeDocumentMoniker": "Models\\ActivityType.cs",
@@ -431,7 +514,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 26,
               "Title": "WebApplication1.csproj",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\WebApplication1.csproj",
               "RelativeDocumentMoniker": "WebApplication1.csproj",
@@ -443,7 +526,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 30,
               "Title": "Severity.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\Severity.cs",
               "RelativeDocumentMoniker": "Models\\Severity.cs",
@@ -455,7 +538,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 31,
               "Title": "TicketStatus.cs",
               "DocumentMoniker": "C:\\Users\\Me\\Desktop\\Project\\ITSMM\\WebApplication\\WebApplication\\Models\\TicketStatus.cs",
               "RelativeDocumentMoniker": "Models\\TicketStatus.cs",

@@ -3,7 +3,6 @@
 
 @{
     ViewData["Title"] = "Customers";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -15,7 +14,7 @@
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-4">
-        <input class="form-control" name="search" value="@Model.SearchTerm" 
+        <input class="form-control" name="search" value="@Model.SearchTerm"
                placeholder="Search by company, contact, email..." />
     </div>
     <div class="col-md-2">

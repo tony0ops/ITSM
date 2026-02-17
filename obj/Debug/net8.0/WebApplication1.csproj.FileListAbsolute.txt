@@ -574,3 +574,4 @@ C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0\WebApplication1.pdb
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0\WebApplication1.genruntimeconfig.cache
 C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0\ref\WebApplication1.dll
+C:\Users\Me\Desktop\Project\ITSMM\WebApplication\WebApplication\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

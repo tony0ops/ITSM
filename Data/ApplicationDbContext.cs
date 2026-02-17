@@ -8,20 +8,16 @@ public class ApplicationDbContext : IdentityDbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }
-    
+
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<TicketActivity> TicketActivities => Set<TicketActivity>();
-    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Customer> Customers => Set<Customer>();  // NEW LINE
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configure Customer-Ticket relationship
-        modelBuilder.Entity<Ticket>()
-            .HasOne(t => t.Customer)
-            .WithMany(c => c.Tickets)
-            .HasForeignKey(t => t.CustomerId)
-            .OnDelete(DeleteBehavior.SetNull);  // Don't delete tickets if customer is deleted
+        // Configure Customer-Ticket relationship (OPTIONAL for now - we'll add FK later)
+        // This allows us to add Customers first without breaking existing tickets
     }
 }

@@ -3,7 +3,6 @@
 
 @{
     ViewData["Title"] = "Add Customer";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <h1>Add New Customer</h1>
@@ -20,10 +19,9 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label asp-for="Customer.CompanyName" class="form-label">
-                            <span class="text-danger">*</span>
-                        </label>
-                        <input asp-for="Customer.CompanyName" class="form-control" required />
+                        <label asp-for="Customer.CompanyName" class="form-label"></label>
+                        <span class="text-danger">*</span>
+                        <input asp-for="Customer.CompanyName" class="form-control" />
                         <span asp-validation-for="Customer.CompanyName" class="text-danger"></span>
                     </div>
 
@@ -140,5 +138,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
