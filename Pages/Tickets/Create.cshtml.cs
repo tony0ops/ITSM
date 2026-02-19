@@ -2,42 +2,43 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Pages.Tickets
 {
     public class CreateModel : PageModel
     {
-        private readonly WebApplication1.Data.ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
+        private readonly SelectListService _selectListService;
 
-        public CreateModel(WebApplication1.Data.ApplicationDbContext context)
+        public CreateModel(
+            ApplicationDbContext context,
+            SelectListService selectListService)
         {
             _context = context;
+            _selectListService = selectListService;
         }
 
-        // NEW: Customer dropdown list
-        public SelectList CustomerList { get; set; } = default!;
-
-        public IActionResult OnGet()
+        public async Task<IActionResult> OnGetAsync()
         {
-            // Load active customers for dropdown, ordered by company name
-            CustomerList = new SelectList(
-                _context.Customers
-                    .Where(c => c.IsActive)
-                    .OrderBy(c => c.CompanyName),
-                "Id",
-                "CompanyName"
-            );
+            // Load dropdown lists
+            CustomerList = _selectListService.GetActiveCustomers();
+            AssigneeList = await _selectListService.GetUsersAsync();
+
             return Page();
         }
 
         [BindProperty]
         public Ticket Ticket { get; set; } = default!;
+
+        public SelectList CustomerList { get; set; } = default!;
+        public SelectList AssigneeList { get; set; } = default!;
 
         public async Task<IActionResult> OnPostAsync()
         {
@@ -60,11 +61,7 @@ namespace WebApplication1.Pages.Tickets
                 Ticket.SlaDueAt = Ticket.CreatedAt + SlaPolicy.GetSlaDuration(Ticket.Severity);
             }
 
-            // Enforce New status on creation
-            Ticket.Status = TicketStatus.New;
-            Ticket.ClosedAt = null;
-
-            // NEW: Set CustomerName from Customer for backward compatibility
+            // Set CustomerName from Customer for backward compatibility
             if (Ticket.CustomerId.HasValue)
             {
                 var customer = await _context.Customers.FindAsync(Ticket.CustomerId.Value);
@@ -73,6 +70,10 @@ namespace WebApplication1.Pages.Tickets
                     Ticket.CustomerName = customer.CompanyName;
                 }
             }
+
+            // Enforce New status on creation
+            Ticket.Status = TicketStatus.New;
+            Ticket.ClosedAt = null;
 
             // Remove prior validation errors for system fields
             ModelState.Remove("Ticket.Number");
@@ -84,19 +85,14 @@ namespace WebApplication1.Pages.Tickets
             ModelState.Remove("Ticket.PauseReason");
             ModelState.Remove("Ticket.ResolutionNotes");
             ModelState.Remove("Ticket.ResolvedAt");
-            ModelState.Remove("Ticket.CustomerName");  // NEW: Don't validate deprecated field
-            ModelState.Remove("Ticket.Customer");      // NEW: Don't validate navigation property
+            ModelState.Remove("Ticket.CustomerName");
+            ModelState.Remove("Ticket.Customer");
 
             if (!ModelState.IsValid)
             {
-                // Reload customer list if validation fails
-                CustomerList = new SelectList(
-                    _context.Customers
-                        .Where(c => c.IsActive)
-                        .OrderBy(c => c.CompanyName),
-                    "Id",
-                    "CompanyName"
-                );
+                // Reload dropdowns on validation error
+                CustomerList = _selectListService.GetActiveCustomers();
+                AssigneeList = await _selectListService.GetUsersAsync();
                 return Page();
             }
 

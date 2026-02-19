@@ -8,23 +8,28 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Pages.Tickets
 {
     public class EditModel : PageModel
     {
-        private readonly WebApplication1.Data.ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
+        private readonly SelectListService _selectListService;
 
-        public EditModel(WebApplication1.Data.ApplicationDbContext context)
+        public EditModel(
+            ApplicationDbContext context,
+            SelectListService selectListService)
         {
             _context = context;
+            _selectListService = selectListService;
         }
 
         [BindProperty]
         public Ticket Ticket { get; set; } = default!;
 
-        // NEW: Customer list for dropdown
         public SelectList CustomerList { get; set; } = default!;
+        public SelectList AssigneeList { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -39,14 +44,9 @@ namespace WebApplication1.Pages.Tickets
                 return NotFound();
             }
 
-            // NEW: Load customer list
-            CustomerList = new SelectList(
-                _context.Customers
-                    .Where(c => c.IsActive)
-                    .OrderBy(c => c.CompanyName),
-                "Id",
-                "CompanyName"
-            );
+            // Load dropdowns
+            CustomerList = _selectListService.GetActiveCustomers();
+            AssigneeList = await _selectListService.GetUsersAsync();
 
             Ticket = ticket;
             return Page();
@@ -59,7 +59,7 @@ namespace WebApplication1.Pages.Tickets
             var existing = await _context.Tickets.FirstOrDefaultAsync(t => t.Id == Ticket.Id);
             if (existing == null) return NotFound();
 
-            // Remove validation for system fields we don't edit here
+            // Remove validation for system fields
             ModelState.Remove("Ticket.Number");
             ModelState.Remove("Ticket.CreatedAt");
             ModelState.Remove("Ticket.ClosedAt");
@@ -70,6 +70,9 @@ namespace WebApplication1.Pages.Tickets
 
             if (!ModelState.IsValid)
             {
+                // Reload dropdowns on validation error
+                CustomerList = _selectListService.GetActiveCustomers();
+                AssigneeList = await _selectListService.GetUsersAsync();
                 return Page();
             }
 
@@ -77,6 +80,8 @@ namespace WebApplication1.Pages.Tickets
             if (Ticket.SlaDueAt.HasValue && Ticket.SlaDueAt.Value < existing.CreatedAt)
             {
                 ModelState.AddModelError("Ticket.SlaDueAt", "Deadline cannot be earlier than Created time.");
+                CustomerList = _selectListService.GetActiveCustomers();
+                AssigneeList = await _selectListService.GetUsersAsync();
                 return Page();
             }
 
@@ -87,7 +92,6 @@ namespace WebApplication1.Pages.Tickets
             // Track status change
             if (existing.Status != Ticket.Status)
             {
-                // Handle SLA pause/resume logic
                 var wasSlaPaused = SlaPolicy.IsSlaPaused(existing.Status);
                 var willBeSlaPaused = SlaPolicy.IsSlaPaused(Ticket.Status);
 
@@ -192,8 +196,9 @@ namespace WebApplication1.Pages.Tickets
             existing.Title = Ticket.Title;
             existing.Description = Ticket.Description;
             existing.Severity = Ticket.Severity;
-            existing.CustomerName = Ticket.CustomerName;
             existing.AssigneeUserId = Ticket.AssigneeUserId;
+            existing.AssignedGroup = Ticket.AssignedGroup;
+            existing.Category = Ticket.Category;
 
             // Update customer reference
             if (Ticket.CustomerId.HasValue && Ticket.CustomerId != existing.CustomerId)
@@ -211,9 +216,7 @@ namespace WebApplication1.Pages.Tickets
                 existing.CustomerName = null;
             }
 
-            // SLA logic:
-            // - if user set a deadline => keep it
-            // - if user cleared it => recalc from severity
+            // SLA logic: keep user-set deadline or auto-calc from severity
             if (Ticket.SlaDueAt.HasValue)
                 existing.SlaDueAt = Ticket.SlaDueAt.Value;
             else

@@ -4,42 +4,42 @@
 @using WebApplication1.Models
 
 @{
-    ViewData["Title"] = "Create Ticket";
+    ViewData["Title"] = "Create";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Create New Ticket</h1>
+<h1>Create Ticket</h1>
 
-<h4>Ticket Details</h4>
+<h4>New Ticket</h4>
 <hr />
 <div class="row">
     <div class="col-md-6">
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
             
-            <div class="form-group mb-3">
-                <span class="text-danger">*</span>
+            <div class="mb-3">
                 <label asp-for="Ticket.Title" class="form-label"></label>
+                <span class="text-danger">*</span>
                 <input asp-for="Ticket.Title" class="form-control" aria-required="true" />
                 <span asp-validation-for="Ticket.Title" class="text-danger"></span>
             </div>
 
-            <div class="form-group mb-3">
-                <span class="text-danger">*</span>
+            <div class="mb-3">
                 <label asp-for="Ticket.Description" class="form-label"></label>
+                <span class="text-danger">*</span>
                 <textarea asp-for="Ticket.Description" class="form-control" rows="4" aria-required="true"></textarea>
                 <span asp-validation-for="Ticket.Description" class="text-danger"></span>
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-6 mb-3">
                     <label asp-for="Ticket.Severity" class="form-label"></label>
                     <select asp-for="Ticket.Severity" class="form-select"
                             asp-items="Html.GetEnumSelectList<Severity>()"></select>
                     <span asp-validation-for="Ticket.Severity" class="text-danger"></span>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-6 mb-3">
                     <label asp-for="Ticket.Category" class="form-label"></label>
                     <select asp-for="Ticket.Category" class="form-select"
                             asp-items="Html.GetEnumSelectList<TicketCategory>()"></select>
@@ -47,23 +47,44 @@
                 </div>
             </div>
 
-            <div class="form-group mb-3">
+            <!-- Customer Dropdown -->
+            <div class="mb-3">
                 <label asp-for="Ticket.CustomerId" class="form-label">Customer</label>
-                <select asp-for="Ticket.CustomerId" class="form-select"
-                        asp-items="Model.CustomerList">
-                    <option value="">-- Select a Customer --</option>
+                <select asp-for="Ticket.CustomerId" class="form-select" asp-items="Model.CustomerList">
+                    <option value="">-- No Customer --</option>
                 </select>
                 <span asp-validation-for="Ticket.CustomerId" class="text-danger"></span>
+                <div class="form-text">
+                    <a asp-page="/Customers/Create" target="_blank">+ Add New Customer</a>
+                </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Ticket.SlaDueAt" class="form-label">Deadline (Optional)</label>
+            <!-- Assignee Dropdown -->
+            <div class="mb-3">
+                <label asp-for="Ticket.AssigneeUserId" class="form-label">Assign To</label>
+                <select asp-for="Ticket.AssigneeUserId" class="form-select" asp-items="Model.AssigneeList">
+                    <option value="">-- Unassigned --</option>
+                </select>
+                <span asp-validation-for="Ticket.AssigneeUserId" class="text-danger"></span>
+            </div>
+
+            <!-- Assignment Group -->
+            <div class="mb-3">
+                <label asp-for="Ticket.AssignedGroup" class="form-label">Assignment Group</label>
+                <select asp-for="Ticket.AssignedGroup" class="form-select"
+                        asp-items="Html.GetEnumSelectList<AssignmentGroup>()"></select>
+                <span asp-validation-for="Ticket.AssignedGroup" class="text-danger"></span>
+            </div>
+
+            <!-- Deadline -->
+            <div class="mb-3">
+                <label asp-for="Ticket.SlaDueAt" class="form-label">Deadline</label>
                 <input asp-for="Ticket.SlaDueAt" type="datetime-local" class="form-control" />
-                <small class="form-text text-muted">Leave empty to auto-calculate from Severity.</small>
+                <div class="form-text">Leave empty to auto-calculate from Severity.</div>
                 <span asp-validation-for="Ticket.SlaDueAt" class="text-danger"></span>
             </div>
 
-            <div class="form-group mb-3">
+            <div class="mb-3">
                 <button type="submit" class="btn btn-primary">Create Ticket</button>
                 <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
             </div>

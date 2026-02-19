@@ -110,8 +110,10 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Ticket.AssigneeUserId" class="form-label"></label>
-                <input asp-for="Ticket.AssigneeUserId" class="form-control" />
+                <label asp-for="Ticket.AssigneeUserId" class="form-label">Assign To User (Optional)</label>
+                <select asp-for="Ticket.AssigneeUserId" class="form-select" asp-items="Model.AssigneeList">
+                    <option value="">-- Unassigned --</option>
+                </select>
                 <span asp-validation-for="Ticket.AssigneeUserId" class="text-danger"></span>
             </div>
 

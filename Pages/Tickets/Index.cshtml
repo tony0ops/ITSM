@@ -8,181 +8,229 @@
 }
 
 <h1>Tickets</h1>
-<form method="get" class="row g-2 mb-3">
-    <div class="col-md-3">
-        <input class="form-control" name="q" value="@Model.Q" placeholder="Search title/description/customer..." />
-    </div>
 
-    <div class="col-md-2">
-        <select class="form-select" name="status">
-            <option value="">All statuses</option>
-            @foreach (var s in Enum.GetValues<WebApplication1.Models.TicketStatus>())
-            {
-                <option value="@s" selected="@(Model.Status == s)">@s</option>
-            }
-        </select>
-    </div>
+<!-- Unified Filter Form -->
+<form method="get" class="mb-3">
+    <div class="row g-2 mb-2">
+        <div class="col-md-3">
+            <input class="form-control" name="q" value="@Model.Q" placeholder="Search..." />
+        </div>
 
-    <div class="col-md-2">
-        <select class="form-select" name="severity">
-            <option value="">All severities</option>
-            @foreach (var s in Enum.GetValues<WebApplication1.Models.Severity>())
-            {
-                <option value="@s" selected="@(Model.Severity == s)">@s</option>
-            }
-        </select>
-    </div>
+        <div class="col-md-2">
+            <select class="form-select" name="status">
+                <option value="">All statuses</option>
+                @foreach (var s in Enum.GetValues<TicketStatus>())
+                {
+                    <option value="@s" selected="@(Model.Status == s)">@s.ToString().Replace("WaitingOn", "Wait: ")</option>
+                }
+            </select>
+        </div>
 
-    <div class="col-md-2">
-        <select class="form-select" name="category">
-            <option value="">All Categories</option>
-            @foreach (var c in Enum.GetValues<TicketCategory>())
-            {
-                <option value="@c" selected="@(Model.Category == c)">@c.ToString().Replace("GeneralRequest", "General")</option>
-            }
-        </select>
-    </div>
+        <div class="col-md-2">
+            <select class="form-select" name="severity">
+                <option value="">All severities</option>
+                @foreach (var sev in Enum.GetValues<Severity>())
+                {
+                    <option value="@sev" selected="@(Model.Severity == sev)">@sev</option>
+                }
+            </select>
+        </div>
 
-    <div class="col-md-2">
-        <select class="form-select" name="group">
-            <option value="">All Groups</option>
-            @foreach (var g in Enum.GetValues<AssignmentGroup>())
-            {
-                <option value="@g" selected="@(Model.Group == g)">@g.ToString().Replace("_", " ")</option>
-            }
-        </select>
+        <div class="col-md-2">
+            <select class="form-select" name="category">
+                <option value="">All Categories</option>
+                @foreach (var cat in Enum.GetValues<TicketCategory>())
+                {
+                    <option value="@cat" selected="@(Model.Category == cat)">@cat.ToString().Replace("GeneralRequest", "General")</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <select class="form-select" name="group">
+                <option value="">All Groups</option>
+                @foreach (var grp in Enum.GetValues<AssignmentGroup>())
+                {
+                    <option value="@grp" selected="@(Model.Group == grp)">@grp.ToString().Replace("_", " ")</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-1">
+            <select class="form-select" name="sla">
+                <option value="">SLA</option>
+                <option value="atrisk" selected="@(Model.Sla == "atrisk")">At risk</option>
+                <option value="green" selected="@(Model.Sla == "green")">Green</option>
+                <option value="yellow" selected="@(Model.Sla == "yellow")">Yellow</option>
+                <option value="red" selected="@(Model.Sla == "red")">Red</option>
+                <option value="breached" selected="@(Model.Sla == "breached")">Breach</option>
+            </select>
+        </div>
+    </div>
+    
+    <div class="row g-2">
+        <div class="col-auto">
+            <button class="btn btn-primary" type="submit">
+                <i class="bi bi-funnel"></i> Filter
+            </button>
+        </div>
+        <div class="col-auto">
+            <a asp-page="Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Create New
+            </a>
+        </div>
     </div>
 </form>
 
-<form method="get" class="row g-2 mb-3">
-    <div class="col-md-2">
-        <select class="form-select" name="sla">
-            <option value="">All SLA</option>
-            <option value="atrisk" selected="@(Model.Sla == "atrisk")">At risk</option>
-            <option value="green" selected="@(Model.Sla == "green")">Green</option>
-            <option value="yellow" selected="@(Model.Sla == "yellow")">Yellow</option>
-            <option value="red" selected="@(Model.Sla == "red")">Red</option>
-            <option value="breached" selected="@(Model.Sla == "breached")">Breached</option>
-        </select>
-    </div>
-
-    <div class="col-md-1">
-        <button class="btn btn-primary w-100" type="submit">Filter</button>
-    </div>
-</form>
-
-<p>
-    <a asp-page="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Number</th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Severity</th>
-            <th>Status</th>
-            <th>Assigned To</th>
-            <th>Customer</th>
-            <th>Created</th>
-            <th>SLA</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Ticket)
-        {
-            var now = DateTime.Now;
-            var state = SlaPolicy.GetState(item, now);
-            var remaining = SlaPolicy.FormatRemaining(item, now);
-
-            var badgeClass = state switch
-            {
-                SlaState.Green => "bg-success",
-                SlaState.Yellow => "bg-warning text-dark",
-                SlaState.Red => "bg-danger",
-                SlaState.Breached => "bg-danger",
-                _ => "bg-secondary"
-            };
-            
-            // Severity badge color
-            var severityBadge = item.Severity switch
-            {
-                Severity.Critical => "bg-danger",
-                Severity.High => "bg-warning text-dark",
-                Severity.Medium => "bg-primary",
-                Severity.Low => "bg-info text-dark",
-                Severity.Info => "bg-secondary",
-                _ => "bg-secondary"
-            };
-            
-            // Status badge color
-            var statusBadge = item.Status switch
-            {
-                TicketStatus.New => "bg-primary",
-                TicketStatus.Assigned => "bg-info text-dark",
-                TicketStatus.InProgress => "bg-warning text-dark",
-                TicketStatus.WaitingOnCustomer => "bg-secondary",
-                TicketStatus.WaitingOnVendor => "bg-secondary",
-                TicketStatus.Resolved => "bg-success",
-                TicketStatus.Closed => "bg-dark",
-                TicketStatus.Cancelled => "bg-danger",
-                _ => "bg-light text-dark"
-            };
-            
+<!-- Responsive Table -->
+<div class="table-responsive">
+    <table class="table table-sm table-hover">
+        <thead class="table-light">
             <tr>
-                <td>@item.Number</td>
-                <td>
-                    <a asp-page="./Details" asp-route-id="@item.Id">@item.Title</a>
-                </td>
-                <td>
-                    <span class="badge bg-secondary">
-                        @item.Category.ToString().Replace("GeneralRequest", "General")
-                    </span>
-                </td>
-                <td>
-                    <span class="badge @severityBadge">
-                        @item.Severity
-                    </span>
-                </td>
-                <td>
-                    <span class="badge @statusBadge">
-                        @if (item.Status == TicketStatus.WaitingOnCustomer || item.Status == TicketStatus.WaitingOnVendor)
-                        {
-                            <text>⏸️ </text>
-                        }
-                        @item.Status.ToString().Replace("WaitingOn", "Waiting on ")
-                    </span>
-                </td>
-                <td>
-                    @if (item.AssignedGroup != AssignmentGroup.Unassigned)
-                    {
-                        <span class="badge bg-dark">@item.AssignedGroup.ToString().Replace("_", " ")</span>
-                    }
-                    else
-                    {
-                        <span class="text-muted">Unassigned</span>
-                    }
-                </td>
-                <td>@item.CreatedAt.ToString("g")</td>
-                <td>
-                    @if (SlaPolicy.IsSlaPaused(item.Status))
-                    {
-                        <span class="badge bg-info">⏸️ Paused</span>
-                    }
-                    else
-                    {
-                        <span class="badge @badgeClass">
-                            @state - @remaining
-                        </span>
-                    }
-                </td>
-                <td>
-                    <a asp-page="./Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                    <a asp-page="./Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info ms-1">Details</a>
-                    <a asp-page="./Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger ms-1">Delete</a>
-                </td>
+                <th style="width: 100px;">Number</th>
+                <th style="width: 200px;">Title</th>
+                <th style="width: 90px;">Category</th>
+                <th style="width: 80px;">Severity</th>
+                <th style="width: 120px;">Status</th>
+                <th style="width: 110px;">Group</th>
+                <th style="width: 150px;">Assigned</th>
+                <th style="width: 100px;">Customer</th>
+                <th style="width: 110px;">Created</th>
+                <th style="width: 100px;">SLA</th>
+                <th style="width: 100px;">Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @if (Model.Ticket.Any())
+            {
+                @foreach (var ticket in Model.Ticket)
+                {
+                    var now = DateTime.Now;
+                    var slaState = SlaPolicy.GetState(ticket, now);
+                    var remaining = SlaPolicy.FormatRemaining(ticket, now);
+
+                    var slaBadge = slaState switch
+                    {
+                        SlaState.Green => "success",
+                        SlaState.Yellow => "warning",
+                        SlaState.Red => "danger",
+                        SlaState.Breached => "dark",
+                        _ => "secondary"
+                    };
+
+                    <tr>
+                        <td class="text-nowrap">
+                            <a asp-page="./Details" asp-route-id="@ticket.Id" title="View ticket details">
+                                <small>@ticket.Number</small>
+                            </a>
+                        </td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@ticket.Title">
+                            <small>@ticket.Title</small>
+                        </td>
+                        <td><span class="badge bg-secondary">@ticket.Category.ToString().Replace("GeneralRequest", "General")</span></td>
+                        <td>
+                            <span class="badge bg-@(ticket.Severity switch {
+                                Severity.Critical => "danger",
+                                Severity.High => "warning text-dark",
+                                Severity.Medium => "primary",
+                                Severity.Low => "info text-dark",
+                                Severity.Info => "secondary",
+                                _ => "secondary"
+                            })">@ticket.Severity</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-@(ticket.Status switch {
+                                TicketStatus.New => "primary",
+                                TicketStatus.Assigned => "info text-dark",
+                                TicketStatus.InProgress => "warning text-dark",
+                                TicketStatus.WaitingOnCustomer => "secondary",
+                                TicketStatus.WaitingOnVendor => "secondary",
+                                TicketStatus.Resolved => "success",
+                                TicketStatus.Closed => "dark",
+                                TicketStatus.Cancelled => "danger",
+                                _ => "secondary"
+                            })">
+                                @if (ticket.Status == TicketStatus.WaitingOnCustomer || ticket.Status == TicketStatus.WaitingOnVendor)
+                                {
+                                    <text>⏸️ </text>
+                                }
+                                @ticket.Status.ToString().Replace("WaitingOnCustomer", "Wait: Cust").Replace("WaitingOnVendor", "Wait: Vendor")
+                            </span>
+                        </td>
+                        <td>
+                            @if (ticket.AssignedGroup != AssignmentGroup.Unassigned)
+                            {
+                                <small class="badge bg-dark">@ticket.AssignedGroup.ToString().Replace("ServiceDesk_", "SD ").Replace("_", " ")</small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">—</small>
+                            }
+                        </td>
+                        <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            @if (!string.IsNullOrEmpty(ticket.AssigneeUserId) && Model.UserEmails.ContainsKey(ticket.AssigneeUserId))
+                            {
+                                <small title="@Model.UserEmails[ticket.AssigneeUserId]">
+                                    @Model.UserEmails[ticket.AssigneeUserId]
+                                </small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">Unassigned</small>
+                            }
+                        </td>
+                        <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            @if (ticket.Customer != null)
+                            {
+                                <small>
+                                    <a asp-page="/Customers/Details" asp-route-id="@ticket.Customer.Id" title="@ticket.Customer.CompanyName">
+                                        @ticket.Customer.CompanyName
+                                    </a>
+                                </small>
+                            }
+                            else if (!string.IsNullOrEmpty(ticket.CustomerName))
+                            {
+                                <small>@ticket.CustomerName</small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">—</small>
+                            }
+                        </td>
+                        <td class="text-nowrap"><small>@ticket.CreatedAt.ToString("M/d HH:mm")</small></td>
+                        <td>
+                            @if (SlaPolicy.IsSlaPaused(ticket.Status))
+                            {
+                                <span class="badge bg-info">⏸️ Paused</span>
+                            }
+                            else
+                            {
+                                <small>
+                                    <span class="badge bg-@slaBadge" title="@slaState - @remaining">
+                                        @remaining
+                                    </span>
+                                </small>
+                            }
+                        </td>
+                        <td class="text-nowrap">
+                            <a asp-page="./Edit" asp-route-id="@ticket.Id" class="fw-bold text-primary text-decoration-none">
+                                Edit
+                            </a>
+                            <span class="text-muted mx-2">|</span>
+                            <a asp-page="./Delete" asp-route-id="@ticket.Id" class="fw-bold text-danger text-decoration-none">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Ticket.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No tickets found. Try adjusting your filters or <a asp-page="Create">create a new ticket</a>.
+    </div>
+}

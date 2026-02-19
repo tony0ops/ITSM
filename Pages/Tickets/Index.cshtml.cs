@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -12,35 +13,38 @@ namespace WebApplication1.Pages.Tickets
 {
     public class IndexModel : PageModel
     {
-        private readonly WebApplication1.Data.ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public IndexModel(WebApplication1.Data.ApplicationDbContext context)
+        public IndexModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
+
         [BindProperty(SupportsGet = true)]
         public string? Q { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public WebApplication1.Models.TicketStatus? Status { get; set; }
+        public TicketStatus? Status { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public WebApplication1.Models.Severity? Severity { get; set; }
+        public Severity? Severity { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public WebApplication1.Models.TicketCategory? Category { get; set; }
+        public TicketCategory? Category { get; set; }
 
         [BindProperty(SupportsGet = true)]
-        public WebApplication1.Models.AssignmentGroup? Group { get; set; }
+        public AssignmentGroup? Group { get; set; }
 
         [BindProperty(SupportsGet = true)]
         public string? Sla { get; set; }
 
-        public IList<Ticket> Ticket { get;set; } = default!;
+        public IList<Ticket> Ticket { get; set; } = default!;
+        public Dictionary<string, string> UserEmails { get; set; } = new();
 
         public async Task OnGetAsync()
         {
-            // NEW: Include customer data
             var query = _context.Tickets
                 .Include(t => t.Customer)
                 .AsQueryable();
@@ -93,7 +97,25 @@ namespace WebApplication1.Pages.Tickets
             }
 
             Ticket = list;
-        }
 
+            // Load user emails for assigned tickets (optimized: batch load)
+            var userIds = Ticket
+                .Where(t => !string.IsNullOrEmpty(t.AssigneeUserId))
+                .Select(t => t.AssigneeUserId!)
+                .Distinct()
+                .ToList();
+
+            if (userIds.Any())
+            {
+                var users = await _userManager.Users
+                    .Where(u => userIds.Contains(u.Id))
+                    .ToListAsync();
+
+                foreach (var user in users)
+                {
+                    UserEmails[user.Id] = user.Email ?? user.UserName ?? "Unknown";
+                }
+            }
+        }
     }
 }
