@@ -1,15 +1,16 @@
+@model List<WebApplication1.Models.Ticket>
 @using WebApplication1.Models
 
 @if (Model?.Count == 0)
 {
     <div class="alert alert-info" role="alert">
-        <strong>No tickets.</strong> All tickets in this category are resolved or closed.
+        No tickets in this category.
     </div>
 }
 else
 {
-    <table class="table table-hover">
-        <thead>
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light">
             <tr>
                 <th>Number</th>
                 <th>Title</th>
@@ -30,68 +31,51 @@ else
                     var state = SlaPolicy.GetState(item, now);
                     var remaining = SlaPolicy.FormatRemaining(item, now);
 
-                    var badgeClass = state switch
+                    var isClosed = item.Status == TicketStatus.Closed ||
+                                   item.Status == TicketStatus.Resolved ||
+                                   item.Status == TicketStatus.Cancelled;
+
+                    var slaBadge = state switch
                     {
                         SlaState.Green => "bg-success",
                         SlaState.Yellow => "bg-warning text-dark",
                         SlaState.Red => "bg-danger",
-                        SlaState.Breached => "bg-danger",
+                        SlaState.Breached => "bg-dark",
                         _ => "bg-secondary"
                     };
 
-                    var severityBadge = item.Severity switch
+                    var severityClass = item.Severity switch
                     {
-                        Severity.Critical => "bg-danger",
-                        Severity.High => "bg-warning text-dark",
-                        Severity.Medium => "bg-primary",
-                        Severity.Low => "bg-info text-dark",
-                        Severity.Info => "bg-secondary",
-                        _ => "bg-secondary"
+                        Severity.Critical => "text-danger fw-semibold",
+                        Severity.High => "text-warning fw-semibold",
+                        _ => ""
                     };
 
-                    var statusBadge = item.Status switch
-                    {
-                        TicketStatus.New => "bg-primary",
-                        TicketStatus.Assigned => "bg-info text-dark",
-                        TicketStatus.InProgress => "bg-warning text-dark",
-                        TicketStatus.WaitingOnCustomer => "bg-secondary",
-                        TicketStatus.WaitingOnVendor => "bg-secondary",
-                        TicketStatus.Resolved => "bg-success",
-                        TicketStatus.Closed => "bg-dark",
-                        TicketStatus.Cancelled => "bg-danger",
-                        _ => "bg-light text-dark"
-                    };
-
-                    <tr>
-                        <td><strong>@item.Number</strong></td>
-                        <td><a asp-page="/Tickets/Details" asp-route-id="@item.Id">@item.Title</a></td>
-                        <td><span class="badge bg-secondary">@item.Category.ToString().Replace("GeneralRequest", "General")</span></td>
-                        <td><span class="badge @severityBadge">@item.Severity</span></td>
+                    <tr class="@(isClosed ? "table-secondary opacity-75" : "")">
+                        <td><a asp-page="/Tickets/Details" asp-route-id="@item.Id"><strong>@item.Number</strong></a></td>
+                        <td>@item.Title</td>
+                        <td><small>@item.Category.ToString().Replace("GeneralRequest", "General")</small></td>
+                        <td><small class="@severityClass">@item.Severity</small></td>
+                        <td><small>@item.Status.ToString().Replace("WaitingOnCustomer", "Wait: Customer").Replace("WaitingOnVendor", "Wait: Vendor")</small></td>
+                        <td><small>@item.CreatedAt.ToString("g")</small></td>
                         <td>
-                            <span class="badge @statusBadge">
-                                @if (item.Status == TicketStatus.WaitingOnCustomer || item.Status == TicketStatus.WaitingOnVendor)
-                                {
-                                    <text>Paused</text>
-                                }
-                                @item.Status.ToString().Replace("WaitingOn", "Waiting on ")
-                            </span>
-                        </td>
-                        <td>@item.CreatedAt.ToString("g")</td>
-                        <td>
-                            @if (SlaPolicy.IsSlaPaused(item.Status))
+                            @if (isClosed)
                             {
-                                <span class="badge bg-info">Paused</span>
+                                <small class="text-muted">Closed</small>
+                            }
+                            else if (SlaPolicy.IsSlaPaused(item.Status))
+                            {
+                                <small class="text-info">Paused</small>
                             }
                             else
                             {
-                                <span class="badge @badgeClass">
-                                    @state - @remaining
-                                </span>
+                                <small><span class="badge @slaBadge">@state - @remaining</span></small>
                             }
                         </td>
                         <td>
-                            <a asp-page="/Tickets/Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Update</a>
-                            <a asp-page="/Tickets/Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info ms-1">Details</a>
+                            <a asp-page="/Tickets/Edit" asp-route-id="@item.Id" class="text-primary text-decoration-none">Update</a>
+                            <span class="text-muted mx-1">|</span>
+                            <a asp-page="/Tickets/Details" asp-route-id="@item.Id" class="text-secondary text-decoration-none">Details</a>
                         </td>
                     </tr>
                 }
@@ -99,5 +83,3 @@ else
         </tbody>
     </table>
 }
-
-<a asp-page="/Tickets/MyGroupQueue">My Group</a>

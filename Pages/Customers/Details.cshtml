@@ -15,25 +15,15 @@
 </div>
 
 <div class="row">
-    <!-- Customer Info -->
     <div class="col-md-6">
         <div class="card mb-3">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0">@Model.Customer.CompanyName</h5>
             </div>
             <div class="card-body">
                 <dl class="row">
                     <dt class="col-sm-4">Status</dt>
-                    <dd class="col-sm-8">
-                        @if (Model.Customer.IsActive)
-                        {
-                            <span class="badge bg-success">Active</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Inactive</span>
-                        }
-                    </dd>
+                    <dd class="col-sm-8">@(Model.Customer.IsActive ? "Active" : "Inactive")</dd>
 
                     <dt class="col-sm-4">Created</dt>
                     <dd class="col-sm-8">@Model.Customer.CreatedAt.ToString("g")</dd>
@@ -47,16 +37,14 @@
                             <text>@Model.Customer.Country</text>
                         }
                         else
-                        {
-                            <text>-</text>
-                        }
+                        { <text>-</text> }
                     </dd>
                 </dl>
             </div>
         </div>
 
         <div class="card mb-3">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h5 class="mb-0">Contacts</h5>
             </div>
             <div class="card-body">
@@ -67,13 +55,9 @@
                     <dt class="col-sm-4">Email</dt>
                     <dd class="col-sm-8">
                         @if (!string.IsNullOrEmpty(Model.Customer.PrimaryEmail))
-                        {
-                            <a href="mailto:@Model.Customer.PrimaryEmail">@Model.Customer.PrimaryEmail</a>
-                        }
+                        { <a href="mailto:@Model.Customer.PrimaryEmail">@Model.Customer.PrimaryEmail</a> }
                         else
-                        {
-                            <text>-</text>
-                        }
+                        { <text>-</text> }
                     </dd>
                     <dt class="col-sm-4">Phone</dt>
                     <dd class="col-sm-8">@(Model.Customer.PrimaryPhone ?? "-")</dd>
@@ -88,13 +72,9 @@
                     <dt class="col-sm-4">Email</dt>
                     <dd class="col-sm-8">
                         @if (!string.IsNullOrEmpty(Model.Customer.EscalationEmail))
-                        {
-                            <a href="mailto:@Model.Customer.EscalationEmail">@Model.Customer.EscalationEmail</a>
-                        }
+                        { <a href="mailto:@Model.Customer.EscalationEmail">@Model.Customer.EscalationEmail</a> }
                         else
-                        {
-                            <text>-</text>
-                        }
+                        { <text>-</text> }
                     </dd>
                     <dt class="col-sm-4">Phone</dt>
                     <dd class="col-sm-8">@(Model.Customer.EscalationPhone ?? "-")</dd>
@@ -103,10 +83,9 @@
         </div>
     </div>
 
-    <!-- Billing & Stats -->
     <div class="col-md-6">
         <div class="card mb-3">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h5 class="mb-0">Account Management</h5>
             </div>
             <div class="card-body">
@@ -130,27 +109,19 @@
         </div>
 
         <div class="card">
-            <div class="card-header bg-warning">
+            <div class="card-header">
                 <h5 class="mb-0">Ticket Statistics</h5>
             </div>
             <div class="card-body">
                 <dl class="row">
                     <dt class="col-sm-5">Total Tickets</dt>
-                    <dd class="col-sm-7"><span class="badge bg-primary">@Model.Tickets.Count</span></dd>
+                    <dd class="col-sm-7">@Model.Tickets.Count</dd>
 
                     <dt class="col-sm-5">Open Tickets</dt>
-                    <dd class="col-sm-7">
-                        <span class="badge bg-info">
-                            @Model.Tickets.Count(t => t.Status != TicketStatus.Closed && t.Status != TicketStatus.Resolved)
-                        </span>
-                    </dd>
+                    <dd class="col-sm-7">@Model.Tickets.Count(t => t.Status != TicketStatus.Closed && t.Status != TicketStatus.Resolved)</dd>
 
                     <dt class="col-sm-5">Closed Tickets</dt>
-                    <dd class="col-sm-7">
-                        <span class="badge bg-success">
-                            @Model.Tickets.Count(t => t.Status == TicketStatus.Closed || t.Status == TicketStatus.Resolved)
-                        </span>
-                    </dd>
+                    <dd class="col-sm-7">@Model.Tickets.Count(t => t.Status == TicketStatus.Closed || t.Status == TicketStatus.Resolved)</dd>
                 </dl>
             </div>
         </div>
@@ -159,7 +130,7 @@
 
 <!-- Tickets List -->
 <div class="card mt-4">
-    <div class="card-header bg-dark text-white">
+    <div class="card-header">
         <h5 class="mb-0">Tickets (@Model.Tickets.Count)</h5>
     </div>
     <div class="card-body">
@@ -170,8 +141,8 @@
         else
         {
             <div class="table-responsive">
-                <table class="table table-sm table-hover">
-                    <thead>
+                <table class="table table-sm table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
                             <th>Number</th>
                             <th>Title</th>
@@ -184,29 +155,25 @@
                     <tbody>
                         @foreach (var ticket in Model.Tickets)
                         {
-                            <tr>
-                                <td>@ticket.Number</td>
+                            var isClosed = ticket.Status == TicketStatus.Closed ||
+                                           ticket.Status == TicketStatus.Resolved ||
+                                           ticket.Status == TicketStatus.Cancelled;
+
+                            var severityClass = ticket.Severity switch
+                            {
+                                Severity.Critical => "text-danger fw-semibold",
+                                Severity.High => "text-warning fw-semibold",
+                                _ => ""
+                            };
+
+                            <tr class="@(isClosed ? "table-secondary opacity-75" : "")">
+                                <td><a asp-page="/Tickets/Details" asp-route-id="@ticket.Id">@ticket.Number</a></td>
                                 <td>@ticket.Title</td>
+                                <td><small>@ticket.Status</small></td>
+                                <td><small class="@severityClass">@ticket.Severity</small></td>
+                                <td><small>@ticket.CreatedAt.ToString("g")</small></td>
                                 <td>
-                                    <span class="badge bg-@(ticket.Status switch {
-                                        TicketStatus.New => "primary",
-                                        TicketStatus.InProgress => "info",
-                                        TicketStatus.Resolved => "success",
-                                        TicketStatus.Closed => "secondary",
-                                        _ => "secondary"
-                                    })">@ticket.Status</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-@(ticket.Severity switch {
-                                        Severity.Critical => "danger",
-                                        Severity.High => "warning text-dark",
-                                        Severity.Medium => "info",
-                                        _ => "secondary"
-                                    })">@ticket.Severity</span>
-                                </td>
-                                <td>@ticket.CreatedAt.ToString("g")</td>
-                                <td>
-                                    <a asp-page="/Tickets/Details" asp-route-id="@ticket.Id" class="btn btn-sm btn-outline-info">View</a>
+                                    <a asp-page="/Tickets/Details" asp-route-id="@ticket.Id" class="text-secondary text-decoration-none">View</a>
                                 </td>
                             </tr>
                         }

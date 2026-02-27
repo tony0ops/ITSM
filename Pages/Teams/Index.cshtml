@@ -1,0 +1,56 @@
+@page
+@model WebApplication1.Pages.Teams.IndexModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "Teams";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Teams</h1>
+    <a asp-page="./Create" class="btn btn-primary">Create Team</a>
+</div>
+
+@if (!Model.Teams.Any())
+{
+    <div class="alert alert-info">
+        No teams found. Create a team to start assigning users.
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var team in Model.Teams)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <strong>@team.Name</strong>
+                        @if (team.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">@team.Description</p>
+                        <p class="mb-1">
+                            <strong>Group:</strong>
+                            <span class="badge bg-info">@team.Group.ToString().Replace("_", " ")</span>
+                        </p>
+                        <p class="mb-0">
+                            <strong>Members:</strong> @team.Members.Count
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-page="./Edit" asp-route-id="@team.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-page="./Details" asp-route-id="@team.Id" class="btn btn-sm btn-outline-info">View Members</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

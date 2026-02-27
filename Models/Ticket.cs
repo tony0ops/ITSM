@@ -3,10 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebApplication1.Models;
 
-public class Ticket
+public class Ticket : BaseEntity, IAuditable, ISoftDeletable
 {
-    public int Id { get; set; }
-
     [Required, StringLength(20)]
     public string Number { get; set; } = "";
 
@@ -23,21 +21,13 @@ public class Ticket
     public TicketCategory Category { get; set; } = TicketCategory.GeneralRequest;
     public AssignmentGroup AssignedGroup { get; set; } = AssignmentGroup.Unassigned;
 
-    [Column("CreatedUtc")]
-    public DateTime CreatedAt { get; set; }
-
     [Column("SlaDueUtc")]
     public DateTime? SlaDueAt { get; set; }
 
-    // UPDATED: Customer relationship (Phase 4C)
-    // Foreign key to Customer table
+    // Customer relationship
     public int? CustomerId { get; set; }
-    
-    // Navigation property to Customer
     public Customer? Customer { get; set; }
 
-    // DEPRECATED: Keep for backward compatibility with existing tickets
-    // Will be phased out in future release
     [StringLength(200)]
     public string? CustomerName { get; set; }
 
@@ -61,6 +51,21 @@ public class Ticket
 
     public DateTime? ResolvedAt { get; set; }
 
-    // Navigation property
+    // IAuditable implementation
+    [StringLength(450)]
+    public string CreatedBy { get; set; } = "";
+
+    [StringLength(450)]
+    public string? ModifiedBy { get; set; }
+
+    // ISoftDeletable implementation
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    
+    [StringLength(450)]
+    public string? DeletedBy { get; set; }
+
+    // Navigation properties
     public ICollection<TicketActivity> Activities { get; set; } = new List<TicketActivity>();
+    public ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
 }

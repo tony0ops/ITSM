@@ -1,0 +1,199 @@
+@page
+@model WebApplication1.Pages.Portal.MyTicketsModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "My Tickets";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>My Support Tickets</h1>
+<p class="lead">Welcome back, @Model.CustomerName</p>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Total Tickets</h6>
+                <p class="h3 mb-0 text-primary">@(Model.MyTickets.Count + Model.ResolvedTicketsCount)</p>
+                <small class="text-primary">All time</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-warning">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Open Tickets</h6>
+                <p class="h3 mb-0 text-warning">@Model.OpenTicketsCount</p>
+                <small class="text-warning">In progress</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-success">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Resolved</h6>
+                <p class="h3 mb-0 text-success">@Model.ResolvedTicketsCount</p>
+                <small class="text-success">Completed</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-info">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Unread Comments</h6>
+                <p class="h3 mb-0 text-info">
+                    @Model.MyTickets
+                        .SelectMany(t => t.Comments)
+                        .Where(c => c.IsCustomerVisible && !c.IsInternal)
+                        .Count()
+                </p>
+                <small class="text-info">Updates</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <input class="form-control" name="searchTerm" value="@Model.SearchTerm" 
+                       placeholder="Search by ticket number or title..." />
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" name="statusFilter">
+                    <option value="">All Statuses</option>
+                    @foreach (var status in Enum.GetValues<TicketStatus>())
+                    {
+                        <option value="@status" selected="@(Model.StatusFilter == status)">
+                            @status.ToString().Replace("WaitingOn", "Waiting on ")
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tickets List -->
+@if (Model.MyTickets.Count == 0)
+{
+    <div class="alert alert-info">
+        <strong>No tickets found.</strong> 
+        @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue)
+        {
+            <text>Try adjusting your filters.</text>
+        }
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var ticket in Model.MyTickets)
+        {
+            var now = DateTime.Now;
+            var slaState = SlaPolicy.GetState(ticket, now);
+            var remaining = SlaPolicy.FormatRemaining(ticket, now);
+            var visibleComments = Model.GetVisibleComments(ticket.Id);
+
+            var statusBadge = ticket.Status switch
+            {
+                TicketStatus.New => "bg-primary",
+                TicketStatus.Assigned => "bg-info text-dark",
+                TicketStatus.InProgress => "bg-warning text-dark",
+                TicketStatus.WaitingOnCustomer => "bg-secondary",
+                TicketStatus.WaitingOnVendor => "bg-secondary",
+                TicketStatus.Resolved => "bg-success",
+                TicketStatus.Closed => "bg-dark",
+                TicketStatus.Cancelled => "bg-danger",
+                _ => "bg-secondary"
+            };
+
+            var severityBadge = ticket.Severity switch
+            {
+                Severity.Critical => "bg-danger",
+                Severity.High => "bg-warning text-dark",
+                Severity.Medium => "bg-primary",
+                Severity.Low => "bg-info text-dark",
+                Severity.Info => "bg-secondary",
+                _ => "bg-secondary"
+            };
+
+            <div class="col-md-6 mb-3">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title mb-1">@ticket.Number</h5>
+                                <p class="card-text small">@ticket.Title</p>
+                            </div>
+                            <span class="badge @statusBadge">@ticket.Status</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row small mb-2">
+                            <dt class="col-sm-5">Severity</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge @severityBadge">@ticket.Severity</span>
+                            </dd>
+
+                            <dt class="col-sm-5">Category</dt>
+                            <dd class="col-sm-7">
+                                <span class="badge bg-secondary">
+                                    @ticket.Category.ToString().Replace("GeneralRequest", "General")
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-5">Created</dt>
+                            <dd class="col-sm-7">@ticket.CreatedAt.ToString("M/d/yyyy")</dd>
+
+                            <dt class="col-sm-5">Status</dt>
+                            <dd class="col-sm-7">
+                                @if (SlaPolicy.IsSlaPaused(ticket.Status))
+                                {
+                                    <span class="badge bg-info">Paused</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-@(slaState switch {
+                                        SlaState.Green => "success",
+                                        SlaState.Yellow => "warning text-dark",
+                                        SlaState.Red => "danger",
+                                        SlaState.Breached => "dark",
+                                        _ => "secondary"
+                                    })">
+                                        @remaining
+                                    </span>
+                                }
+                            </dd>
+                        </dl>
+
+                        <!-- Recent Comments Preview -->
+                        @if (visibleComments.Any())
+                        {
+                            <div class="alert alert-light p-2 small mb-0">
+                                <strong>Latest Update:</strong>
+                                <p class="mb-0 text-truncate">@visibleComments.Last().Comment</p>
+                                <small class="text-muted">@visibleComments.Last().CreatedAt.ToString("M/d HH:mm")</small>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer bg-light">
+                        <a asp-page="./TicketDetail" asp-route-id="@ticket.Id" class="btn btn-sm btn-primary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

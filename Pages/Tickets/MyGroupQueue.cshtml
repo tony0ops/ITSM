@@ -3,12 +3,28 @@
 @using WebApplication1.Models
 
 @{
-    ViewData["Title"] = "My Group's Tickets";
+    ViewData["Title"] = "Team Queue";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1> My Group's Tickets</h1>
-<p class="lead">Tickets assigned to @Model.GroupName</p>
+<h1>Team Queue</h1>
+
+@if (!Model.HasTeamAssignment)
+{
+    <div class="alert alert-warning">
+        <strong>No Team Assigned</strong><br />
+        You are not assigned to any team. Showing default ServiceDesk L1 tickets.
+        <a asp-page="/Users/Index">Go to Users</a> to assign yourself to a team.
+    </div>
+}
+
+<p class="lead">
+    @if (!string.IsNullOrEmpty(Model.TeamName))
+    {
+        <span>Team: <strong>@Model.TeamName</strong> - </span>
+    }
+    Group: <span class="badge bg-primary">@Model.GroupName</span>
+</p>
 
 @if (Model.Tickets.Count == 0)
 {
@@ -62,16 +78,16 @@ else
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="all" role="tabpanel">
-            @await Html.PartialAsync("_TicketTable", Model.Tickets)
+            @await Html.PartialAsync("Shared/_TicketTable", Model.Tickets)
         </div>
         <div class="tab-pane fade" id="atrisk" role="tabpanel">
-            @await Html.PartialAsync("_TicketTable", Model.GetAtRiskTickets())
+            @await Html.PartialAsync("Shared/_TicketTable", Model.GetAtRiskTickets())
         </div>
         <div class="tab-pane fade" id="breached" role="tabpanel">
-            @await Html.PartialAsync("_TicketTable", Model.GetBreachedTickets())
+            @await Html.PartialAsync("Shared/_TicketTable", Model.GetBreachedTickets())
         </div>
         <div class="tab-pane fade" id="inprogress" role="tabpanel">
-            @await Html.PartialAsync("_TicketTable", Model.GetInProgressTickets())
+            @await Html.PartialAsync("Shared/_TicketTable", Model.GetInProgressTickets())
         </div>
     </div>
 }

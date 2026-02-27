@@ -9,23 +9,23 @@
 
 <h1>Tickets</h1>
 
-<!-- Unified Filter Form -->
+<!-- Filter Form -->
 <form method="get" class="mb-3">
+    <input type="hidden" name="SortBy" value="@Model.SortBy" />
+    <input type="hidden" name="SortOrder" value="@Model.SortOrder" />
     <div class="row g-2 mb-2">
         <div class="col-md-3">
             <input class="form-control" name="q" value="@Model.Q" placeholder="Search..." />
         </div>
-
         <div class="col-md-2">
             <select class="form-select" name="status">
-                <option value="">All statuses</option>
+                <option value="">Open only</option>
                 @foreach (var s in Enum.GetValues<TicketStatus>())
                 {
                     <option value="@s" selected="@(Model.Status == s)">@s.ToString().Replace("WaitingOn", "Wait: ")</option>
                 }
             </select>
         </div>
-
         <div class="col-md-2">
             <select class="form-select" name="severity">
                 <option value="">All severities</option>
@@ -35,7 +35,6 @@
                 }
             </select>
         </div>
-
         <div class="col-md-2">
             <select class="form-select" name="category">
                 <option value="">All Categories</option>
@@ -45,7 +44,6 @@
                 }
             </select>
         </div>
-
         <div class="col-md-2">
             <select class="form-select" name="group">
                 <option value="">All Groups</option>
@@ -55,7 +53,6 @@
                 }
             </select>
         </div>
-
         <div class="col-md-1">
             <select class="form-select" name="sla">
                 <option value="">SLA</option>
@@ -67,37 +64,73 @@
             </select>
         </div>
     </div>
-    
     <div class="row g-2">
         <div class="col-auto">
-            <button class="btn btn-primary" type="submit">
-                <i class="bi bi-funnel"></i> Filter
-            </button>
+            <button class="btn btn-primary" type="submit">Filter</button>
         </div>
         <div class="col-auto">
-            <a asp-page="Create" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Create New
-            </a>
+            <a asp-page="Create" class="btn btn-success">Create New</a>
         </div>
     </div>
 </form>
 
-<!-- Responsive Table -->
+<p class="text-muted small mb-2">Showing @Model.Ticket.Count ticket(s)</p>
+
 <div class="table-responsive">
-    <table class="table table-sm table-hover">
+    <table class="table table-sm table-hover align-middle">
         <thead class="table-light">
             <tr>
-                <th style="width: 100px;">Number</th>
-                <th style="width: 200px;">Title</th>
-                <th style="width: 90px;">Category</th>
-                <th style="width: 80px;">Severity</th>
-                <th style="width: 120px;">Status</th>
-                <th style="width: 110px;">Group</th>
-                <th style="width: 150px;">Assigned</th>
-                <th style="width: 100px;">Customer</th>
-                <th style="width: 110px;">Created</th>
-                <th style="width: 100px;">SLA</th>
-                <th style="width: 100px;">Actions</th>
+                <th style="width:100px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="number" asp-route-SortOrder="@Model.ToggleOrder("number")"
+                       class="text-dark text-decoration-none text-nowrap">Number@(Model.SortIndicator("number"))</a>
+                </th>
+                <th style="width:200px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="title" asp-route-SortOrder="@Model.ToggleOrder("title")"
+                       class="text-dark text-decoration-none text-nowrap">Title@(Model.SortIndicator("title"))</a>
+                </th>
+                <th style="width:100px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="category" asp-route-SortOrder="@Model.ToggleOrder("category")"
+                       class="text-dark text-decoration-none text-nowrap">Category@(Model.SortIndicator("category"))</a>
+                </th>
+                <th style="width:80px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="severity" asp-route-SortOrder="@Model.ToggleOrder("severity")"
+                       class="text-dark text-decoration-none text-nowrap">Severity@(Model.SortIndicator("severity"))</a>
+                </th>
+                <th style="width:100px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="status" asp-route-SortOrder="@Model.ToggleOrder("status")"
+                       class="text-dark text-decoration-none text-nowrap">Status@(Model.SortIndicator("status"))</a>
+                </th>
+                <th style="width:110px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="group" asp-route-SortOrder="@Model.ToggleOrder("group")"
+                       class="text-dark text-decoration-none text-nowrap">Group@(Model.SortIndicator("group"))</a>
+                </th>
+                <th style="width:140px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="assigned" asp-route-SortOrder="@Model.ToggleOrder("assigned")"
+                       class="text-dark text-decoration-none text-nowrap">Assigned@(Model.SortIndicator("assigned"))</a>
+                </th>
+                <th style="width:100px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="customer" asp-route-SortOrder="@Model.ToggleOrder("customer")"
+                       class="text-dark text-decoration-none text-nowrap">Customer@(Model.SortIndicator("customer"))</a>
+                </th>
+                <th style="width:110px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="created" asp-route-SortOrder="@Model.ToggleOrder("created")"
+                       class="text-dark text-decoration-none text-nowrap">Created@(Model.SortIndicator("created"))</a>
+                </th>
+                <th style="width:90px;">
+                    <a asp-page="./Index" asp-route-q="@Model.Q" asp-route-status="@Model.Status" asp-route-severity="@Model.Severity" asp-route-category="@Model.Category" asp-route-group="@Model.Group" asp-route-sla="@Model.Sla"
+                       asp-route-SortBy="sla" asp-route-SortOrder="@Model.ToggleOrder("sla")"
+                       class="text-dark text-decoration-none text-nowrap">SLA@(Model.SortIndicator("sla"))</a>
+                </th>
+                <th style="width:90px;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -109,117 +142,68 @@
                     var slaState = SlaPolicy.GetState(ticket, now);
                     var remaining = SlaPolicy.FormatRemaining(ticket, now);
 
+                    var isClosed = ticket.Status == TicketStatus.Closed ||
+                                   ticket.Status == TicketStatus.Resolved ||
+                                   ticket.Status == TicketStatus.Cancelled;
+
                     var slaBadge = slaState switch
                     {
-                        SlaState.Green => "success",
-                        SlaState.Yellow => "warning",
-                        SlaState.Red => "danger",
-                        SlaState.Breached => "dark",
-                        _ => "secondary"
+                        SlaState.Green => "bg-success",
+                        SlaState.Yellow => "bg-warning text-dark",
+                        SlaState.Red => "bg-danger",
+                        SlaState.Breached => "bg-dark",
+                        _ => "bg-secondary"
                     };
 
-                    <tr>
+                    var severityClass = ticket.Severity switch
+                    {
+                        Severity.Critical => "text-danger fw-semibold",
+                        Severity.High => "text-warning fw-semibold",
+                        _ => ""
+                    };
+
+                    <tr class="@(isClosed ? "table-secondary opacity-75" : "")">
                         <td class="text-nowrap">
-                            <a asp-page="./Details" asp-route-id="@ticket.Id" title="View ticket details">
-                                <small>@ticket.Number</small>
-                            </a>
+                            <a asp-page="./Details" asp-route-id="@ticket.Id"><small>@ticket.Number</small></a>
                         </td>
-                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@ticket.Title">
+                        <td style="max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@ticket.Title">
                             <small>@ticket.Title</small>
                         </td>
-                        <td><span class="badge bg-secondary">@ticket.Category.ToString().Replace("GeneralRequest", "General")</span></td>
-                        <td>
-                            <span class="badge bg-@(ticket.Severity switch {
-                                Severity.Critical => "danger",
-                                Severity.High => "warning text-dark",
-                                Severity.Medium => "primary",
-                                Severity.Low => "info text-dark",
-                                Severity.Info => "secondary",
-                                _ => "secondary"
-                            })">@ticket.Severity</span>
+                        <td><small>@ticket.Category.ToString().Replace("GeneralRequest", "General")</small></td>
+                        <td><small class="@severityClass">@ticket.Severity</small></td>
+                        <td><small>@ticket.Status.ToString().Replace("WaitingOnCustomer", "Wait: Cust").Replace("WaitingOnVendor", "Wait: Vendor")</small></td>
+                        <td><small>@(ticket.AssignedGroup != AssignmentGroup.Unassigned ? ticket.AssignedGroup.ToString().Replace("ServiceDesk_", "SD ").Replace("_", " ") : "—")</small></td>
+                        <td style="max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <small>
+                                @if (!string.IsNullOrEmpty(ticket.AssigneeUserId) && Model.UserEmails.ContainsKey(ticket.AssigneeUserId))
+                                { @Model.UserEmails[ticket.AssigneeUserId] }
+                                else
+                                { <span class="text-muted">Unassigned</span> }
+                            </small>
                         </td>
-                        <td>
-                            <span class="badge bg-@(ticket.Status switch {
-                                TicketStatus.New => "primary",
-                                TicketStatus.Assigned => "info text-dark",
-                                TicketStatus.InProgress => "warning text-dark",
-                                TicketStatus.WaitingOnCustomer => "secondary",
-                                TicketStatus.WaitingOnVendor => "secondary",
-                                TicketStatus.Resolved => "success",
-                                TicketStatus.Closed => "dark",
-                                TicketStatus.Cancelled => "danger",
-                                _ => "secondary"
-                            })">
-                                @if (ticket.Status == TicketStatus.WaitingOnCustomer || ticket.Status == TicketStatus.WaitingOnVendor)
-                                {
-                                    <text>⏸️ </text>
-                                }
-                                @ticket.Status.ToString().Replace("WaitingOnCustomer", "Wait: Cust").Replace("WaitingOnVendor", "Wait: Vendor")
-                            </span>
-                        </td>
-                        <td>
-                            @if (ticket.AssignedGroup != AssignmentGroup.Unassigned)
-                            {
-                                <small class="badge bg-dark">@ticket.AssignedGroup.ToString().Replace("ServiceDesk_", "SD ").Replace("_", " ")</small>
-                            }
-                            else
-                            {
-                                <small class="text-muted">—</small>
-                            }
-                        </td>
-                        <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            @if (!string.IsNullOrEmpty(ticket.AssigneeUserId) && Model.UserEmails.ContainsKey(ticket.AssigneeUserId))
-                            {
-                                <small title="@Model.UserEmails[ticket.AssigneeUserId]">
-                                    @Model.UserEmails[ticket.AssigneeUserId]
-                                </small>
-                            }
-                            else
-                            {
-                                <small class="text-muted">Unassigned</small>
-                            }
-                        </td>
-                        <td style="max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            @if (ticket.Customer != null)
-                            {
-                                <small>
-                                    <a asp-page="/Customers/Details" asp-route-id="@ticket.Customer.Id" title="@ticket.Customer.CompanyName">
-                                        @ticket.Customer.CompanyName
-                                    </a>
-                                </small>
-                            }
-                            else if (!string.IsNullOrEmpty(ticket.CustomerName))
-                            {
-                                <small>@ticket.CustomerName</small>
-                            }
-                            else
-                            {
-                                <small class="text-muted">—</small>
-                            }
+                        <td style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            <small>
+                                @if (ticket.Customer != null)
+                                { <a asp-page="/Customers/Details" asp-route-id="@ticket.Customer.Id" title="@ticket.Customer.CompanyName">@ticket.Customer.CompanyName</a> }
+                                else if (!string.IsNullOrEmpty(ticket.CustomerName))
+                                { @ticket.CustomerName }
+                                else
+                                { <span class="text-muted">—</span> }
+                            </small>
                         </td>
                         <td class="text-nowrap"><small>@ticket.CreatedAt.ToString("M/d HH:mm")</small></td>
                         <td>
-                            @if (SlaPolicy.IsSlaPaused(ticket.Status))
-                            {
-                                <span class="badge bg-info">⏸️ Paused</span>
-                            }
+                            @if (isClosed)
+                            { <small class="text-muted">Closed</small> }
+                            else if (SlaPolicy.IsSlaPaused(ticket.Status))
+                            { <small class="text-info">Paused</small> }
                             else
-                            {
-                                <small>
-                                    <span class="badge bg-@slaBadge" title="@slaState - @remaining">
-                                        @remaining
-                                    </span>
-                                </small>
-                            }
+                            { <small><span class="badge @slaBadge">@remaining</span></small> }
                         </td>
                         <td class="text-nowrap">
-                            <a asp-page="./Edit" asp-route-id="@ticket.Id" class="fw-bold text-primary text-decoration-none">
-                                Edit
-                            </a>
-                            <span class="text-muted mx-2">|</span>
-                            <a asp-page="./Delete" asp-route-id="@ticket.Id" class="fw-bold text-danger text-decoration-none">
-                                Delete
-                            </a>
+                            <a asp-page="./Edit" asp-route-id="@ticket.Id" class="text-primary text-decoration-none">Edit</a>
+                            <span class="text-muted mx-1">|</span>
+                            <a asp-page="./Delete" asp-route-id="@ticket.Id" class="text-danger text-decoration-none">Delete</a>
                         </td>
                     </tr>
                 }
@@ -231,6 +215,6 @@
 @if (!Model.Ticket.Any())
 {
     <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> No tickets found. Try adjusting your filters or <a asp-page="Create">create a new ticket</a>.
+        No tickets found. Try adjusting your filters or <a asp-page="Create">create a new ticket</a>.
     </div>
 }

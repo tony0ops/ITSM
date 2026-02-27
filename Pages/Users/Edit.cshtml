@@ -1,0 +1,62 @@
+@page "{id}"
+@model WebApplication1.Pages.Users.EditModel
+
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<h1>Edit User</h1>
+<h4 class="text-muted">@Model.Input.Email</h4>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <input type="hidden" asp-for="Input.UserId" />
+            <input type="hidden" asp-for="Input.Email" />
+
+            <div class="mb-3">
+                <label asp-for="Input.DisplayName" class="form-label">Display Name</label>
+                <input asp-for="Input.DisplayName" class="form-control" />
+                <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.Department" class="form-label">Department</label>
+                <input asp-for="Input.Department" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.JobTitle" class="form-label">Job Title</label>
+                <input asp-for="Input.JobTitle" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.PhoneNumber" class="form-label">Phone Number</label>
+                <input asp-for="Input.PhoneNumber" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Input.TeamId" class="form-label">Team Assignment</label>
+                <select asp-for="Input.TeamId" class="form-select" asp-items="Model.TeamList">
+                    <option value="">-- No Team --</option>
+                </select>
+                <div class="form-text">Assign user to a support team for ticket routing.</div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" asp-for="Input.IsActive" class="form-check-input" />
+                <label class="form-check-label" asp-for="Input.IsActive">Active</label>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

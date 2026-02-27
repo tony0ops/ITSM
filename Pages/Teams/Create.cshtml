@@ -1,0 +1,49 @@
+@page
+@model WebApplication1.Pages.Teams.CreateModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "Create Team";
+}
+
+<h1>Create Team</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <div class="mb-3">
+                <label asp-for="Team.Name" class="form-label"></label>
+                <input asp-for="Team.Name" class="form-control" />
+                <span asp-validation-for="Team.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Team.Description" class="form-label"></label>
+                <textarea asp-for="Team.Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Team.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Team.Group" class="form-label">Assignment Group</label>
+                <select asp-for="Team.Group" class="form-select" asp-items="Html.GetEnumSelectList<AssignmentGroup>()">
+                </select>
+                <div class="form-text">Tickets assigned to this group will appear in this team's queue.</div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input type="checkbox" asp-for="Team.IsActive" class="form-check-input" checked />
+                <label class="form-check-label" asp-for="Team.IsActive">Active</label>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Create Team</button>
+                <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

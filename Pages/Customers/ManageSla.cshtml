@@ -1,0 +1,116 @@
+@page
+@model WebApplication1.Pages.Customers.ManageSlaModel
+
+@{
+    ViewData["Title"] = "Manage SLA Terms";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Manage SLA Terms for @Model.Customer.CompanyName</h1>
+    <a asp-page="/Customers/Details" asp-route-id="@Model.Customer.Id" class="btn btn-secondary">Back</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Response Time SLA</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" asp-for="Sla.Id" />
+                    <input type="hidden" asp-for="Sla.CustomerId" />
+
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> These SLA terms override the default system SLA for all tickets created by this customer.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Sla.CriticalResponseTime" class="form-label">Critical Severity</label>
+                            <div class="input-group">
+                                <input type="number" asp-for="Sla.CriticalResponseTime" class="form-control" step="1" />
+                                <span class="input-group-text">hours</span>
+                            </div>
+                            <small class="form-text text-muted">Ticket must receive response within this time</small>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Sla.HighResponseTime" class="form-label">High Severity</label>
+                            <div class="input-group">
+                                <input type="number" asp-for="Sla.HighResponseTime" class="form-control" step="1" />
+                                <span class="input-group-text">hours</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Sla.MediumResponseTime" class="form-label">Medium Severity</label>
+                            <div class="input-group">
+                                <input type="number" asp-for="Sla.MediumResponseTime" class="form-control" step="1" />
+                                <span class="input-group-text">hours</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Sla.LowResponseTime" class="form-label">Low Severity</label>
+                            <div class="input-group">
+                                <input type="number" asp-for="Sla.LowResponseTime" class="form-control" step="1" />
+                                <span class="input-group-text">days</span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Sla.InfoResponseTime" class="form-label">Info Severity</label>
+                            <div class="input-group">
+                                <input type="number" asp-for="Sla.InfoResponseTime" class="form-control" step="1" />
+                                <span class="input-group-text">days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Sla.Notes" class="form-label">Notes</label>
+                        <textarea asp-for="Sla.Notes" class="form-control" rows="3" 
+                                  placeholder="Add any notes about this SLA agreement..."></textarea>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" asp-for="Sla.IsActive" class="form-check-input" />
+                        <label class="form-check-label" asp-for="Sla.IsActive">
+                            Active (use this SLA for tickets)
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save SLA Terms</button>
+                    <a asp-page="/Customers/Details" asp-route-id="@Model.Customer.Id" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">Default System SLA</h6>
+            </div>
+            <div class="card-body small">
+                <dl>
+                    <dt>Critical</dt>
+                    <dd>4 hours</dd>
+                    
+                    <dt>High</dt>
+                    <dd>8 hours</dd>
+                    
+                    <dt>Medium</dt>
+                    <dd>24 hours</dd>
+                    
+                    <dt>Low</dt>
+                    <dd>3 days</dd>
+                    
+                    <dt>Info</dt>
+                    <dd>7 days</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,202 @@
+﻿@page
+@model WebApplication1.Pages.Dashboard.IndexModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1 class="mb-4">Dashboard</h1>
+
+<!-- Summary Cards Row -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary h-100">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Total Tickets</h6>
+                <p class="h3 mb-0">@Model.TotalTickets</p>
+                <small class="text-primary">All time</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-warning h-100">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Open Tickets</h6>
+                <p class="h3 mb-0 text-warning">@Model.OpenTickets</p>
+                <small class="text-warning">Pending resolution</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-success h-100">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Closed Tickets</h6>
+                <p class="h3 mb-0 text-success">@Model.ClosedTickets</p>
+                <small class="text-success">Completed</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card border-info h-100">
+            <div class="card-body">
+                <h6 class="card-title text-muted">SLA Compliance</h6>
+                <p class="h3 mb-0 text-info">@Model.SlaComplianceRate.ToString("F1")%</p>
+                <small class="text-info">Non-breached</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Row -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0">Tickets by Status</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.TicketsByStatus.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var status in Model.TicketsByStatus.OrderByDescending(x => x.Value))
+                        {
+                            var statusBadgeClass = status.Key switch
+                            {
+                                TicketStatus.New => "bg-primary",
+                                TicketStatus.Assigned => "bg-info",
+                                TicketStatus.InProgress => "bg-warning text-dark",
+                                TicketStatus.WaitingOnCustomer => "bg-secondary",
+                                TicketStatus.WaitingOnVendor => "bg-secondary",
+                                TicketStatus.Resolved => "bg-success",
+                                TicketStatus.Closed => "bg-dark",
+                                TicketStatus.Cancelled => "bg-danger",
+                                _ => "bg-secondary"
+                            };
+
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span class="badge @statusBadgeClass">@status.Key.ToString().Replace("WaitingOn", "Wait: ")</span>
+                                <span class="badge bg-light text-dark border">@status.Value</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No data available</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">Tickets by Severity</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.TicketsBySeverity.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var severity in Model.TicketsBySeverity.OrderByDescending(x => x.Value))
+                        {
+                            var severityBadgeClass = severity.Key switch
+                            {
+                                Severity.Critical => "bg-danger",
+                                Severity.High => "bg-warning text-dark",
+                                Severity.Medium => "bg-primary",
+                                Severity.Low => "bg-info text-dark",
+                                Severity.Info => "bg-secondary",
+                                _ => "bg-secondary"
+                            };
+
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span class="badge @severityBadgeClass">@severity.Key</span>
+                                <span class="badge bg-light text-dark border">@severity.Value</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No data available</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Metrics Row -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">Top 5 Customers</h6>
+            </div>
+            <div class="card-body">
+                @if (Model.TicketsByCustomer.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var customer in Model.TicketsByCustomer.OrderByDescending(x => x.Value))
+                        {
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>@customer.Key</span>
+                                <span class="badge bg-primary rounded-pill">@customer.Value</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">No customer data available</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">Performance Metrics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Avg Resolution Time</h6>
+                        <p class="h4 text-info mb-0">@Model.AverageResolutionHours.ToString("F1") hrs</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Avg Days</h6>
+                        <p class="h4 text-primary mb-0">@((Model.AverageResolutionHours / 24).ToString("F1"))</p>
+                    </div>
+                </div>
+                <hr />
+                <p class="small text-muted mb-0">
+                    Based on @(Model.TicketsByStatus.GetValueOrDefault(TicketStatus.Resolved, 0) + Model.TicketsByStatus.GetValueOrDefault(TicketStatus.Closed, 0)) resolved tickets
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title mb-3">Quick Actions</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <a asp-page="/Tickets/Create" class="btn btn-primary">Create Ticket</a>
+                    <a asp-page="/Tickets/Index" class="btn btn-outline-primary">View All Tickets</a>
+                    <a asp-page="/Tickets/MyGroupQueue" class="btn btn-outline-primary">Team Queue</a>
+                    <a asp-page="/Customers/Index" class="btn btn-outline-primary">View Customers</a>
+                    <a asp-page="/Users/Index" class="btn btn-outline-primary">Manage Users</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

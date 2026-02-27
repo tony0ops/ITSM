@@ -1,20 +1,53 @@
 ﻿using System;
+using WebApplication1.Data;
 using WebApplication1.Models;
 
 namespace WebApplication1.Models;
 
 public static class SlaPolicy
 {
-    // --- v1: simple durations (local time). Adjust anytime.
-    public static TimeSpan GetSlaDuration(Severity severity) => severity switch
+    /// <summary>
+    /// Get SLA duration for a ticket, checking customer-specific SLA first, then default.
+    /// </summary>
+    public static TimeSpan GetSlaDuration(Severity severity)
+        => severity switch
+        {
+            Severity.Critical => TimeSpan.FromHours(4),
+            Severity.High => TimeSpan.FromHours(8),
+            Severity.Medium => TimeSpan.FromHours(24),
+            Severity.Low => TimeSpan.FromDays(3),
+            Severity.Info => TimeSpan.FromDays(7),
+            _ => TimeSpan.FromDays(3)
+        };
+
+    /// <summary>
+    /// Get SLA duration for a ticket with customer-specific SLA support.
+    /// </summary>
+    public static TimeSpan GetSlaDuration(Ticket ticket, ApplicationDbContext? context = null)
     {
-        Severity.Critical => TimeSpan.FromHours(4),
-        Severity.High => TimeSpan.FromHours(8),
-        Severity.Medium => TimeSpan.FromHours(24),
-        Severity.Low => TimeSpan.FromDays(3),
-        Severity.Info => TimeSpan.FromDays(7),
-        _ => TimeSpan.FromDays(3)
-    };
+        // Check for customer-specific SLA
+        if (context != null && ticket.CustomerId.HasValue)
+        {
+            var customerSla = context.CustomerSlas
+                .FirstOrDefault(cs => cs.CustomerId == ticket.CustomerId && cs.IsActive);
+
+            if (customerSla != null)
+            {
+                return ticket.Severity switch
+                {
+                    Severity.Critical => customerSla.CriticalResponseTime,
+                    Severity.High => customerSla.HighResponseTime,
+                    Severity.Medium => customerSla.MediumResponseTime,
+                    Severity.Low => customerSla.LowResponseTime,
+                    Severity.Info => customerSla.InfoResponseTime,
+                    _ => customerSla.MediumResponseTime
+                };
+            }
+        }
+
+        // Fall back to default SLA
+        return GetSlaDuration(ticket.Severity);
+    }
 
     // Absolute thresholds (these solve the "12 minutes still Green" problem)
     private static readonly TimeSpan RedAbsolute = TimeSpan.FromMinutes(15);
@@ -24,14 +57,18 @@ public static class SlaPolicy
     private const double RedPercent = 0.10;     // <= 10% remaining
     private const double YellowPercent = 0.25;  // <= 25% remaining
 
-    // NEW: Check if ticket SLA should be paused based on status
+    /// <summary>
+    /// Check if ticket SLA should be paused based on status
+    /// </summary>
     public static bool IsSlaPaused(TicketStatus status)
     {
         return status == TicketStatus.WaitingOnCustomer ||
                status == TicketStatus.WaitingOnVendor;
     }
 
-    // UPDATED: Calculate effective due date accounting for pauses
+    /// <summary>
+    /// Calculate effective due date accounting for pauses
+    /// </summary>
     public static DateTime GetEffectiveDueAt(Ticket t)
     {
         var baseDeadline = t.SlaDueAt ?? (t.CreatedAt + GetSlaDuration(t.Severity));
@@ -54,10 +91,10 @@ public static class SlaPolicy
 
     public static SlaState GetState(Ticket t, DateTime now)
     {
-        // If SLA is currently paused, return a special state or frozen state
+        // If SLA is currently paused, return Green (paused state)
         if (IsSlaPaused(t.Status))
         {
-            return SlaState.Green; // Or create a new SlaState.Paused if you want
+            return SlaState.Green;
         }
 
         return GetState(t.CreatedAt, GetEffectiveDueAt(t), now);
@@ -110,7 +147,7 @@ public static class SlaPolicy
         // If paused, show "Paused" instead of time
         if (IsSlaPaused(t.Status))
         {
-            return "⏸️ Paused";
+            return "Paused";
         }
 
         var dueAt = GetEffectiveDueAt(t);
@@ -134,7 +171,9 @@ public static class SlaPolicy
         return $"{Math.Max(0, ts.Minutes)}m";
     }
 
-    // NEW: Format paused duration
+    /// <summary>
+    /// Format paused duration
+    /// </summary>
     public static string FormatPausedDuration(TimeSpan duration)
     {
         if (duration == TimeSpan.Zero)

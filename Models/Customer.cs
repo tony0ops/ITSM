@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebApplication1.Models;
 
-public class Customer
+public class Customer : ISoftDeletable
 {
     public int Id { get; set; }
 
@@ -75,6 +75,11 @@ public class Customer
 
     [Display(Name = "Created Date")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    // ISoftDeletable implementation
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedBy { get; set; }
 
     // Navigation properties
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();

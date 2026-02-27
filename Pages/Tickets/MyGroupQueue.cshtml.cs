@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -9,33 +10,69 @@ namespace WebApplication1.Pages.Tickets
     public class MyGroupQueueModel : PageModel
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public MyGroupQueueModel(ApplicationDbContext context)
+        public MyGroupQueueModel(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         public List<Ticket> Tickets { get; set; } = [];
         public string GroupName { get; set; } = "Your Group";
+        public string? TeamName { get; set; }
         public int AtRiskCount { get; set; }
         public int BreachedCount { get; set; }
         public int InProgressCount { get; set; }
+        public bool HasTeamAssignment { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
-            // Determine user's assignment group
-            // For now, default to ServiceDesk_L1. In production, query from user profile or claims
-            var userGroup = AssignmentGroup.ServiceDesk_L1;
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Unauthorized();
 
+            // Get user's profile and team assignment
+            var profile = await _context.UserProfiles
+                .Include(p => p.Team)
+                .FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+            AssignmentGroup userGroup;
+
+            if (profile?.Team != null)
+            {
+                userGroup = profile.Team.Group;
+                GroupName = profile.Team.Group.ToString().Replace("_", " ");
+                TeamName = profile.Team.Name;
+                HasTeamAssignment = true;
+            }
+            else
+            {
+                userGroup = AssignmentGroup.ServiceDesk_L1;
+                GroupName = "ServiceDesk L1 (Default)";
+                HasTeamAssignment = false;
+            }
+
+            // Get all team member user IDs
+            var teamMemberIds = new List<string>();
+            if (profile?.TeamId != null)
+            {
+                teamMemberIds = await _context.UserProfiles
+                    .Where(p => p.TeamId == profile.TeamId && p.IsActive)
+                    .Select(p => p.UserId)
+                    .ToListAsync();
+            }
+
+            // Show tickets assigned to the group OR assigned to any team member
             Tickets = await _context.Tickets
-                .Where(t => t.AssignedGroup == userGroup && 
-                           t.Status != TicketStatus.Closed && 
+                .Include(t => t.Customer)
+                .Where(t => (t.AssignedGroup == userGroup ||
+                            (t.AssigneeUserId != null && teamMemberIds.Contains(t.AssigneeUserId))) &&
+                           t.Status != TicketStatus.Closed &&
                            t.Status != TicketStatus.Cancelled &&
                            t.Status != TicketStatus.Resolved)
                 .OrderBy(t => t.CreatedAt)
                 .ToListAsync();
-
-            GroupName = userGroup.ToString().Replace("_", " ");
 
             // Calculate statistics
             var now = DateTime.Now;
@@ -70,6 +107,7 @@ namespace WebApplication1.Pages.Tickets
                 .Where(t => SlaPolicy.GetState(t, now) == SlaState.Breached)
                 .ToList();
         }
+
 
         public List<Ticket> GetInProgressTickets()
         {

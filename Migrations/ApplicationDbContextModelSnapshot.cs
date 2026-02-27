@@ -239,6 +239,12 @@ namespace WebApplication1.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("EscalationContactName")
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
@@ -255,6 +261,9 @@ namespace WebApplication1.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Notes")
@@ -283,7 +292,145 @@ namespace WebApplication1.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_Customers_IsDeleted");
+
                     b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.CustomerSla", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CreatedUtc");
+
+                    b.Property<TimeSpan>("CriticalResponseTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeSpan>("HighResponseTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan>("InfoResponseTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<TimeSpan>("LowResponseTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<TimeSpan>("MediumResponseTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CustomerSlas_CustomerId_Unique");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_CustomerSlas_IsActive");
+
+                    b.ToTable("CustomerSlas");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.CustomerUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("CanAddComments")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("CanCreateTickets")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("CanViewTickets")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CreatedUtc");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("IX_CustomerUsers_CustomerId");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("IX_CustomerUsers_IsActive");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CustomerUsers_UserId_Unique");
+
+                    b.ToTable("CustomerUsers");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.Team", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CreatedUtc");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Group")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Group")
+                        .HasDatabaseName("IX_Teams_Group");
+
+                    b.ToTable("Teams");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.Ticket", b =>
@@ -309,6 +456,11 @@ namespace WebApplication1.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("CreatedUtc");
 
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
                     b.Property<int?>("CustomerId")
                         .HasColumnType("INTEGER");
 
@@ -316,9 +468,23 @@ namespace WebApplication1.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(450)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Number")
@@ -358,9 +524,28 @@ namespace WebApplication1.Migrations
                     b.Property<TimeSpan>("TotalPausedDuration")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("AssignedGroup")
+                        .HasDatabaseName("IX_Tickets_AssignedGroup");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_Tickets_CreatedAt");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("IX_Tickets_CustomerId");
+
+                    b.HasIndex("IsDeleted")
+                        .HasDatabaseName("IX_Tickets_IsDeleted");
+
+                    b.HasIndex("Severity")
+                        .HasDatabaseName("IX_Tickets_Severity");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Tickets_Status");
 
                     b.ToTable("Tickets");
                 });
@@ -411,9 +596,131 @@ namespace WebApplication1.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TicketId");
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_TicketActivities_CreatedAt");
+
+                    b.HasIndex("TicketId")
+                        .HasDatabaseName("IX_TicketActivities_TicketId");
 
                     b.ToTable("TicketActivities");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.TicketComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CreatedUtc");
+
+                    b.Property<bool>("IsCustomerVisible")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsInternal")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserRole")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_TicketComments_CreatedAt");
+
+                    b.HasIndex("IsInternal")
+                        .HasDatabaseName("IX_TicketComments_IsInternal");
+
+                    b.HasIndex("TicketId")
+                        .HasDatabaseName("IX_TicketComments_TicketId");
+
+                    b.ToTable("TicketComments");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.UserProfile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CreatedUtc");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("JobTitle")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("TeamId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId")
+                        .HasDatabaseName("IX_UserProfiles_TeamId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserProfiles_UserId_Unique");
+
+                    b.ToTable("UserProfiles");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -467,6 +774,36 @@ namespace WebApplication1.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.CustomerSla", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.CustomerUser", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Ticket", b =>
                 {
                     b.HasOne("WebApplication1.Models.Customer", "Customer")
@@ -488,14 +825,50 @@ namespace WebApplication1.Migrations
                     b.Navigation("Ticket");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.TicketComment", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Ticket", "Ticket")
+                        .WithMany("Comments")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.UserProfile", b =>
+                {
+                    b.HasOne("WebApplication1.Models.Team", "Team")
+                        .WithMany("Members")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Customer", b =>
                 {
                     b.Navigation("Tickets");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.Team", b =>
+                {
+                    b.Navigation("Members");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.Ticket", b =>
                 {
                     b.Navigation("Activities");
+
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }

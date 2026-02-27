@@ -1,20 +1,20 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace WebApplication1.Pages
 {
+    [AllowAnonymous]
     public class IndexModel : PageModel
     {
-        private readonly ILogger<IndexModel> _logger;
-
-        public IndexModel(ILogger<IndexModel> logger)
+        public IActionResult OnGet()
         {
-            _logger = logger;
-        }
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToPage("/Dashboard/Index");
+            }
 
-        public void OnGet()
-        {
-
+            return RedirectToPage("/Account/Login", new { area = "Identity" });
         }
     }
 }
