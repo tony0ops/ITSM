@@ -1,10 +1,17 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WebApplication1.Models.Interfaces;
 
 namespace WebApplication1.Models;
 
-public class Ticket : BaseEntity, IAuditable, ISoftDeletable
+/// <summary>
+/// Ticket entity implementing ISoftDeletable.
+/// Tickets are never hard-deleted due to audit and compliance requirements.
+/// </summary>
+public class Ticket : ISoftDeletable
 {
+    public int Id { get; set; }
+
     [Required, StringLength(20)]
     public string Number { get; set; } = "";
 
@@ -17,26 +24,25 @@ public class Ticket : BaseEntity, IAuditable, ISoftDeletable
     public Severity Severity { get; set; } = Severity.Medium;
     public TicketStatus Status { get; set; } = TicketStatus.New;
 
-    // Categorization
     public TicketCategory Category { get; set; } = TicketCategory.GeneralRequest;
     public AssignmentGroup AssignedGroup { get; set; } = AssignmentGroup.Unassigned;
 
-    [Column("SlaDueUtc")]
-    public DateTime? SlaDueAt { get; set; }
-
-    // Customer relationship
-    public int? CustomerId { get; set; }
-    public Customer? Customer { get; set; }
+    public string? AssigneeUserId { get; set; }
 
     [StringLength(200)]
     public string? CustomerName { get; set; }
 
-    public string? AssigneeUserId { get; set; }
+    public int? CustomerId { get; set; }
+    public Customer? Customer { get; set; }
 
-    [Column("ClosedUtc")]
-    public DateTime? ClosedAt { get; set; }
+    [Column("CreatedUtc")]
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    // SLA Pause tracking
+    public DateTime? UpdatedAt { get; set; }
+
+    [Column("SlaDueUtc")]
+    public DateTime? SlaDueAt { get; set; }
+
     public DateTime? SlaPausedAt { get; set; }
 
     [Column(TypeName = "TEXT")]
@@ -45,23 +51,25 @@ public class Ticket : BaseEntity, IAuditable, ISoftDeletable
     [StringLength(500)]
     public string? PauseReason { get; set; }
 
-    // Resolution tracking
     [StringLength(2000)]
     public string? ResolutionNotes { get; set; }
 
     public DateTime? ResolvedAt { get; set; }
 
-    // IAuditable implementation
+    [Column("ClosedUtc")]
+    public DateTime? ClosedAt { get; set; }
+
+    // Audit fields (exist in DB from migration)
     [StringLength(450)]
     public string CreatedBy { get; set; } = "";
 
     [StringLength(450)]
     public string? ModifiedBy { get; set; }
 
-    // ISoftDeletable implementation
+    // ISoftDeletable
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
-    
+
     [StringLength(450)]
     public string? DeletedBy { get; set; }
 

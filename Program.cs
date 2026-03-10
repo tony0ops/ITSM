@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Services;
+using WebApplication1.Services.TicketActivity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +14,17 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 // Register services
 builder.Services.AddScoped<SelectListService>();
 builder.Services.AddScoped<UserProfileService>();
-builder.Services.AddScoped<TicketCommentService>();
+builder.Services.AddScoped<EntityLifecycleService>();
+
+// Activity formatters
+builder.Services.AddScoped<ITicketActivityFormatter, CreatedActivityFormatter>();
+builder.Services.AddScoped<ITicketActivityFormatter, StatusChangeActivityFormatter>();
+builder.Services.AddScoped<ITicketActivityFormatter, ReassignedActivityFormatter>();
+builder.Services.AddScoped<ITicketActivityFormatter, TimeRegisteredActivityFormatter>();
+builder.Services.AddScoped<ITicketActivityFormatter, CommentActivityFormatter>();
+builder.Services.AddScoped<ITicketActivityFormatter, SeverityChangedActivityFormatter>();
+builder.Services.AddScoped<ITicketActivityFormatter, SlaPausedActivityFormatter>();
+builder.Services.AddScoped<TicketActivityFormatterFactory>();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -24,7 +34,6 @@ builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeFolder("/");
     options.Conventions.AllowAnonymousToPage("/Index");
-    options.Conventions.AllowAnonymousToPage("/Privacy");
     options.Conventions.AllowAnonymousToPage("/Error");
 });
 

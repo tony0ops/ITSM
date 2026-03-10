@@ -1,15 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
+using WebApplication1.Models.Interfaces;
 
 namespace WebApplication1.Models;
 
 /// <summary>
-/// Extends ASP.NET Core Identity with ITSM-specific user attributes.
-/// Maps users to teams, tracks job information, and maintains audit history.
+/// UserProfile entity implementing IActivatable.
+/// User accounts can be deactivated when employees leave.
 /// </summary>
-public class UserProfile : BaseEntity, IAuditable
+public class UserProfile : IActivatable
 {
+    public int Id { get; set; }
+
     [Required, StringLength(450)]
     public string UserId { get; set; } = "";
 
@@ -33,21 +36,24 @@ public class UserProfile : BaseEntity, IAuditable
     [Display(Name = "Phone Number")]
     public string? PhoneNumber { get; set; }
 
-    [Display(Name = "Active")]
-    public bool IsActive { get; set; } = true;
-
-    // Team assignment
     public int? TeamId { get; set; }
 
     [Display(Name = "Team")]
     public Team? Team { get; set; }
 
-    // IAuditable implementation
+    [Column("CreatedUtc")]
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public DateTime? UpdatedAt { get; set; }
+
+    // Audit fields (exist in DB from migration)
     [StringLength(450)]
     public string CreatedBy { get; set; } = "";
 
     [StringLength(450)]
     public string? ModifiedBy { get; set; }
 
-    public new DateTime? UpdatedAt { get; set; }
+    // IActivatable
+    [Display(Name = "Active")]
+    public bool IsActive { get; set; } = true;
 }

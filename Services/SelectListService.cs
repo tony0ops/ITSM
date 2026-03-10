@@ -6,7 +6,7 @@ using WebApplication1.Data;
 namespace WebApplication1.Services;
 
 /// <summary>
-/// Service for generating common SelectLists used across the application
+/// Service for generating common SelectLists used across the application.
 /// </summary>
 public class SelectListService
 {
@@ -20,7 +20,7 @@ public class SelectListService
     }
 
     /// <summary>
-    /// Get all active customers sorted by company name
+    /// Get all active customers sorted by company name.
     /// </summary>
     public SelectList GetActiveCustomers()
     {
@@ -36,7 +36,7 @@ public class SelectListService
     }
 
     /// <summary>
-    /// Get all application users sorted by email
+    /// Get all application users sorted by email.
     /// </summary>
     public async Task<SelectList> GetUsersAsync()
     {
@@ -53,21 +53,6 @@ public class SelectListService
             }),
             "Id",
             "Name"
-        );
-    }
-
-    /// <summary>
-    /// Get all customers (including inactive) sorted by company name
-    /// </summary>
-    public SelectList GetAllCustomers()
-    {
-        return new SelectList(
-            _context.Customers
-                .OrderBy(c => c.CompanyName)
-                .AsNoTracking()
-                .Select(c => new { c.Id, c.CompanyName }),
-            "Id",
-            "CompanyName"
         );
     }
 }

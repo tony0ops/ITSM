@@ -21,15 +21,12 @@ namespace WebApplication1.Pages.Customers
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var customer = await _context.Customers.FirstOrDefaultAsync(m => m.Id == id);
             if (customer == null)
-            {
                 return NotFound();
-            }
+
             Customer = customer;
             return Page();
         }
@@ -37,35 +34,34 @@ namespace WebApplication1.Pages.Customers
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
-            _context.Attach(Customer).State = EntityState.Modified;
+            var existing = await _context.Customers.FirstOrDefaultAsync(c => c.Id == Customer.Id);
+            if (existing == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CustomerExists(Customer.Id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            // Update only user-editable fields — preserve system fields
+            existing.CompanyName = Customer.CompanyName;
+            existing.PrimaryContactName = Customer.PrimaryContactName;
+            existing.PrimaryEmail = Customer.PrimaryEmail;
+            existing.PrimaryPhone = Customer.PrimaryPhone;
+            existing.EscalationContactName = Customer.EscalationContactName;
+            existing.EscalationEmail = Customer.EscalationEmail;
+            existing.EscalationPhone = Customer.EscalationPhone;
+            existing.Address = Customer.Address;
+            existing.City = Customer.City;
+            existing.State = Customer.State;
+            existing.PostalCode = Customer.PostalCode;
+            existing.Country = Customer.Country;
+            existing.AccountManager = Customer.AccountManager;
+            existing.HourlyRate = Customer.HourlyRate;
+            existing.Notes = Customer.Notes;
+            existing.IsActive = Customer.IsActive;
 
-            TempData["SuccessMessage"] = $"Customer '{Customer.CompanyName}' updated successfully!";
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Customer '{existing.CompanyName}' updated successfully!";
             return RedirectToPage("./Index");
-        }
-
-        private bool CustomerExists(int id)
-        {
-            return _context.Customers.Any(e => e.Id == id);
         }
     }
 }

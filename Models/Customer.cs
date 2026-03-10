@@ -1,8 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using WebApplication1.Models.Interfaces;
 
 namespace WebApplication1.Models;
 
-public class Customer : ISoftDeletable
+/// <summary>
+/// Customer entity implementing IActivatable and ISoftDeletable.
+/// Customers can be deactivated (suspended) or soft-deleted (archived).
+/// </summary>
+public class Customer : IActivatable, ISoftDeletable
 {
     public int Id { get; set; }
 
@@ -24,7 +29,6 @@ public class Customer : ISoftDeletable
     [Display(Name = "Primary Phone")]
     public string? PrimaryPhone { get; set; }
 
-    // Escalation contact
     [StringLength(100)]
     [Display(Name = "Escalation Contact Name")]
     public string? EscalationContactName { get; set; }
@@ -39,7 +43,6 @@ public class Customer : ISoftDeletable
     [Display(Name = "Escalation Phone")]
     public string? EscalationPhone { get; set; }
 
-    // Business information
     [StringLength(500)]
     public string? Address { get; set; }
 
@@ -56,7 +59,6 @@ public class Customer : ISoftDeletable
     [StringLength(100)]
     public string? Country { get; set; }
 
-    // Account management
     [StringLength(100)]
     [Display(Name = "Account Manager")]
     public string? AccountManager { get; set; }
@@ -69,18 +71,18 @@ public class Customer : ISoftDeletable
     [StringLength(2000)]
     public string? Notes { get; set; }
 
-    // Status
-    [Display(Name = "Active")]
-    public bool IsActive { get; set; } = true;
-
     [Display(Name = "Created Date")]
     public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-    // ISoftDeletable implementation
+    // IActivatable
+    [Display(Name = "Active")]
+    public bool IsActive { get; set; } = true;
+
+    // ISoftDeletable
     public bool IsDeleted { get; set; } = false;
     public DateTime? DeletedAt { get; set; }
     public string? DeletedBy { get; set; }
 
-    // Navigation properties
+    // Navigation
     public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

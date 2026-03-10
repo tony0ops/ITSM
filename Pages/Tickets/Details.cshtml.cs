@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
+using WebApplication1.Services.TicketActivity;
 
 namespace WebApplication1.Pages.Tickets
 {
@@ -15,19 +16,27 @@ namespace WebApplication1.Pages.Tickets
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly TicketActivityFormatterFactory _formatterFactory;
 
         public DetailsModel(
             ApplicationDbContext context,
-            UserManager<IdentityUser> userManager)
+            UserManager<IdentityUser> userManager,
+            TicketActivityFormatterFactory formatterFactory)
         {
             _context = context;
             _userManager = userManager;
+            _formatterFactory = formatterFactory;
         }
 
         public Ticket Ticket { get; set; } = default!;
-        public List<TicketActivity> Activities { get; set; } = new();
+        public List<Models.TicketActivity> Activities { get; set; } = new();
         public List<TicketComment> Comments { get; set; } = new();
         public TimeSpan TotalTimeSpent { get; set; }
+
+        // Formatter output — keyed by activity Id for safe Razor access
+        public Dictionary<int, string> FormattedActivities { get; set; } = new();
+        public Dictionary<int, string> ActivityIcons { get; set; } = new();
+        public Dictionary<int, string> ActivityCssClasses { get; set; } = new();
 
         [BindProperty]
         public int Hours { get; set; }
@@ -50,24 +59,21 @@ namespace WebApplication1.Pages.Tickets
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var ticket = await _context.Tickets
                 .Include(t => t.Activities)
                 .Include(t => t.Comments)
+                .Include(t => t.Customer)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            
+
             if (ticket == null)
-            {
                 return NotFound();
-            }
 
             Ticket = ticket;
             Activities = ticket.Activities.OrderByDescending(a => a.CreatedAt).ToList();
             Comments = ticket.Comments.OrderBy(c => c.CreatedAt).ToList();
-            
+
             // Calculate total time spent
             TotalTimeSpent = TimeSpan.FromMinutes(
                 ticket.Activities
@@ -75,29 +81,32 @@ namespace WebApplication1.Pages.Tickets
                     .Sum(a => a.TimeSpent!.Value.TotalMinutes)
             );
 
+            // Use polymorphic formatters for activity display
+            foreach (var activity in Activities)
+            {
+                FormattedActivities[activity.Id] = _formatterFactory.Format(activity);
+                ActivityIcons[activity.Id] = _formatterFactory.GetIcon(activity);
+                ActivityCssClasses[activity.Id] = _formatterFactory.GetCssClass(activity);
+            }
+
             return Page();
         }
 
         public async Task<IActionResult> OnPostLogTimeAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var ticket = await _context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
             if (ticket == null)
-            {
                 return NotFound();
-            }
 
-            // Validate time input
             if (Hours < 0 || Minutes < 0)
             {
                 ModelState.AddModelError("", "Time values cannot be negative");
                 return await OnGetAsync(id);
             }
-            
+
             if (Hours == 0 && Minutes == 0)
             {
                 ModelState.AddModelError("", "Time must be greater than 0");
@@ -109,7 +118,7 @@ namespace WebApplication1.Pages.Tickets
             var userId = user?.Id ?? "";
 
             var timeSpent = new TimeSpan(Hours, Minutes, 0);
-            var activity = new TicketActivity
+            var activity = new Models.TicketActivity
             {
                 TicketId = ticket.Id,
                 Type = ActivityType.TimeRegistered,
@@ -124,21 +133,17 @@ namespace WebApplication1.Pages.Tickets
             _context.TicketActivities.Add(activity);
             await _context.SaveChangesAsync();
 
-            return RedirectToPage(new { id = id });
+            return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostAddCommentAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var ticket = await _context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
             if (ticket == null)
-            {
                 return NotFound();
-            }
 
             if (string.IsNullOrWhiteSpace(NewComment))
             {
@@ -150,8 +155,7 @@ namespace WebApplication1.Pages.Tickets
             var userName = user?.Email ?? user?.UserName ?? "Anonymous";
             var userId = user?.Id ?? "";
 
-            // Determine user role - you can enhance this based on actual role assignments
-            var userRole = "Agent"; // Default to Agent; can be enhanced to check actual roles
+            var userRole = "Agent";
 
             var comment = new TicketComment
             {
@@ -167,7 +171,7 @@ namespace WebApplication1.Pages.Tickets
             _context.TicketComments.Add(comment);
             await _context.SaveChangesAsync();
 
-            return RedirectToPage(new { id = id });
+            return RedirectToPage(new { id });
         }
     }
 }

@@ -7,8 +7,10 @@ namespace WebApplication1.Models;
 /// Defines customer-specific SLA response times.
 /// Overrides default SLA durations when a ticket is associated with a customer that has custom SLA terms.
 /// </summary>
-public class CustomerSla : BaseEntity
+public class CustomerSla
 {
+    public int Id { get; set; }
+
     [Required]
     public int CustomerId { get; set; }
 
@@ -53,6 +55,11 @@ public class CustomerSla : BaseEntity
     [StringLength(500)]
     public string? Notes { get; set; }
 
-    // Navigation property
+    [Column("CreatedUtc")]
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public DateTime? UpdatedAt { get; set; }
+
+    // Navigation
     public Customer Customer { get; set; } = null!;
 }

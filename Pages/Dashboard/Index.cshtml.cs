@@ -14,7 +14,6 @@ namespace WebApplication1.Pages.Dashboard
             _context = context;
         }
 
-        // Summary stats
         public int TotalTickets { get; set; }
         public int OpenTickets { get; set; }
         public int ClosedTickets { get; set; }
@@ -28,25 +27,24 @@ namespace WebApplication1.Pages.Dashboard
         {
             TotalTickets = await _context.Tickets.CountAsync();
             OpenTickets = await _context.Tickets
-                .Where(t => t.Status != TicketStatus.Closed && t.Status != TicketStatus.Resolved)
+                .Where(t => t.Status != TicketStatus.Closed &&
+                            t.Status != TicketStatus.Resolved &&
+                            t.Status != TicketStatus.Cancelled)
                 .CountAsync();
             ClosedTickets = await _context.Tickets
                 .Where(t => t.Status == TicketStatus.Closed)
                 .CountAsync();
 
-            // Group by status
             TicketsByStatus = await _context.Tickets
                 .GroupBy(t => t.Status)
                 .Select(g => new { Status = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Status, x => x.Count);
 
-            // Group by severity
             TicketsBySeverity = await _context.Tickets
                 .GroupBy(t => t.Severity)
                 .Select(g => new { Severity = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Severity, x => x.Count);
 
-            // Top 5 customers by ticket count
             TicketsByCustomer = await _context.Tickets
                 .Where(t => t.Customer != null)
                 .GroupBy(t => t.Customer!.CompanyName)
@@ -67,16 +65,18 @@ namespace WebApplication1.Pages.Dashboard
                     .Average(t => (t.ResolvedAt!.Value - t.CreatedAt).TotalHours);
             }
 
-            // SLA compliance (not breached)
+            // SLA compliance — only load open tickets (the ones that can breach)
             var now = DateTime.Now;
-            var totalWithSla = await _context.Tickets.CountAsync();
-            var breached = await _context.Tickets
-                .Where(t => t.Status != TicketStatus.Closed)
+            var openTickets = await _context.Tickets
+                .Where(t => t.Status != TicketStatus.Closed &&
+                            t.Status != TicketStatus.Resolved &&
+                            t.Status != TicketStatus.Cancelled)
                 .ToListAsync();
-            var breachedCount = breached.Count(t => SlaPolicy.GetState(t, now) == SlaState.Breached);
 
-            SlaComplianceRate = totalWithSla > 0
-                ? ((totalWithSla - breachedCount) / (double)totalWithSla) * 100
+            var breachedCount = openTickets.Count(t => SlaPolicy.GetState(t, now) == SlaState.Breached);
+
+            SlaComplianceRate = TotalTickets > 0
+                ? ((TotalTickets - breachedCount) / (double)TotalTickets) * 100
                 : 100;
         }
     }

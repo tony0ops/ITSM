@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -34,17 +30,12 @@ namespace WebApplication1.Pages.Tickets
         public async Task<IActionResult> OnGetAsync(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var ticket = await _context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
             if (ticket == null)
-            {
                 return NotFound();
-            }
 
-            // Load dropdowns
             CustomerList = _selectListService.GetActiveCustomers();
             AssigneeList = await _selectListService.GetUsersAsync();
 
@@ -59,7 +50,6 @@ namespace WebApplication1.Pages.Tickets
             var existing = await _context.Tickets.FirstOrDefaultAsync(t => t.Id == Ticket.Id);
             if (existing == null) return NotFound();
 
-            // Remove validation for system fields
             ModelState.Remove("Ticket.Number");
             ModelState.Remove("Ticket.CreatedAt");
             ModelState.Remove("Ticket.ClosedAt");
@@ -70,13 +60,11 @@ namespace WebApplication1.Pages.Tickets
 
             if (!ModelState.IsValid)
             {
-                // Reload dropdowns on validation error
                 CustomerList = _selectListService.GetActiveCustomers();
                 AssigneeList = await _selectListService.GetUsersAsync();
                 return Page();
             }
 
-            // Validate deadline if provided
             if (Ticket.SlaDueAt.HasValue && Ticket.SlaDueAt.Value < existing.CreatedAt)
             {
                 ModelState.AddModelError("Ticket.SlaDueAt", "Deadline cannot be earlier than Created time.");
@@ -85,7 +73,6 @@ namespace WebApplication1.Pages.Tickets
                 return Page();
             }
 
-            // Track changes for activity log
             var activities = new List<TicketActivity>();
             var userName = User.Identity?.Name ?? "System";
 
@@ -97,7 +84,6 @@ namespace WebApplication1.Pages.Tickets
 
                 if (!wasSlaPaused && willBeSlaPaused)
                 {
-                    // Pausing SLA
                     existing.SlaPausedAt = DateTime.Now;
                     existing.PauseReason = Ticket.PauseReason ?? "Waiting for response";
 
@@ -116,7 +102,6 @@ namespace WebApplication1.Pages.Tickets
                 }
                 else if (wasSlaPaused && !willBeSlaPaused)
                 {
-                    // Resuming SLA
                     if (existing.SlaPausedAt.HasValue)
                     {
                         var pauseDuration = DateTime.Now - existing.SlaPausedAt.Value;
@@ -140,7 +125,6 @@ namespace WebApplication1.Pages.Tickets
                 }
                 else
                 {
-                    // Regular status change
                     activities.Add(new TicketActivity
                     {
                         TicketId = existing.Id,
@@ -158,7 +142,6 @@ namespace WebApplication1.Pages.Tickets
                 existing.Status = Ticket.Status;
             }
 
-            // Track severity change
             if (existing.Severity != Ticket.Severity)
             {
                 activities.Add(new TicketActivity
@@ -175,7 +158,6 @@ namespace WebApplication1.Pages.Tickets
                 });
             }
 
-            // Track reassignment
             if (existing.AssigneeUserId != Ticket.AssigneeUserId)
             {
                 activities.Add(new TicketActivity
@@ -192,15 +174,15 @@ namespace WebApplication1.Pages.Tickets
                 });
             }
 
-            // Update allowed fields
             existing.Title = Ticket.Title;
             existing.Description = Ticket.Description;
             existing.Severity = Ticket.Severity;
             existing.AssigneeUserId = Ticket.AssigneeUserId;
             existing.AssignedGroup = Ticket.AssignedGroup;
             existing.Category = Ticket.Category;
+            existing.UpdatedAt = DateTime.Now;
+            existing.ModifiedBy = User.Identity?.Name;
 
-            // Update customer reference
             if (Ticket.CustomerId.HasValue && Ticket.CustomerId != existing.CustomerId)
             {
                 var customer = await _context.Customers.FindAsync(Ticket.CustomerId.Value);
@@ -216,20 +198,17 @@ namespace WebApplication1.Pages.Tickets
                 existing.CustomerName = null;
             }
 
-            // SLA logic: keep user-set deadline or auto-calc from severity
             if (Ticket.SlaDueAt.HasValue)
                 existing.SlaDueAt = Ticket.SlaDueAt.Value;
             else
-                existing.SlaDueAt = existing.CreatedAt + SlaPolicy.GetSlaDuration(existing.Severity);
+                existing.SlaDueAt = existing.CreatedAt + SlaPolicy.GetSlaDuration(existing, _context);
 
-            // Handle resolution statuses
             if (existing.Status == TicketStatus.Resolved)
             {
                 existing.ResolvedAt ??= DateTime.Now;
                 existing.ResolutionNotes = Ticket.ResolutionNotes;
             }
 
-            // Set/clear ClosedAt automatically
             if (existing.Status is TicketStatus.Resolved or TicketStatus.Closed or TicketStatus.Cancelled)
                 existing.ClosedAt ??= DateTime.Now;
             else
@@ -238,19 +217,13 @@ namespace WebApplication1.Pages.Tickets
                 existing.ResolvedAt = null;
             }
 
-            // Save all activities
-            if (activities.Any())
+            if (activities.Count > 0)
             {
                 _context.TicketActivities.AddRange(activities);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToPage("./Details", new { id = existing.Id });
-        }
-
-        private bool TicketExists(int id)
-        {
-            return _context.Tickets.Any(e => e.Id == id);
         }
     }
 }

@@ -1,27 +1,34 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using WebApplication1.Models.Interfaces;
 
 namespace WebApplication1.Models;
 
 /// <summary>
-/// Represents a team within the organization (e.g., "ServiceDesk L1", "Network Team").
-/// Teams are linked to AssignmentGroups and contain multiple UserProfile members.
+/// Team entity implementing IActivatable.
+/// Teams can be deactivated when disbanded or restructured.
 /// </summary>
-public class Team : BaseEntity
+public class Team : IActivatable
 {
+    public int Id { get; set; }
+
     [Required, StringLength(100)]
     public string Name { get; set; } = "";
 
     [StringLength(500)]
     public string Description { get; set; } = "";
 
-    /// <summary>
-    /// Links this team to an assignment group for ticket routing
-    /// </summary>
     public AssignmentGroup Group { get; set; }
 
+    [Column("CreatedUtc")]
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    public DateTime? UpdatedAt { get; set; }
+
+    // IActivatable
     [Display(Name = "Active")]
     public bool IsActive { get; set; } = true;
 
-    // Navigation property
+    // Navigation
     public ICollection<UserProfile> Members { get; set; } = new List<UserProfile>();
 }

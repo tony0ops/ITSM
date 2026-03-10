@@ -1,13 +1,12 @@
 ﻿using System;
 using WebApplication1.Data;
-using WebApplication1.Models;
 
 namespace WebApplication1.Models;
 
 public static class SlaPolicy
 {
     /// <summary>
-    /// Get SLA duration for a ticket, checking customer-specific SLA first, then default.
+    /// Default SLA duration by severity.
     /// </summary>
     public static TimeSpan GetSlaDuration(Severity severity)
         => severity switch
@@ -21,11 +20,10 @@ public static class SlaPolicy
         };
 
     /// <summary>
-    /// Get SLA duration for a ticket with customer-specific SLA support.
+    /// Get SLA duration with customer-specific SLA support.
     /// </summary>
     public static TimeSpan GetSlaDuration(Ticket ticket, ApplicationDbContext? context = null)
     {
-        // Check for customer-specific SLA
         if (context != null && ticket.CustomerId.HasValue)
         {
             var customerSla = context.CustomerSlas
@@ -45,38 +43,27 @@ public static class SlaPolicy
             }
         }
 
-        // Fall back to default SLA
         return GetSlaDuration(ticket.Severity);
     }
 
-    // Absolute thresholds (these solve the "12 minutes still Green" problem)
     private static readonly TimeSpan RedAbsolute = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan YellowAbsolute = TimeSpan.FromHours(5);
 
-    // Percentage thresholds (useful for long SLAs)
-    private const double RedPercent = 0.10;     // <= 10% remaining
-    private const double YellowPercent = 0.25;  // <= 25% remaining
+    private const double RedPercent = 0.10;
+    private const double YellowPercent = 0.25;
 
-    /// <summary>
-    /// Check if ticket SLA should be paused based on status
-    /// </summary>
     public static bool IsSlaPaused(TicketStatus status)
     {
         return status == TicketStatus.WaitingOnCustomer ||
                status == TicketStatus.WaitingOnVendor;
     }
 
-    /// <summary>
-    /// Calculate effective due date accounting for pauses
-    /// </summary>
     public static DateTime GetEffectiveDueAt(Ticket t)
     {
         var baseDeadline = t.SlaDueAt ?? (t.CreatedAt + GetSlaDuration(t.Severity));
 
-        // Add total paused duration
         var totalPause = t.TotalPausedDuration;
 
-        // If currently paused, add the current pause duration
         if (t.SlaPausedAt.HasValue && IsSlaPaused(t.Status))
         {
             var currentPauseDuration = DateTime.Now - t.SlaPausedAt.Value;
@@ -91,11 +78,8 @@ public static class SlaPolicy
 
     public static SlaState GetState(Ticket t, DateTime now)
     {
-        // If SLA is currently paused, return Green (paused state)
         if (IsSlaPaused(t.Status))
-        {
             return SlaState.Green;
-        }
 
         return GetState(t.CreatedAt, GetEffectiveDueAt(t), now);
     }
@@ -107,17 +91,15 @@ public static class SlaPolicy
         if (remaining <= TimeSpan.Zero)
             return SlaState.Breached;
 
-        // 1) Absolute thresholds (always apply)
         if (remaining <= RedAbsolute)
             return SlaState.Red;
 
         if (remaining <= YellowAbsolute)
             return SlaState.Yellow;
 
-        // 2) Percentage thresholds (only if total makes sense)
         var total = dueAt - createdAt;
         if (total <= TimeSpan.Zero)
-            return SlaState.Red; // bad data (due <= created), treat as critical
+            return SlaState.Red;
 
         var ratio = remaining.TotalSeconds / total.TotalSeconds;
 
@@ -144,11 +126,8 @@ public static class SlaPolicy
 
     public static string FormatRemaining(Ticket t, DateTime now)
     {
-        // If paused, show "Paused" instead of time
         if (IsSlaPaused(t.Status))
-        {
             return "Paused";
-        }
 
         var dueAt = GetEffectiveDueAt(t);
         var remaining = dueAt - now;
@@ -161,7 +140,6 @@ public static class SlaPolicy
 
     private static string FormatDuration(TimeSpan ts)
     {
-        // Show largest 2 units (e.g., "2d 3h", "3h 14m", "12m")
         if (ts.TotalDays >= 1)
             return $"{(int)ts.TotalDays}d {ts.Hours}h";
 
@@ -171,9 +149,6 @@ public static class SlaPolicy
         return $"{Math.Max(0, ts.Minutes)}m";
     }
 
-    /// <summary>
-    /// Format paused duration
-    /// </summary>
     public static string FormatPausedDuration(TimeSpan duration)
     {
         if (duration == TimeSpan.Zero)
