@@ -6,13 +6,11 @@ using WebApplication1.Models.Interfaces;
 namespace WebApplication1.Models;
 
 /// <summary>
-/// UserProfile entity implementing IActivatable.
+/// UserProfile entity inheriting BaseEntity and implementing IActivatable.
 /// User accounts can be deactivated when employees leave.
 /// </summary>
-public class UserProfile : IActivatable
+public class UserProfile : BaseEntity, IActivatable
 {
-    public int Id { get; set; }
-
     [Required, StringLength(450)]
     public string UserId { get; set; } = "";
 
@@ -41,12 +39,7 @@ public class UserProfile : IActivatable
     [Display(Name = "Team")]
     public Team? Team { get; set; }
 
-    [Column("CreatedUtc")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public DateTime? UpdatedAt { get; set; }
-
-    // Audit fields (exist in DB from migration)
+    // Audit fields
     [StringLength(450)]
     public string CreatedBy { get; set; } = "";
 

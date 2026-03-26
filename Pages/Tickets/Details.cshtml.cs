@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -29,14 +25,20 @@ namespace WebApplication1.Pages.Tickets
         }
 
         public Ticket Ticket { get; set; } = default!;
+        public string AssigneeDisplayName { get; set; } = "Unassigned";
         public List<Models.TicketActivity> Activities { get; set; } = new();
         public List<TicketComment> Comments { get; set; } = new();
         public TimeSpan TotalTimeSpent { get; set; }
 
-        // Formatter output — keyed by activity Id for safe Razor access
         public Dictionary<int, string> FormattedActivities { get; set; } = new();
         public Dictionary<int, string> ActivityIcons { get; set; } = new();
         public Dictionary<int, string> ActivityCssClasses { get; set; } = new();
+
+        public bool ShowLogTimeError { get; set; }
+
+        // Edit tracking
+        public int? EditingCommentId { get; set; }
+        public int? EditingActivityId { get; set; }
 
         [BindProperty]
         public int Hours { get; set; }
@@ -56,7 +58,26 @@ namespace WebApplication1.Pages.Tickets
         [BindProperty]
         public bool IsInternalComment { get; set; }
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        // Edit fields
+        [BindProperty]
+        public string EditCommentText { get; set; } = "";
+
+        [BindProperty]
+        public int EditCommentId { get; set; }
+
+        [BindProperty]
+        public int EditActivityId { get; set; }
+
+        [BindProperty]
+        public string EditActivityDescription { get; set; } = "";
+
+        [BindProperty]
+        public int EditActivityHours { get; set; }
+
+        [BindProperty]
+        public int EditActivityMinutes { get; set; }
+
+        public async Task<IActionResult> OnGetAsync(int? id, int? editComment, int? editActivity)
         {
             if (id == null)
                 return NotFound();
@@ -71,22 +92,54 @@ namespace WebApplication1.Pages.Tickets
                 return NotFound();
 
             Ticket = ticket;
+
+            // Resolve assignee display name
+            if (!string.IsNullOrEmpty(ticket.AssigneeUserId))
+            {
+                var assignee = await _userManager.FindByIdAsync(ticket.AssigneeUserId);
+                AssigneeDisplayName = assignee?.Email ?? assignee?.UserName ?? "Unknown";
+            }
+
             Activities = ticket.Activities.OrderByDescending(a => a.CreatedAt).ToList();
             Comments = ticket.Comments.OrderBy(c => c.CreatedAt).ToList();
 
-            // Calculate total time spent
             TotalTimeSpent = TimeSpan.FromMinutes(
                 ticket.Activities
                     .Where(a => a.Type == ActivityType.TimeRegistered && a.TimeSpent.HasValue)
                     .Sum(a => a.TimeSpent!.Value.TotalMinutes)
             );
 
-            // Use polymorphic formatters for activity display
             foreach (var activity in Activities)
             {
                 FormattedActivities[activity.Id] = _formatterFactory.Format(activity);
                 ActivityIcons[activity.Id] = _formatterFactory.GetIcon(activity);
                 ActivityCssClasses[activity.Id] = _formatterFactory.GetCssClass(activity);
+            }
+
+            // Handle inline edit mode
+            if (editComment.HasValue)
+            {
+                var comment = Comments.FirstOrDefault(c => c.Id == editComment.Value);
+                if (comment != null)
+                {
+                    EditingCommentId = comment.Id;
+                    EditCommentText = comment.Comment;
+                    EditCommentId = comment.Id;
+                }
+            }
+
+            if (editActivity.HasValue)
+            {
+                var activity = Activities.FirstOrDefault(a => a.Id == editActivity.Value
+                    && a.Type == ActivityType.TimeRegistered);
+                if (activity != null)
+                {
+                    EditingActivityId = activity.Id;
+                    EditActivityDescription = activity.Description;
+                    EditActivityHours = activity.TimeSpent.HasValue ? (int)activity.TimeSpent.Value.TotalHours : 0;
+                    EditActivityMinutes = activity.TimeSpent.HasValue ? activity.TimeSpent.Value.Minutes : 0;
+                    EditActivityId = activity.Id;
+                }
             }
 
             return Page();
@@ -103,14 +156,23 @@ namespace WebApplication1.Pages.Tickets
 
             if (Hours < 0 || Minutes < 0)
             {
-                ModelState.AddModelError("", "Time values cannot be negative");
-                return await OnGetAsync(id);
+                ModelState.AddModelError("", "Time values cannot be negative.");
+                ShowLogTimeError = true;
+                return await OnGetAsync(id, null, null);
             }
 
             if (Hours == 0 && Minutes == 0)
             {
-                ModelState.AddModelError("", "Time must be greater than 0");
-                return await OnGetAsync(id);
+                ModelState.AddModelError("", "Time must be greater than 0.");
+                ShowLogTimeError = true;
+                return await OnGetAsync(id, null, null);
+            }
+
+            if (string.IsNullOrWhiteSpace(TimeDescription))
+            {
+                ModelState.AddModelError("TimeDescription", "Work notes are required when logging time.");
+                ShowLogTimeError = true;
+                return await OnGetAsync(id, null, null);
             }
 
             var user = await _userManager.GetUserAsync(User);
@@ -126,7 +188,7 @@ namespace WebApplication1.Pages.Tickets
                 UserId = userId,
                 UserName = userName,
                 TimeSpent = timeSpent,
-                Description = TimeDescription,
+                Description = TimeDescription.Trim(),
                 IsInternal = IsInternal
             };
 
@@ -148,14 +210,16 @@ namespace WebApplication1.Pages.Tickets
             if (string.IsNullOrWhiteSpace(NewComment))
             {
                 ModelState.AddModelError("", "Comment cannot be empty");
-                return await OnGetAsync(id);
+                return await OnGetAsync(id, null, null);
             }
 
             var user = await _userManager.GetUserAsync(User);
             var userName = user?.Email ?? user?.UserName ?? "Anonymous";
             var userId = user?.Id ?? "";
 
-            var userRole = "Agent";
+            // Resolve actual role from Identity
+            var roles = await _userManager.GetRolesAsync(user!);
+            var userRole = roles.FirstOrDefault() ?? "Agent";
 
             var comment = new TicketComment
             {
@@ -171,6 +235,67 @@ namespace WebApplication1.Pages.Tickets
             _context.TicketComments.Add(comment);
             await _context.SaveChangesAsync();
 
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostEditCommentAsync(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var comment = await _context.TicketComments.FindAsync(EditCommentId);
+            if (comment == null)
+                return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || comment.UserId != user.Id)
+                return Forbid();
+
+            if (string.IsNullOrWhiteSpace(EditCommentText))
+            {
+                ModelState.AddModelError("", "Comment cannot be empty.");
+                return await OnGetAsync(id, EditCommentId, null);
+            }
+
+            comment.Comment = EditCommentText.Trim();
+            comment.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Comment updated.";
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostEditTimeEntryAsync(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var activity = await _context.TicketActivities.FindAsync(EditActivityId);
+            if (activity == null || activity.Type != ActivityType.TimeRegistered)
+                return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || activity.UserId != user.Id)
+                return Forbid();
+
+            if (EditActivityHours == 0 && EditActivityMinutes == 0)
+            {
+                ModelState.AddModelError("", "Time must be greater than 0.");
+                return await OnGetAsync(id, null, EditActivityId);
+            }
+
+            if (string.IsNullOrWhiteSpace(EditActivityDescription))
+            {
+                ModelState.AddModelError("", "Work notes are required.");
+                return await OnGetAsync(id, null, EditActivityId);
+            }
+
+            activity.TimeSpent = new TimeSpan(EditActivityHours, EditActivityMinutes, 0);
+            activity.Description = EditActivityDescription.Trim();
+            activity.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Time entry updated.";
             return RedirectToPage(new { id });
         }
     }

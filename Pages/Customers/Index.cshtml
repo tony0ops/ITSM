@@ -7,14 +7,15 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Customers</h1>
-    <a asp-page="Create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Add Customer
-    </a>
+    @if (User.IsInRole("Manager"))
+    {
+        <a asp-page="Create" class="btn btn-primary">Add Customer</a>
+    }
 </div>
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-4">
-        <input class="form-control" name="SearchTerm" value="@Model.SearchTerm" 
+        <input class="form-control" name="SearchTerm" value="@Model.SearchTerm"
                placeholder="Search by company, contact, email..." />
     </div>
     <div class="col-md-2">
@@ -24,22 +25,29 @@
             <option value="inactive" selected="@(Model.StatusFilter == "inactive")">Inactive</option>
         </select>
     </div>
-    <div class="col-md-1">
-        <button class="btn btn-primary w-100" type="submit">Filter</button>
+    <div class="col-auto">
+        <button class="btn btn-primary" type="submit">Filter</button>
+        <a asp-page="./Index" class="btn btn-outline-secondary">Clear</a>
     </div>
 </form>
 
 @if (!Model.Customers.Any())
 {
     <div class="alert alert-info">
-        <strong>No customers found.</strong> Click "Add Customer" to create one.
+        No customers found.
+        @if (User.IsInRole("Manager"))
+        {
+            <a asp-page="Create">Add a customer</a> @:to get started.
+        }
     </div>
 }
 else
 {
+    <p class="text-muted small mb-2">Showing @Model.Customers.Count customer(s)</p>
+
     <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
                 <tr>
                     <th>Company Name</th>
                     <th>Primary Contact</th>
@@ -55,42 +63,42 @@ else
             <tbody>
                 @foreach (var customer in Model.Customers)
                 {
-                    <tr>
+                    var statusDot = customer.IsActive ? "#198754" : "#6c757d";
+                    var statusText = customer.IsActive ? "Active" : "Inactive";
+                    var ticketCount = customer.Tickets.Count;
+
+                    <tr class="@(!customer.IsActive ? "table-secondary opacity-75" : "")">
                         <td>
-                            <a asp-page="./Details" asp-route-id="@customer.Id" class="fw-bold">
+                            <a asp-page="./Details" asp-route-id="@customer.Id" class="fw-semibold text-decoration-none">
                                 @customer.CompanyName
                             </a>
                         </td>
-                        <td>@(customer.PrimaryContactName ?? "-")</td>
+                        <td><small>@(customer.PrimaryContactName ?? "-")</small></td>
                         <td>
-                            @if (!string.IsNullOrEmpty(customer.PrimaryEmail))
-                            {
-                                <a href="mailto:@customer.PrimaryEmail">@customer.PrimaryEmail</a>
-                            }
-                            else
-                            {
-                                <text>-</text>
-                            }
+                            <small>
+                                @if (!string.IsNullOrEmpty(customer.PrimaryEmail))
+                                { <a href="mailto:@customer.PrimaryEmail">@customer.PrimaryEmail</a> }
+                                else
+                                { <span class="text-muted">-</span> }
+                            </small>
                         </td>
-                        <td>@(customer.PrimaryPhone ?? "-")</td>
-                        <td>@(customer.AccountManager ?? "-")</td>
-                        <td>@customer.HourlyRate.ToString("C")</td>
+                        <td><small class="text-muted">@(customer.PrimaryPhone ?? "-")</small></td>
+                        <td><small class="text-muted">@(customer.AccountManager ?? "-")</small></td>
+                        <td><small>@customer.HourlyRate.ToString("C")</small></td>
                         <td>
-                            @if (customer.IsActive)
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Inactive</span>
-                            }
+                            <span class="status-dot status-dot-sm me-1" style="background:@statusDot;"></span>
+                            <small>@statusText</small>
                         </td>
                         <td>
-                            <span class="badge bg-primary">@customer.Tickets.Count</span>
+                            <small class="fw-semibold">@ticketCount</small>
                         </td>
-                        <td>
-                            <a asp-page="./Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                            <a asp-page="./Details" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-info">Details</a>
+                        <td class="text-nowrap">
+                            @if (User.IsInRole("Manager"))
+                            {
+                                <a asp-page="./Edit" asp-route-id="@customer.Id" class="text-primary text-decoration-none">Edit</a>
+                                <span class="text-muted mx-1">|</span>
+                            }
+                            <a asp-page="./Details" asp-route-id="@customer.Id" class="text-secondary text-decoration-none">Details</a>
                         </td>
                     </tr>
                 }
@@ -98,7 +106,3 @@ else
         </table>
     </div>
 }
-
-<div class="mt-3">
-    <p class="text-muted">Total: @Model.Customers.Count customer(s)</p>
-</div>

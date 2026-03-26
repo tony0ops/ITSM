@@ -20,3 +20,53 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Active nav indicator */
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link[aria-current="page"] {
+  font-weight: 600;
+  color: #1b6ec2 !important;
+  border-bottom: 2px solid #1b6ec2;
+}
+
+/* SLA badge pulse animation for breached */
+.badge.bg-dark.sla-breached {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Status/severity indicator dots */
+.status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.status-dot-sm {
+  width: 8px;
+  height: 8px;
+}
+
+/* Consistent card styling */
+.card-header {
+  background-color: #fff;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+/* Subtle summary card left accent */
+.card.border-primary,
+.card.border-warning,
+.card.border-success,
+.card.border-info,
+.card.border-danger {
+  border-width: 1px;
+}
+.card.border-primary { border-left-width: 3px !important; }
+.card.border-warning { border-left-width: 3px !important; }
+.card.border-success { border-left-width: 3px !important; }
+.card.border-info    { border-left-width: 3px !important; }
+.card.border-danger  { border-left-width: 3px !important; }

@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
@@ -22,30 +25,86 @@ namespace WebApplication1.Pages.Dashboard
         public Dictionary<string, int> TicketsByCustomer { get; set; } = new();
         public double AverageResolutionHours { get; set; }
         public double SlaComplianceRate { get; set; }
+        public int ResolvedTicketCount { get; set; }
+
+        // Per-severity resolution averages
+        public double AvgResolutionCritical { get; set; }
+        public double AvgResolutionHigh { get; set; }
+        public double AvgResolutionMedium { get; set; }
+        public double AvgResolutionLow { get; set; }
+
+        // Customer filter (persisted via cookie)
+        [BindProperty(SupportsGet = true)]
+        public int? CustomerId { get; set; }
+
+        public SelectList CustomerList { get; set; } = default!;
+        public string? SelectedCustomerName { get; set; }
+
+        private const string CustomerCookieKey = "Dashboard_CustomerId";
 
         public async Task OnGetAsync()
         {
-            TotalTickets = await _context.Tickets.CountAsync();
-            OpenTickets = await _context.Tickets
+            // Build customer dropdown
+            CustomerList = new SelectList(
+                await _context.Customers
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.CompanyName)
+                    .Select(c => new { c.Id, c.CompanyName })
+                    .ToListAsync(),
+                "Id", "CompanyName");
+
+            // Restore filter from cookie if not explicitly provided
+            if (!CustomerId.HasValue &&
+                Request.Cookies.TryGetValue(CustomerCookieKey, out var cookieVal) &&
+                int.TryParse(cookieVal, out var savedId))
+            {
+                CustomerId = savedId;
+            }
+
+            // Persist or clear cookie
+            if (CustomerId.HasValue)
+            {
+                Response.Cookies.Append(CustomerCookieKey, CustomerId.Value.ToString(),
+                    new CookieOptions { Expires = DateTimeOffset.Now.AddDays(30), HttpOnly = true, IsEssential = true });
+
+                SelectedCustomerName = await _context.Customers
+                    .Where(c => c.Id == CustomerId.Value)
+                    .Select(c => c.CompanyName)
+                    .FirstOrDefaultAsync();
+            }
+            else
+            {
+                Response.Cookies.Delete(CustomerCookieKey);
+            }
+
+            // Base query, optionally scoped to customer
+            var query = _context.Tickets.AsQueryable();
+            if (CustomerId.HasValue)
+                query = query.Where(t => t.CustomerId == CustomerId.Value);
+
+            TotalTickets = await query.CountAsync();
+
+            OpenTickets = await query
                 .Where(t => t.Status != TicketStatus.Closed &&
                             t.Status != TicketStatus.Resolved &&
                             t.Status != TicketStatus.Cancelled)
                 .CountAsync();
-            ClosedTickets = await _context.Tickets
+
+            ClosedTickets = await query
                 .Where(t => t.Status == TicketStatus.Closed)
                 .CountAsync();
 
-            TicketsByStatus = await _context.Tickets
+            TicketsByStatus = await query
                 .GroupBy(t => t.Status)
                 .Select(g => new { Status = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Status, x => x.Count);
 
-            TicketsBySeverity = await _context.Tickets
+            TicketsBySeverity = await query
                 .GroupBy(t => t.Severity)
                 .Select(g => new { Severity = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.Severity, x => x.Count);
 
-            TicketsByCustomer = await _context.Tickets
+            TicketsByCustomer = await query
                 .Where(t => t.Customer != null)
                 .GroupBy(t => t.Customer!.CompanyName)
                 .Select(g => new { Customer = g.Key, Count = g.Count() })
@@ -53,31 +112,52 @@ namespace WebApplication1.Pages.Dashboard
                 .Take(5)
                 .ToDictionaryAsync(x => x.Customer, x => x.Count);
 
-            // Average resolution time
-            var resolvedTickets = await _context.Tickets
-                .Where(t => t.ResolvedAt.HasValue)
-                .Select(t => new { t.CreatedAt, t.ResolvedAt })
+            // Resolution time — use ResolvedAt, fall back to ClosedAt
+            var resolvedData = await query
+                .Where(t => t.ResolvedAt.HasValue || t.ClosedAt.HasValue)
+                .Select(t => new { t.CreatedAt, t.ResolvedAt, t.ClosedAt, t.Severity })
                 .ToListAsync();
 
-            if (resolvedTickets.Any())
+            ResolvedTicketCount = resolvedData.Count;
+
+            if (resolvedData.Count > 0)
             {
-                AverageResolutionHours = resolvedTickets
-                    .Average(t => (t.ResolvedAt!.Value - t.CreatedAt).TotalHours);
+                AverageResolutionHours = resolvedData
+                    .Average(t => ((t.ResolvedAt ?? t.ClosedAt)!.Value - t.CreatedAt).TotalHours);
+
+                double SeverityAvg(Severity sev)
+                {
+                    var subset = resolvedData.Where(t => t.Severity == sev).ToList();
+                    return subset.Count > 0
+                        ? subset.Average(t => ((t.ResolvedAt ?? t.ClosedAt)!.Value - t.CreatedAt).TotalHours)
+                        : 0;
+                }
+
+                AvgResolutionCritical = SeverityAvg(Severity.Critical);
+                AvgResolutionHigh = SeverityAvg(Severity.High);
+                AvgResolutionMedium = SeverityAvg(Severity.Medium);
+                AvgResolutionLow = SeverityAvg(Severity.Low);
             }
 
-            // SLA compliance — only load open tickets (the ones that can breach)
+            // SLA compliance
             var now = DateTime.Now;
-            var openTickets = await _context.Tickets
+            var openList = await query
                 .Where(t => t.Status != TicketStatus.Closed &&
                             t.Status != TicketStatus.Resolved &&
                             t.Status != TicketStatus.Cancelled)
                 .ToListAsync();
 
-            var breachedCount = openTickets.Count(t => SlaPolicy.GetState(t, now) == SlaState.Breached);
+            var breachedCount = openList.Count(t => SlaPolicy.GetState(t, now) == SlaState.Breached);
 
             SlaComplianceRate = TotalTickets > 0
                 ? ((TotalTickets - breachedCount) / (double)TotalTickets) * 100
                 : 100;
+        }
+
+        public IActionResult OnGetClearFilter()
+        {
+            Response.Cookies.Delete(CustomerCookieKey);
+            return RedirectToPage();
         }
     }
 }

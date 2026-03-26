@@ -18,8 +18,11 @@ namespace WebApplication1.Pages.Tickets
 
         public async Task OnGetAsync()
         {
+            // Show all New tickets without an individual assignee
             Tickets = await _context.Tickets
-                .Where(t => t.Status == TicketStatus.New && t.AssignedGroup == AssignmentGroup.Unassigned)
+                .Include(t => t.Customer)
+                .Where(t => t.Status == TicketStatus.New &&
+                            (t.AssigneeUserId == null || t.AssigneeUserId == ""))
                 .OrderBy(t => t.CreatedAt)
                 .ToListAsync();
         }

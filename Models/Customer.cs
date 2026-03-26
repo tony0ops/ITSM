@@ -4,13 +4,11 @@ using WebApplication1.Models.Interfaces;
 namespace WebApplication1.Models;
 
 /// <summary>
-/// Customer entity implementing IActivatable and ISoftDeletable.
+/// Customer entity inheriting BaseEntity and implementing IActivatable and ISoftDeletable.
 /// Customers can be deactivated (suspended) or soft-deleted (archived).
 /// </summary>
-public class Customer : IActivatable, ISoftDeletable
+public class Customer : BaseEntity, IActivatable, ISoftDeletable
 {
-    public int Id { get; set; }
-
     [Required, StringLength(200)]
     [Display(Name = "Company Name")]
     public string CompanyName { get; set; } = "";
@@ -70,9 +68,6 @@ public class Customer : IActivatable, ISoftDeletable
 
     [StringLength(2000)]
     public string? Notes { get; set; }
-
-    [Display(Name = "Created Date")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     // IActivatable
     [Display(Name = "Active")]

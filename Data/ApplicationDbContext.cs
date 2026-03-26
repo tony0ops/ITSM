@@ -22,7 +22,32 @@ public class ApplicationDbContext : IdentityDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Relationships
+        // ── BaseEntity column mappings ──────────────────────────────────
+        modelBuilder.Entity<Ticket>()
+            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
+        modelBuilder.Entity<TicketComment>()
+            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
+        modelBuilder.Entity<Team>()
+            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
+        modelBuilder.Entity<UserProfile>()
+            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
+        modelBuilder.Entity<CustomerSla>()
+            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
+        modelBuilder.Entity<CustomerUser>()
+            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
+
+        modelBuilder.Entity<Customer>()
+            .Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<TicketActivity>()
+            .Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+
+        // ── Ticket-specific column aliases ──────────────────────────────
+        modelBuilder.Entity<Ticket>()
+            .Property(t => t.ClosedAt).HasColumnName("ClosedUtc");
+        modelBuilder.Entity<Ticket>()
+            .Property(t => t.SlaDueAt).HasColumnName("SlaDueUtc");
+
+        // ── Relationships ───────────────────────────────────────────────
         modelBuilder.Entity<Ticket>()
             .HasOne(t => t.Customer)
             .WithMany(c => c.Tickets)
@@ -71,14 +96,24 @@ public class ApplicationDbContext : IdentityDbContext
             .HasForeignKey(cu => cu.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Global query filters for soft deletes
+        // ── Global query filters ────────────────────────────────────────
+        // Parent entities
         modelBuilder.Entity<Ticket>()
             .HasQueryFilter(t => !t.IsDeleted);
-
         modelBuilder.Entity<Customer>()
             .HasQueryFilter(c => !c.IsDeleted);
 
-        // Indexes
+        // Child entities — match parent filters to prevent orphan warnings
+        modelBuilder.Entity<TicketActivity>()
+            .HasQueryFilter(a => !a.Ticket.IsDeleted);
+        modelBuilder.Entity<TicketComment>()
+            .HasQueryFilter(c => !c.Ticket.IsDeleted);
+        modelBuilder.Entity<CustomerSla>()
+            .HasQueryFilter(cs => !cs.Customer.IsDeleted);
+        modelBuilder.Entity<CustomerUser>()
+            .HasQueryFilter(cu => !cu.Customer.IsDeleted);
+
+        // ── Indexes ─────────────────────────────────────────────────────
         modelBuilder.Entity<Ticket>()
             .HasIndex(t => t.CustomerId).HasDatabaseName("IX_Tickets_CustomerId");
         modelBuilder.Entity<Ticket>()
@@ -114,6 +149,8 @@ public class ApplicationDbContext : IdentityDbContext
 
         modelBuilder.Entity<Team>()
             .HasIndex(t => t.Group).HasDatabaseName("IX_Teams_Group");
+        modelBuilder.Entity<Team>()
+            .HasIndex(t => t.Name).IsUnique().HasDatabaseName("IX_Teams_Name_Unique");
 
         modelBuilder.Entity<CustomerSla>()
             .HasIndex(cs => cs.CustomerId).IsUnique().HasDatabaseName("IX_CustomerSlas_CustomerId_Unique");

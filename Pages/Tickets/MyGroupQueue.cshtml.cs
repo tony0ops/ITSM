@@ -32,49 +32,32 @@ namespace WebApplication1.Pages.Tickets
             if (user == null)
                 return Unauthorized();
 
-            // Get user's profile and team assignment
             var profile = await _context.UserProfiles
                 .Include(p => p.Team)
                 .FirstOrDefaultAsync(p => p.UserId == user.Id);
 
-            AssignmentGroup userGroup;
-
-            if (profile?.Team != null)
+            if (profile?.Team == null)
             {
-                userGroup = profile.Team.Group;
-                GroupName = profile.Team.Group.ToString().Replace("_", " ");
-                TeamName = profile.Team.Name;
-                HasTeamAssignment = true;
-            }
-            else
-            {
-                userGroup = AssignmentGroup.ServiceDesk_L1;
-                GroupName = "ServiceDesk L1 (Default)";
+                // No team assigned — show empty queue with message
                 HasTeamAssignment = false;
+                return Page();
             }
 
-            // Get all team member user IDs
-            var teamMemberIds = new List<string>();
-            if (profile?.TeamId != null)
-            {
-                teamMemberIds = await _context.UserProfiles
-                    .Where(p => p.TeamId == profile.TeamId && p.IsActive)
-                    .Select(p => p.UserId)
-                    .ToListAsync();
-            }
+            HasTeamAssignment = true;
+            var userGroup = profile.Team.Group;
+            GroupName = profile.Team.Group.ToString().Replace("_", " ");
+            TeamName = profile.Team.Name;
 
-            // Show tickets assigned to the group OR assigned to any team member
+            // Consistent rule: all open tickets assigned to the group
             Tickets = await _context.Tickets
                 .Include(t => t.Customer)
-                .Where(t => (t.AssignedGroup == userGroup ||
-                            (t.AssigneeUserId != null && teamMemberIds.Contains(t.AssigneeUserId))) &&
+                .Where(t => t.AssignedGroup == userGroup &&
                            t.Status != TicketStatus.Closed &&
                            t.Status != TicketStatus.Cancelled &&
                            t.Status != TicketStatus.Resolved)
-                .OrderBy(t => t.CreatedAt)
+                .OrderBy(t => t.SlaDueAt)
                 .ToListAsync();
 
-            // Calculate statistics
             var now = DateTime.Now;
             AtRiskCount = Tickets.Count(t =>
             {
@@ -107,7 +90,6 @@ namespace WebApplication1.Pages.Tickets
                 .Where(t => SlaPolicy.GetState(t, now) == SlaState.Breached)
                 .ToList();
         }
-
 
         public List<Ticket> GetInProgressTickets()
         {

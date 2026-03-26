@@ -31,17 +31,18 @@ namespace WebApplication1.Pages.Customers
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
+                var term = SearchTerm.ToLower();
                 query = query.Where(c =>
-                    c.CompanyName.Contains(SearchTerm) ||
-                    (c.PrimaryContactName != null && c.PrimaryContactName.Contains(SearchTerm)) ||
-                    (c.PrimaryEmail != null && c.PrimaryEmail.Contains(SearchTerm)));
+                    c.CompanyName.ToLower().Contains(term) ||
+                    (c.PrimaryContactName != null && c.PrimaryContactName.ToLower().Contains(term)) ||
+                    (c.PrimaryEmail != null && c.PrimaryEmail.ToLower().Contains(term)));
             }
 
             if (!string.IsNullOrWhiteSpace(StatusFilter))
             {
-                if (StatusFilter.ToLower() == "active")
+                if (StatusFilter.Equals("active", StringComparison.OrdinalIgnoreCase))
                     query = query.Where(c => c.IsActive);
-                else if (StatusFilter.ToLower() == "inactive")
+                else if (StatusFilter.Equals("inactive", StringComparison.OrdinalIgnoreCase))
                     query = query.Where(c => !c.IsActive);
             }
 

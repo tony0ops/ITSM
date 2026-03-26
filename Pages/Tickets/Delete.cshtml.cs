@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
@@ -7,6 +8,7 @@ using WebApplication1.Services;
 
 namespace WebApplication1.Pages.Tickets
 {
+    [Authorize(Roles = "Manager")]
     public class DeleteModel : PageModel
     {
         private readonly ApplicationDbContext _context;

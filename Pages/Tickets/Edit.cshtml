@@ -4,13 +4,11 @@
 
 @{
     ViewData["Title"] = "Edit Ticket";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1>Edit Ticket</h1>
-
-<h4>Ticket: @Model.Ticket.Number</h4>
+<h1>Edit Ticket <small class="text-muted">- @Model.Ticket.Number</small></h1>
 <hr />
+
 <div class="row">
     <div class="col-md-8">
         <form method="post">
@@ -45,6 +43,45 @@
                 </div>
             </div>
 
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Ticket.Status" class="form-label"></label>
+                    <select asp-for="Ticket.Status" class="form-select" id="statusDropdown"
+                            asp-items="Html.GetEnumSelectList<TicketStatus>()"></select>
+                    <span asp-validation-for="Ticket.Status" class="text-danger"></span>
+                    <div class="form-text">
+                        <strong>WaitingOnCustomer</strong> or <strong>WaitingOnVendor</strong> will pause SLA timer
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3" id="pauseReasonGroup" style="display:none;">
+                <label asp-for="Ticket.PauseReason" class="form-label">Pause Reason</label>
+                <input asp-for="Ticket.PauseReason" class="form-control" placeholder="Why is the SLA being paused?" />
+                <span asp-validation-for="Ticket.PauseReason" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3" id="resolutionNotesGroup" style="display:none;">
+                <label asp-for="Ticket.ResolutionNotes" class="form-label">Resolution Notes</label>
+                <textarea asp-for="Ticket.ResolutionNotes" class="form-control" rows="3"
+                          placeholder="Describe how this was resolved or why it was cancelled"></textarea>
+                <span asp-validation-for="Ticket.ResolutionNotes" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Ticket.CustomerId" class="form-label">Customer</label>
+                <select asp-for="Ticket.CustomerId" class="form-select" asp-items="Model.CustomerList">
+                    <option value="">-- Select Customer (Optional) --</option>
+                </select>
+                <span asp-validation-for="Ticket.CustomerId" class="text-danger"></span>
+                @if (User.IsInRole("Manager"))
+                {
+                    <div class="form-text">
+                        <a asp-page="/Customers/Create" target="_blank">+ Add New Customer</a>
+                    </div>
+                }
+            </div>
+
             <div class="mb-3">
                 <label asp-for="Ticket.AssignedGroup" class="form-label">Assignment Group</label>
                 <select asp-for="Ticket.AssignedGroup" class="form-select"
@@ -52,39 +89,13 @@
                 <span asp-validation-for="Ticket.AssignedGroup" class="text-danger"></span>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Ticket.Status" class="form-label"></label>
-                    <select asp-for="Ticket.Status" class="form-select"
-                            asp-items="Html.GetEnumSelectList<TicketStatus>()"></select>
-                    <span asp-validation-for="Ticket.Status" class="text-danger"></span>
-                    <div class="form-text">
-                        ⏸️ <strong>WaitingOnCustomer</strong> or <strong>WaitingOnVendor</strong> will pause SLA timer
-                    </div>
-                </div>
+            <div class="mb-3">
+                <label asp-for="Ticket.AssigneeUserId" class="form-label">Assign To User (Optional)</label>
+                <select asp-for="Ticket.AssigneeUserId" class="form-select" asp-items="Model.AssigneeList">
+                    <option value="">-- Unassigned --</option>
+                </select>
+                <span asp-validation-for="Ticket.AssigneeUserId" class="text-danger"></span>
             </div>
-
-            @if (Model.Ticket.Status == TicketStatus.WaitingOnCustomer ||
-                        Model.Ticket.Status == TicketStatus.WaitingOnVendor)
-            {
-                <div class="mb-3">
-                    <label asp-for="Ticket.PauseReason" class="form-label">Pause Reason</label>
-                    <input asp-for="Ticket.PauseReason" class="form-control" placeholder="Why is the SLA being paused?" />
-                    <span asp-validation-for="Ticket.PauseReason" class="text-danger"></span>
-                </div>
-            }
-
-            @if (Model.Ticket.Status == TicketStatus.Resolved ||
-                        Model.Ticket.Status == TicketStatus.Closed ||
-                        Model.Ticket.Status == TicketStatus.Cancelled)
-            {
-                <div class="mb-3">
-                    <label asp-for="Ticket.ResolutionNotes" class="form-label">Resolution Notes</label>
-                    <textarea asp-for="Ticket.ResolutionNotes" class="form-control" rows="3"
-                              placeholder="Describe how this was resolved or why it was cancelled"></textarea>
-                    <span asp-validation-for="Ticket.ResolutionNotes" class="text-danger"></span>
-                </div>
-            }
 
             <div class="mb-3">
                 <label asp-for="Ticket.SlaDueAt" class="form-label">Deadline</label>
@@ -97,26 +108,6 @@
                 <span asp-validation-for="Ticket.SlaDueAt" class="text-danger"></span>
             </div>
 
-            <!-- NEW: Customer Dropdown (replaces old text input) -->
-            <div class="mb-3">
-                <label asp-for="Ticket.CustomerId" class="form-label">Customer</label>
-                <select asp-for="Ticket.CustomerId" class="form-select" asp-items="Model.CustomerList">
-                    <option value="">-- Select Customer (Optional) --</option>
-                </select>
-                <span asp-validation-for="Ticket.CustomerId" class="text-danger"></span>
-                <div class="form-text">
-                    <a asp-page="/Customers/Create" target="_blank">+ Add New Customer</a>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Ticket.AssigneeUserId" class="form-label">Assign To User (Optional)</label>
-                <select asp-for="Ticket.AssigneeUserId" class="form-select" asp-items="Model.AssigneeList">
-                    <option value="">-- Unassigned --</option>
-                </select>
-                <span asp-validation-for="Ticket.AssigneeUserId" class="text-danger"></span>
-            </div>
-
             <div class="mb-3">
                 <button type="submit" class="btn btn-primary">Save Changes</button>
                 <a asp-page="./Details" asp-route-id="@Model.Ticket.Id" class="btn btn-secondary">Cancel</a>
@@ -126,7 +117,39 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var statusDropdown = document.getElementById('statusDropdown');
+            var pauseReasonGroup = document.getElementById('pauseReasonGroup');
+            var resolutionNotesGroup = document.getElementById('resolutionNotesGroup');
+
+            var pauseStatuses = ['WaitingOnCustomer', 'WaitingOnVendor'];
+            var closedStatuses = ['Resolved', 'Closed', 'Cancelled'];
+
+            function updateFields() {
+                var selectedStatus = statusDropdown.value;
+
+                // Show/hide pause reason
+                if (pauseStatuses.indexOf(selectedStatus) !== -1) {
+                    pauseReasonGroup.style.display = 'block';
+                } else {
+                    pauseReasonGroup.style.display = 'none';
+                }
+
+                // Show/hide resolution notes
+                if (closedStatuses.indexOf(selectedStatus) !== -1) {
+                    resolutionNotesGroup.style.display = 'block';
+                } else {
+                    resolutionNotesGroup.style.display = 'none';
+                }
+            }
+
+            // Run on load to set initial state
+            updateFields();
+
+            // Run on change
+            statusDropdown.addEventListener('change', updateFields);
+        });
+    </script>
 }

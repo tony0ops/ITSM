@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,7 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Pages.Customers
 {
+    [Authorize(Roles = "Manager")]
     public class ManageSlaModel : PageModel
     {
         private readonly ApplicationDbContext _context;
@@ -16,7 +18,7 @@ namespace WebApplication1.Pages.Customers
         }
 
         public Customer Customer { get; set; } = default!;
-        
+
         [BindProperty]
         public CustomerSla Sla { get; set; } = default!;
 
@@ -32,14 +34,13 @@ namespace WebApplication1.Pages.Customers
             Customer = customer;
 
             var sla = await _context.CustomerSlas
-                .FirstOrDefaultAsync(cs => cs.CustomerId == id.Value); // FIX: Use id.Value
+                .FirstOrDefaultAsync(cs => cs.CustomerId == id.Value);
 
             if (sla == null)
             {
-                // Create default SLA for this customer
                 Sla = new CustomerSla
                 {
-                    CustomerId = id.Value, // FIX: Use id.Value
+                    CustomerId = id.Value,
                     CriticalResponseTime = TimeSpan.FromHours(4),
                     HighResponseTime = TimeSpan.FromHours(8),
                     MediumResponseTime = TimeSpan.FromHours(24),

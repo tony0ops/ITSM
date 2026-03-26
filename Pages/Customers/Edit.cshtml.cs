@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,7 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Pages.Customers
 {
+    [Authorize(Roles = "Manager")]
     public class EditModel : PageModel
     {
         private readonly ApplicationDbContext _context;

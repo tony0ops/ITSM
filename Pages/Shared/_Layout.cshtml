@@ -14,6 +14,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid px-4">
+                <a class="navbar-brand fw-bold text-primary" asp-page="/Dashboard/Index">ITSM</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -26,20 +27,26 @@
                                 <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Dashboard/Index">Dashboard</a>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Tickets/Index">All Tickets</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Tickets/NewQueue">Unassigned Tickets</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/MyTickets/Index">My Tickets</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Tickets/MyGroupQueue">Team Queue</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Tickets/Index">All Tickets</a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Customers/Index">Customers</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Users/Index">Users</a>
-                            </li>
+                            @if (User.IsInRole("Manager"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Users/Index">Users</a>
+                                </li>
+                            }
                             <li class="nav-item">
                                 <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Teams/Index">Teams</a>
                             </li>

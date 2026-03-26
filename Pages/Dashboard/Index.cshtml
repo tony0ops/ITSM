@@ -4,19 +4,47 @@
 
 @{
     ViewData["Title"] = "Dashboard";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
-<h1 class="mb-4">Dashboard</h1>
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+        <h1>Dashboard</h1>
+        <p class="text-muted">Overview of your ITSM environment</p>
+    </div>
+    <form method="get" class="d-flex align-items-center gap-2">
+        <label class="form-label mb-0 text-nowrap small text-muted">Customer:</label>
+        <select class="form-select form-select-sm" name="customerId" style="width:220px;"
+                onchange="this.form.submit()">
+            <option value="">All Customers</option>
+            @foreach (var item in Model.CustomerList)
+            {
+                <option value="@item.Value" selected="@(Model.CustomerId.HasValue && Model.CustomerId.Value.ToString() == item.Value)">
+                    @item.Text
+                </option>
+            }
+        </select>
+        @if (Model.CustomerId.HasValue)
+        {
+            <a asp-page="./Index" asp-page-handler="ClearFilter" class="btn btn-sm btn-outline-secondary">Clear</a>
+        }
+    </form>
+</div>
 
-<!-- Summary Cards Row -->
+@if (Model.SelectedCustomerName != null)
+{
+    <div class="alert alert-info py-2 mb-3">
+        Showing metrics for <strong>@Model.SelectedCustomerName</strong>
+    </div>
+}
+
+<!-- Summary Cards -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
         <div class="card border-primary h-100">
             <div class="card-body">
                 <h6 class="card-title text-muted">Total Tickets</h6>
                 <p class="h3 mb-0">@Model.TotalTickets</p>
-                <small class="text-primary">All time</small>
+                <small class="text-muted">All time</small>
             </div>
         </div>
     </div>
@@ -26,7 +54,7 @@
             <div class="card-body">
                 <h6 class="card-title text-muted">Open Tickets</h6>
                 <p class="h3 mb-0 text-warning">@Model.OpenTickets</p>
-                <small class="text-warning">Pending resolution</small>
+                <small class="text-muted">Pending resolution</small>
             </div>
         </div>
     </div>
@@ -36,7 +64,7 @@
             <div class="card-body">
                 <h6 class="card-title text-muted">Closed Tickets</h6>
                 <p class="h3 mb-0 text-success">@Model.ClosedTickets</p>
-                <small class="text-success">Completed</small>
+                <small class="text-muted">Completed</small>
             </div>
         </div>
     </div>
@@ -46,7 +74,7 @@
             <div class="card-body">
                 <h6 class="card-title text-muted">SLA Compliance</h6>
                 <p class="h3 mb-0 text-info">@Model.SlaComplianceRate.ToString("F1")%</p>
-                <small class="text-info">Non-breached</small>
+                <small class="text-muted">Non-breached</small>
             </div>
         </div>
     </div>
@@ -56,38 +84,43 @@
 <div class="row mb-4">
     <div class="col-md-6 mb-3">
         <div class="card h-100">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h6 class="mb-0">Tickets by Status</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 @if (Model.TicketsByStatus.Any())
                 {
-                    <div class="list-group list-group-flush">
-                        @foreach (var status in Model.TicketsByStatus.OrderByDescending(x => x.Value))
-                        {
-                            var statusBadgeClass = status.Key switch
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            @foreach (var status in Model.TicketsByStatus.OrderByDescending(x => x.Value))
                             {
-                                TicketStatus.New => "bg-primary",
-                                TicketStatus.Assigned => "bg-info",
-                                TicketStatus.InProgress => "bg-warning text-dark",
-                                TicketStatus.WaitingOnCustomer => "bg-secondary",
-                                TicketStatus.WaitingOnVendor => "bg-secondary",
-                                TicketStatus.Resolved => "bg-success",
-                                TicketStatus.Closed => "bg-dark",
-                                TicketStatus.Cancelled => "bg-danger",
-                                _ => "bg-secondary"
-                            };
+                                var dotColor = status.Key switch
+                                {
+                                    TicketStatus.New => "#0d6efd",
+                                    TicketStatus.Assigned => "#0dcaf0",
+                                    TicketStatus.InProgress => "#ffc107",
+                                    TicketStatus.WaitingOnCustomer => "#6c757d",
+                                    TicketStatus.WaitingOnVendor => "#6c757d",
+                                    TicketStatus.Resolved => "#198754",
+                                    TicketStatus.Closed => "#343a40",
+                                    TicketStatus.Cancelled => "#dc3545",
+                                    _ => "#6c757d"
+                                };
 
-                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                <span class="badge @statusBadgeClass">@status.Key.ToString().Replace("WaitingOn", "Wait: ")</span>
-                                <span class="badge bg-light text-dark border">@status.Value</span>
-                            </div>
-                        }
-                    </div>
+                                <tr>
+                                    <td class="ps-3" style="width:20px;">
+                                        <span class="d-inline-block rounded-circle" style="width:10px;height:10px;background:@dotColor;"></span>
+                                    </td>
+                                    <td class="text-muted">@status.Key</td>
+                                    <td class="text-end pe-3 fw-semibold">@status.Value</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No data available</p>
+                    <p class="text-muted mb-0 p-3">No data available</p>
                 }
             </div>
         </div>
@@ -95,64 +128,71 @@
 
     <div class="col-md-6 mb-3">
         <div class="card h-100">
-            <div class="card-header bg-danger text-white">
+            <div class="card-header">
                 <h6 class="mb-0">Tickets by Severity</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 @if (Model.TicketsBySeverity.Any())
                 {
-                    <div class="list-group list-group-flush">
-                        @foreach (var severity in Model.TicketsBySeverity.OrderByDescending(x => x.Value))
-                        {
-                            var severityBadgeClass = severity.Key switch
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            @foreach (var severity in Model.TicketsBySeverity.OrderByDescending(x => x.Value))
                             {
-                                Severity.Critical => "bg-danger",
-                                Severity.High => "bg-warning text-dark",
-                                Severity.Medium => "bg-primary",
-                                Severity.Low => "bg-info text-dark",
-                                Severity.Info => "bg-secondary",
-                                _ => "bg-secondary"
-                            };
+                                var dotColor = severity.Key switch
+                                {
+                                    Severity.Critical => "#dc3545",
+                                    Severity.High => "#fd7e14",
+                                    Severity.Medium => "#0d6efd",
+                                    Severity.Low => "#0dcaf0",
+                                    Severity.Info => "#6c757d",
+                                    _ => "#6c757d"
+                                };
 
-                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                <span class="badge @severityBadgeClass">@severity.Key</span>
-                                <span class="badge bg-light text-dark border">@severity.Value</span>
-                            </div>
-                        }
-                    </div>
+                                <tr>
+                                    <td class="ps-3" style="width:20px;">
+                                        <span class="d-inline-block rounded-circle" style="width:10px;height:10px;background:@dotColor;"></span>
+                                    </td>
+                                    <td class="text-muted">@severity.Key</td>
+                                    <td class="text-end pe-3 fw-semibold">@severity.Value</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No data available</p>
+                    <p class="text-muted mb-0 p-3">No data available</p>
                 }
             </div>
         </div>
     </div>
 </div>
 
-<!-- Additional Metrics Row -->
+<!-- Bottom Row -->
 <div class="row mb-4">
     <div class="col-md-6 mb-3">
         <div class="card h-100">
-            <div class="card-header bg-success text-white">
+            <div class="card-header">
                 <h6 class="mb-0">Top 5 Customers</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 @if (Model.TicketsByCustomer.Any())
                 {
-                    <div class="list-group list-group-flush">
-                        @foreach (var customer in Model.TicketsByCustomer.OrderByDescending(x => x.Value))
-                        {
-                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                <span>@customer.Key</span>
-                                <span class="badge bg-primary rounded-pill">@customer.Value</span>
-                            </div>
-                        }
-                    </div>
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            @foreach (var customer in Model.TicketsByCustomer.OrderByDescending(x => x.Value))
+                            {
+                                <tr>
+                                    <td class="ps-3 text-muted">@customer.Key</td>
+                                    <td class="text-end pe-3 fw-semibold">@customer.Value</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 }
                 else
                 {
-                    <p class="text-muted mb-0">No customer data available</p>
+                    <p class="text-muted mb-0 p-3">No customer data available</p>
                 }
             </div>
         </div>
@@ -160,43 +200,94 @@
 
     <div class="col-md-6 mb-3">
         <div class="card h-100">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h6 class="mb-0">Performance Metrics</h6>
             </div>
             <div class="card-body">
-                <div class="row">
+                <div class="row mb-3">
                     <div class="col-md-6">
-                        <h6 class="text-muted">Avg Resolution Time</h6>
-                        <p class="h4 text-info mb-0">@Model.AverageResolutionHours.ToString("F1") hrs</p>
+                        <small class="text-muted d-block">Avg Resolution Time</small>
+                        <span class="h4 mb-0">@Model.AverageResolutionHours.ToString("F1") <small class="text-muted fw-normal">hrs</small></span>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="text-muted">Avg Days</h6>
-                        <p class="h4 text-primary mb-0">@((Model.AverageResolutionHours / 24).ToString("F1"))</p>
+                        <small class="text-muted d-block">Avg Days</small>
+                        <span class="h4 mb-0">@((Model.AverageResolutionHours / 24).ToString("F1"))</span>
                     </div>
                 </div>
-                <hr />
-                <p class="small text-muted mb-0">
-                    Based on @(Model.TicketsByStatus.GetValueOrDefault(TicketStatus.Resolved, 0) + Model.TicketsByStatus.GetValueOrDefault(TicketStatus.Closed, 0)) resolved tickets
-                </p>
+
+                @if (Model.ResolvedTicketCount > 0)
+                {
+                    <hr class="my-2" />
+                    <small class="text-muted d-block mb-2">Breakdown by Severity</small>
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            @if (Model.AvgResolutionCritical > 0)
+                            {
+                                <tr>
+                                    <td class="py-1">
+                                        <span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:#dc3545;"></span>
+                                        <small class="text-muted">Critical</small>
+                                    </td>
+                                    <td class="text-end py-1"><small class="fw-semibold">@Model.AvgResolutionCritical.ToString("F1") hrs</small></td>
+                                </tr>
+                            }
+                            @if (Model.AvgResolutionHigh > 0)
+                            {
+                                <tr>
+                                    <td class="py-1">
+                                        <span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:#fd7e14;"></span>
+                                        <small class="text-muted">High</small>
+                                    </td>
+                                    <td class="text-end py-1"><small class="fw-semibold">@Model.AvgResolutionHigh.ToString("F1") hrs</small></td>
+                                </tr>
+                            }
+                            @if (Model.AvgResolutionMedium > 0)
+                            {
+                                <tr>
+                                    <td class="py-1">
+                                        <span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:#0d6efd;"></span>
+                                        <small class="text-muted">Medium</small>
+                                    </td>
+                                    <td class="text-end py-1"><small class="fw-semibold">@Model.AvgResolutionMedium.ToString("F1") hrs</small></td>
+                                </tr>
+                            }
+                            @if (Model.AvgResolutionLow > 0)
+                            {
+                                <tr>
+                                    <td class="py-1">
+                                        <span class="d-inline-block rounded-circle me-1" style="width:8px;height:8px;background:#0dcaf0;"></span>
+                                        <small class="text-muted">Low</small>
+                                    </td>
+                                    <td class="text-end py-1"><small class="fw-semibold">@Model.AvgResolutionLow.ToString("F1") hrs</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+                <hr class="my-2" />
+                <small class="text-muted">
+                    Based on @Model.ResolvedTicketCount resolved/closed ticket(s)
+                </small>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Quick Actions -->
-<div class="row">
-    <div class="col-12">
-        <div class="card bg-light">
-            <div class="card-body">
-                <h6 class="card-title mb-3">Quick Actions</h6>
-                <div class="d-flex flex-wrap gap-2">
-                    <a asp-page="/Tickets/Create" class="btn btn-primary">Create Ticket</a>
-                    <a asp-page="/Tickets/Index" class="btn btn-outline-primary">View All Tickets</a>
-                    <a asp-page="/Tickets/MyGroupQueue" class="btn btn-outline-primary">Team Queue</a>
-                    <a asp-page="/Customers/Index" class="btn btn-outline-primary">View Customers</a>
-                    <a asp-page="/Users/Index" class="btn btn-outline-primary">Manage Users</a>
-                </div>
-            </div>
+<div class="card bg-light">
+    <div class="card-body">
+        <h6 class="card-title mb-3">Quick Actions</h6>
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-page="/Tickets/Create" class="btn btn-primary">Create Ticket</a>
+            <a asp-page="/Tickets/Index" class="btn btn-outline-primary">View All Tickets</a>
+            <a asp-page="/Tickets/NewQueue" class="btn btn-outline-primary">Unassigned Tickets</a>
+            <a asp-page="/Tickets/MyGroupQueue" class="btn btn-outline-primary">Team Queue</a>
+            <a asp-page="/Customers/Index" class="btn btn-outline-primary">View Customers</a>
+            @if (User.IsInRole("Manager"))
+            {
+                <a asp-page="/Users/Index" class="btn btn-outline-primary">Manage Users</a>
+            }
         </div>
     </div>
 </div>

@@ -4,7 +4,6 @@
 
 @{
     ViewData["Title"] = "Team Queue";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <h1>Team Queue</h1>
@@ -13,85 +12,131 @@
 {
     <div class="alert alert-warning">
         <strong>No Team Assigned</strong><br />
-        You are not assigned to any team. Showing default ServiceDesk L1 tickets.
-        <a asp-page="/Users/Index">Go to Users</a> to assign yourself to a team.
-    </div>
-}
-
-<p class="lead">
-    @if (!string.IsNullOrEmpty(Model.TeamName))
-    {
-        <span>Team: <strong>@Model.TeamName</strong> - </span>
-    }
-    Group: <span class="badge bg-primary">@Model.GroupName</span>
-</p>
-
-@if (Model.Tickets.Count == 0)
-{
-    <div class="alert alert-info" role="alert">
-        <strong>All caught up!</strong> No tickets currently assigned to your group.
+        You are not assigned to any support team, so there is no queue to display.
+        @if (User.IsInRole("Manager"))
+        {
+            <text>Go to <a asp-page="/Users/Index">Users</a> to assign yourself to a team.</text>
+        }
+        else
+        {
+            <text>Contact your manager to be assigned to a team.</text>
+        }
     </div>
 }
 else
 {
-    <div class="row mb-3">
-        <div class="col-md-12">
-            <div class="card">
+    <p class="text-muted">
+        Team: <strong>@Model.TeamName</strong> —
+        Group: <strong>@Model.GroupName</strong>
+    </p>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary h-100">
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <h6 class="card-title">Total Tickets</h6>
-                            <p class="h4"><span class="badge bg-primary">@Model.Tickets.Count</span></p>
-                        </div>
-                        <div class="col-md-3">
-                            <h6 class="card-title">At Risk</h6>
-                            <p class="h4"><span class="badge bg-warning text-dark">@Model.AtRiskCount</span></p>
-                        </div>
-                        <div class="col-md-3">
-                            <h6 class="card-title">Breached</h6>
-                            <p class="h4"><span class="badge bg-danger">@Model.BreachedCount</span></p>
-                        </div>
-                        <div class="col-md-3">
-                            <h6 class="card-title">In Progress</h6>
-                            <p class="h4"><span class="badge bg-info">@Model.InProgressCount</span></p>
-                        </div>
-                    </div>
+                    <h6 class="card-title text-muted">Total Tickets</h6>
+                    <p class="h3 mb-0">@Model.Tickets.Count</p>
+                    <small class="text-muted">In group queue</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-danger h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">At Risk</h6>
+                    <p class="h3 mb-0 text-danger">@Model.AtRiskCount</p>
+                    <small class="text-muted">Need attention</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">Breached</h6>
+                    <p class="h3 mb-0 text-danger">@Model.BreachedCount</p>
+                    <small class="text-muted">Urgent action needed</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card border-info h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-muted">In Progress</h6>
+                    <p class="h3 mb-0">@Model.InProgressCount</p>
+                    <small class="text-muted">Being worked on</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <ul class="nav nav-tabs mb-3" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">All (@Model.Tickets.Count)</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="atrisk-tab" data-bs-toggle="tab" data-bs-target="#atrisk" type="button" role="tab">At Risk (@Model.AtRiskCount)</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="breached-tab" data-bs-toggle="tab" data-bs-target="#breached" type="button" role="tab">Breached (@Model.BreachedCount)</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="inprogress-tab" data-bs-toggle="tab" data-bs-target="#inprogress" type="button" role="tab">In Progress (@Model.InProgressCount)</button>
-        </li>
-    </ul>
+    @if (Model.Tickets.Count == 0)
+    {
+        <div class="alert alert-info" role="alert">
+            <strong>All caught up!</strong> No tickets currently assigned to your group.
+        </div>
+    }
+    else
+    {
+        <!-- Ticket List Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">@Model.GroupName Tickets (@Model.Tickets.Count)</h5>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                            All (@Model.Tickets.Count)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="atrisk-tab" data-bs-toggle="tab" data-bs-target="#atrisk" type="button" role="tab">
+                            At Risk (@Model.AtRiskCount)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="breached-tab" data-bs-toggle="tab" data-bs-target="#breached" type="button" role="tab">
+                            Breached (@Model.BreachedCount)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="inprogress-tab" data-bs-toggle="tab" data-bs-target="#inprogress" type="button" role="tab">
+                            In Progress (@Model.InProgressCount)
+                        </button>
+                    </li>
+                </ul>
 
-    <div class="tab-content">
-        <div class="tab-pane fade show active" id="all" role="tabpanel">
-            @await Html.PartialAsync("Shared/_TicketTable", Model.Tickets)
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="all" role="tabpanel">
+                        @await Html.PartialAsync("Shared/_TicketTable", Model.Tickets)
+                    </div>
+                    <div class="tab-pane fade" id="atrisk" role="tabpanel">
+                        @await Html.PartialAsync("Shared/_TicketTable", Model.GetAtRiskTickets())
+                    </div>
+                    <div class="tab-pane fade" id="breached" role="tabpanel">
+                        @await Html.PartialAsync("Shared/_TicketTable", Model.GetBreachedTickets())
+                    </div>
+                    <div class="tab-pane fade" id="inprogress" role="tabpanel">
+                        @await Html.PartialAsync("Shared/_TicketTable", Model.GetInProgressTickets())
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="tab-pane fade" id="atrisk" role="tabpanel">
-            @await Html.PartialAsync("Shared/_TicketTable", Model.GetAtRiskTickets())
-        </div>
-        <div class="tab-pane fade" id="breached" role="tabpanel">
-            @await Html.PartialAsync("Shared/_TicketTable", Model.GetBreachedTickets())
-        </div>
-        <div class="tab-pane fade" id="inprogress" role="tabpanel">
-            @await Html.PartialAsync("Shared/_TicketTable", Model.GetInProgressTickets())
+    }
+
+    <!-- Quick Actions -->
+    <div class="card bg-light">
+        <div class="card-body">
+            <h6 class="card-title mb-3">Quick Actions</h6>
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-page="/Tickets/Create" class="btn btn-primary">Create Ticket</a>
+                <a asp-page="/Tickets/Index" class="btn btn-outline-primary">View All Tickets</a>
+                <a asp-page="/Dashboard/Index" class="btn btn-outline-primary">Dashboard</a>
+            </div>
         </div>
     </div>
 }
-
-<div>
-    <a asp-page="./Index" class="btn btn-secondary mt-3">Back to All Tickets</a>
-</div>

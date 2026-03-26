@@ -1,71 +1,67 @@
 ﻿@page
 @model WebApplication1.Pages.Tickets.DeleteModel
+@using WebApplication1.Models
 
 @{
-    ViewData["Title"] = "Delete";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Delete Ticket";
 }
 
-<h1>Delete</h1>
+<h1>Delete Ticket</h1>
+<hr />
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Ticket</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.Title)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Title)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.Description)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Description)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.Severity)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Severity)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.Status)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.Status)
-        </dd>
-        <dt class="col-sm-2">
-            @* @Html.DisplayNameFor(model => model.Ticket.CreatedUtc) *@
-        </dt>
-        <dd class="col-sm-10">
-            @* @Html.DisplayFor(model => model.Ticket.CreatedUtc) *@
-        </dd>
-        <dt class="col-sm-2">
-            @* @Html.DisplayNameFor(model => model.Ticket.SlaDueUtc) *@
-        </dt>
-        <dd class="col-sm-10">
-            @* @Html.DisplayFor(model => model.Ticket.SlaDueUtc) *@
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.CustomerName)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.CustomerName)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Ticket.AssigneeUserId)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Ticket.AssigneeUserId)
-        </dd>
-    </dl>
-    
-    <form method="post">
-        <input type="hidden" asp-for="Ticket.Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-page="./Index">Back to List</a>
-    </form>
+<div class="alert alert-danger">
+    <strong> Are you sure you want to delete this ticket?</strong>
+    <p class="mb-0">This will soft-delete the ticket. It can be recovered by an administrator if needed.</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">@Model.Ticket.Number - @Model.Ticket.Title</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Description</dt>
+                    <dd class="col-sm-9">@Model.Ticket.Description</dd>
+
+                    <dt class="col-sm-3">Severity</dt>
+                    <dd class="col-sm-9">
+                        @{
+                            var sevClass = Model.Ticket.Severity switch
+                            {
+                                Severity.Critical => "text-danger fw-semibold",
+                                Severity.High => "text-warning fw-semibold",
+                                _ => ""
+                            };
+                        }
+                        <span class="@sevClass">@Model.Ticket.Severity</span>
+                    </dd>
+
+                    <dt class="col-sm-3">Status</dt>
+                    <dd class="col-sm-9">@Model.Ticket.Status</dd>
+
+                    <dt class="col-sm-3">Category</dt>
+                    <dd class="col-sm-9">@Model.Ticket.Category</dd>
+
+                    <dt class="col-sm-3">Customer</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.Ticket.Customer != null)
+                        { @Model.Ticket.Customer.CompanyName }
+                        else
+                        { @(Model.Ticket.CustomerName ?? "N/A") }
+                    </dd>
+
+                    <dt class="col-sm-3">Created</dt>
+                    <dd class="col-sm-9">@Model.Ticket.CreatedAt.ToString("g")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <form method="post">
+            <input type="hidden" asp-for="Ticket.Id" />
+            <button type="submit" class="btn btn-danger">Delete Ticket</button>
+            <a asp-page="./Details" asp-route-id="@Model.Ticket.Id" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
 </div>

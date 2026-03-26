@@ -11,11 +11,11 @@
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-4">
-        <input class="form-control" name="SearchTerm" value="@Model.SearchTerm" 
-               placeholder="Search by email, name, or team..." />
+        <input class="form-control" name="SearchTerm" value="@Model.SearchTerm"
+               placeholder="Search by email, name, team, or role..." />
     </div>
     <div class="col-auto">
-        <button class="btn btn-primary" type="submit">Search</button>
+        <button class="btn btn-primary" type="submit">Filter</button>
         <a asp-page="./Index" class="btn btn-outline-secondary">Clear</a>
     </div>
 </form>
@@ -28,55 +28,60 @@
 }
 else
 {
+    <p class="text-muted small mb-2">Showing @Model.Users.Count user(s)</p>
+
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-sm table-hover align-middle">
             <thead class="table-light">
                 <tr>
                     <th>Email</th>
                     <th>Display Name</th>
                     <th>Department</th>
                     <th>Job Title</th>
+                    <th>Role</th>
                     <th>Team</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var user in Model.Users)
                 {
-                    <tr>
-                        <td>@user.Email</td>
-                        <td>@user.DisplayName</td>
-                        <td>@(user.Department ?? "-")</td>
-                        <td>@(user.JobTitle ?? "-")</td>
+                    var roleDot = user.Role switch
+                    {
+                        "Manager" => "#dc3545",
+                        "Agent" => "#0d6efd",
+                        _ => "#6c757d"
+                    };
+
+                    var statusDot = user.IsActive ? "#198754" : "#6c757d";
+                    var statusText = user.IsActive ? "Active" : "Inactive";
+
+                    <tr class="@(!user.IsActive ? "table-secondary opacity-75" : "")">
+                        <td><small>@user.Email</small></td>
+                        <td><small>@user.DisplayName</small></td>
+                        <td><small class="text-muted">@(user.Department ?? "-")</small></td>
+                        <td><small class="text-muted">@(user.JobTitle ?? "-")</small></td>
+                        <td>
+                            <span class="status-dot status-dot-sm me-1" style="background:@roleDot;"></span>
+                            <small>@user.Role</small>
+                        </td>
                         <td>
                             @if (!string.IsNullOrEmpty(user.TeamName))
-                            {
-                                <span class="badge bg-info">@user.TeamName</span>
-                            }
+                            { <small>@user.TeamName</small> }
                             else
-                            {
-                                <span class="text-muted">Unassigned</span>
-                            }
+                            { <small class="text-muted">-</small> }
                         </td>
                         <td>
-                            @if (user.IsActive)
-                            {
-                                <span class="badge bg-success">Active</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Inactive</span>
-                            }
+                            <span class="status-dot status-dot-sm me-1" style="background:@statusDot;"></span>
+                            <small>@statusText</small>
                         </td>
-                        <td>
-                            <a asp-page="./Edit" asp-route-id="@user.UserId" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <td class="text-nowrap">
+                            <a asp-page="./Edit" asp-route-id="@user.UserId" class="text-primary text-decoration-none">Edit</a>
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
-    
-    <p class="text-muted">Total: @Model.Users.Count user(s)</p>
 }

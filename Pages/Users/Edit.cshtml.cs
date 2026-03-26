@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,14 +9,20 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Pages.Users
 {
+    [Authorize(Roles = "Manager")]
     public class EditModel : PageModel
     {
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
 
-        public EditModel(UserManager<IdentityUser> userManager, ApplicationDbContext context)
+        public EditModel(
+            UserManager<IdentityUser> userManager,
+            RoleManager<IdentityRole> roleManager,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _context = context;
         }
 
@@ -23,6 +30,7 @@ namespace WebApplication1.Pages.Users
         public UserEditViewModel Input { get; set; } = new();
 
         public SelectList TeamList { get; set; } = default!;
+        public SelectList RoleList { get; set; } = default!;
         public IdentityUser? AppUser { get; set; }
 
         public async Task<IActionResult> OnGetAsync(string? id)
@@ -37,6 +45,8 @@ namespace WebApplication1.Pages.Users
             var profile = await _context.UserProfiles
                 .FirstOrDefaultAsync(p => p.UserId == id);
 
+            var currentRoles = await _userManager.GetRolesAsync(AppUser);
+
             Input = new UserEditViewModel
             {
                 UserId = id,
@@ -46,10 +56,11 @@ namespace WebApplication1.Pages.Users
                 JobTitle = profile?.JobTitle,
                 PhoneNumber = profile?.PhoneNumber ?? AppUser.PhoneNumber,
                 TeamId = profile?.TeamId,
-                IsActive = profile?.IsActive ?? true
+                IsActive = profile?.IsActive ?? true,
+                Role = currentRoles.FirstOrDefault() ?? ""
             };
 
-            await LoadTeamsAsync();
+            await LoadDropdownsAsync();
             return Page();
         }
 
@@ -57,7 +68,7 @@ namespace WebApplication1.Pages.Users
         {
             if (!ModelState.IsValid)
             {
-                await LoadTeamsAsync();
+                await LoadDropdownsAsync();
                 return Page();
             }
 
@@ -68,6 +79,28 @@ namespace WebApplication1.Pages.Users
             // Update user phone
             user.PhoneNumber = Input.PhoneNumber;
             await _userManager.UpdateAsync(user);
+
+            // Sync IsActive with Identity lockout - prevents inactive users from logging in
+            if (!Input.IsActive)
+            {
+                await _userManager.SetLockoutEnabledAsync(user, true);
+                await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
+            }
+            else
+            {
+                await _userManager.SetLockoutEndDateAsync(user, null);
+            }
+
+            // Update role assignment
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (currentRoles.Any())
+            {
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            }
+            if (!string.IsNullOrEmpty(Input.Role))
+            {
+                await _userManager.AddToRoleAsync(user, Input.Role);
+            }
 
             // Update or create profile
             var profile = await _context.UserProfiles
@@ -106,7 +139,7 @@ namespace WebApplication1.Pages.Users
             return RedirectToPage("./Index");
         }
 
-        private async Task LoadTeamsAsync()
+        private async Task LoadDropdownsAsync()
         {
             var teams = await _context.Teams
                 .Where(t => t.IsActive)
@@ -114,6 +147,9 @@ namespace WebApplication1.Pages.Users
                 .ToListAsync();
 
             TeamList = new SelectList(teams, "Id", "Name");
+
+            var roles = await _roleManager.Roles.OrderBy(r => r.Name).ToListAsync();
+            RoleList = new SelectList(roles, "Name", "Name");
         }
 
         public class UserEditViewModel
@@ -126,6 +162,7 @@ namespace WebApplication1.Pages.Users
             public string? PhoneNumber { get; set; }
             public int? TeamId { get; set; }
             public bool IsActive { get; set; } = true;
+            public string? Role { get; set; }
         }
     }
 }

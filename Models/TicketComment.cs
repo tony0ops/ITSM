@@ -1,16 +1,13 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebApplication1.Models;
 
 /// <summary>
-/// Represents a comment or note on a ticket.
+/// TicketComment entity inheriting BaseEntity.
 /// Supports internal notes (hidden from customers) and customer-visible comments.
 /// </summary>
-public class TicketComment
+public class TicketComment : BaseEntity
 {
-    public int Id { get; set; }
-
     public int TicketId { get; set; }
 
     [Required, StringLength(450)]
@@ -27,11 +24,6 @@ public class TicketComment
 
     public bool IsInternal { get; set; } = false;
     public bool IsCustomerVisible { get; set; } = true;
-
-    [Column("CreatedUtc")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public DateTime? UpdatedAt { get; set; }
 
     // Navigation
     public Ticket Ticket { get; set; } = null!;

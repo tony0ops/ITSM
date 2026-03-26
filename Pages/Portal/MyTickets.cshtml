@@ -4,55 +4,53 @@
 
 @{
     ViewData["Title"] = "My Tickets";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <h1>My Support Tickets</h1>
-<p class="lead">Welcome back, @Model.CustomerName</p>
+<p class="text-muted">Welcome back, @Model.CustomerName</p>
 
 <!-- Summary Cards -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
-        <div class="card border-primary">
+        <div class="card border-primary h-100">
             <div class="card-body">
                 <h6 class="card-title text-muted">Total Tickets</h6>
-                <p class="h3 mb-0 text-primary">@(Model.MyTickets.Count + Model.ResolvedTicketsCount)</p>
-                <small class="text-primary">All time</small>
+                <p class="h3 mb-0">@(Model.MyTickets.Count + Model.ResolvedTicketsCount)</p>
+                <small class="text-muted">All time</small>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-3">
-        <div class="card border-warning">
+        <div class="card border-warning h-100">
             <div class="card-body">
                 <h6 class="card-title text-muted">Open Tickets</h6>
                 <p class="h3 mb-0 text-warning">@Model.OpenTicketsCount</p>
-                <small class="text-warning">In progress</small>
+                <small class="text-muted">In progress</small>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-3">
-        <div class="card border-success">
+        <div class="card border-success h-100">
             <div class="card-body">
                 <h6 class="card-title text-muted">Resolved</h6>
                 <p class="h3 mb-0 text-success">@Model.ResolvedTicketsCount</p>
-                <small class="text-success">Completed</small>
+                <small class="text-muted">Completed</small>
             </div>
         </div>
     </div>
 
     <div class="col-md-3 mb-3">
-        <div class="card border-info">
+        <div class="card border-info h-100">
             <div class="card-body">
-                <h6 class="card-title text-muted">Unread Comments</h6>
-                <p class="h3 mb-0 text-info">
+                <h6 class="card-title text-muted">Comments</h6>
+                <p class="h3 mb-0">
                     @Model.MyTickets
                         .SelectMany(t => t.Comments)
-                        .Where(c => c.IsCustomerVisible && !c.IsInternal)
-                        .Count()
+                        .Count(c => c.IsCustomerVisible && !c.IsInternal)
                 </p>
-                <small class="text-info">Updates</small>
+                <small class="text-muted">Visible updates</small>
             </div>
         </div>
     </div>
@@ -63,7 +61,7 @@
     <div class="card-body">
         <form method="get" class="row g-2">
             <div class="col-md-4">
-                <input class="form-control" name="searchTerm" value="@Model.SearchTerm" 
+                <input class="form-control" name="searchTerm" value="@Model.SearchTerm"
                        placeholder="Search by ticket number or title..." />
             </div>
             <div class="col-md-3">
@@ -88,7 +86,7 @@
 @if (Model.MyTickets.Count == 0)
 {
     <div class="alert alert-info">
-        <strong>No tickets found.</strong> 
+        <strong>No tickets found.</strong>
         @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.StatusFilter.HasValue)
         {
             <text>Try adjusting your filters.</text>
@@ -105,90 +103,83 @@ else
             var remaining = SlaPolicy.FormatRemaining(ticket, now);
             var visibleComments = Model.GetVisibleComments(ticket.Id);
 
-            var statusBadge = ticket.Status switch
+            var statusDot = ticket.Status switch
             {
-                TicketStatus.New => "bg-primary",
-                TicketStatus.Assigned => "bg-info text-dark",
-                TicketStatus.InProgress => "bg-warning text-dark",
-                TicketStatus.WaitingOnCustomer => "bg-secondary",
-                TicketStatus.WaitingOnVendor => "bg-secondary",
-                TicketStatus.Resolved => "bg-success",
-                TicketStatus.Closed => "bg-dark",
-                TicketStatus.Cancelled => "bg-danger",
-                _ => "bg-secondary"
+                TicketStatus.New => "#0d6efd",
+                TicketStatus.Assigned => "#0dcaf0",
+                TicketStatus.InProgress => "#ffc107",
+                TicketStatus.WaitingOnCustomer => "#6c757d",
+                TicketStatus.WaitingOnVendor => "#6c757d",
+                TicketStatus.Resolved => "#198754",
+                TicketStatus.Closed => "#343a40",
+                TicketStatus.Cancelled => "#dc3545",
+                _ => "#6c757d"
             };
 
-            var severityBadge = ticket.Severity switch
+            var sevDot = ticket.Severity switch
             {
-                Severity.Critical => "bg-danger",
-                Severity.High => "bg-warning text-dark",
-                Severity.Medium => "bg-primary",
-                Severity.Low => "bg-info text-dark",
-                Severity.Info => "bg-secondary",
-                _ => "bg-secondary"
+                Severity.Critical => "#dc3545",
+                Severity.High => "#fd7e14",
+                Severity.Medium => "#0d6efd",
+                Severity.Low => "#0dcaf0",
+                Severity.Info => "#6c757d",
+                _ => "#6c757d"
             };
+
+            var slaBadge = SlaPolicy.GetBadgeClass(slaState);
 
             <div class="col-md-6 mb-3">
                 <div class="card h-100">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h5 class="card-title mb-1">@ticket.Number</h5>
-                                <p class="card-text small">@ticket.Title</p>
+                                <h6 class="card-title mb-1 fw-semibold">@ticket.Number</h6>
+                                <p class="card-text small text-muted mb-0">@ticket.Title</p>
                             </div>
-                            <span class="badge @statusBadge">@ticket.Status</span>
+                            <div>
+                                <span class="status-dot status-dot-sm me-1" style="background:@statusDot;"></span>
+                                <small>@ticket.Status</small>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <dl class="row small mb-2">
-                            <dt class="col-sm-5">Severity</dt>
+                            <dt class="col-sm-5 text-muted">Severity</dt>
                             <dd class="col-sm-7">
-                                <span class="badge @severityBadge">@ticket.Severity</span>
+                                <span class="status-dot status-dot-sm me-1" style="background:@sevDot;"></span>
+                                @ticket.Severity
                             </dd>
 
-                            <dt class="col-sm-5">Category</dt>
-                            <dd class="col-sm-7">
-                                <span class="badge bg-secondary">
-                                    @ticket.Category.ToString().Replace("GeneralRequest", "General")
-                                </span>
-                            </dd>
+                            <dt class="col-sm-5 text-muted">Category</dt>
+                            <dd class="col-sm-7">@ticket.Category</dd>
 
-                            <dt class="col-sm-5">Created</dt>
+                            <dt class="col-sm-5 text-muted">Created</dt>
                             <dd class="col-sm-7">@ticket.CreatedAt.ToString("M/d/yyyy")</dd>
 
-                            <dt class="col-sm-5">Status</dt>
+                            <dt class="col-sm-5 text-muted">SLA</dt>
                             <dd class="col-sm-7">
                                 @if (SlaPolicy.IsSlaPaused(ticket.Status))
                                 {
-                                    <span class="badge bg-info">Paused</span>
+                                    <small class="text-muted">Paused</small>
                                 }
                                 else
                                 {
-                                    <span class="badge bg-@(slaState switch {
-                                        SlaState.Green => "success",
-                                        SlaState.Yellow => "warning text-dark",
-                                        SlaState.Red => "danger",
-                                        SlaState.Breached => "dark",
-                                        _ => "secondary"
-                                    })">
-                                        @remaining
-                                    </span>
+                                    <small><span class="badge @slaBadge">@remaining</span></small>
                                 }
                             </dd>
                         </dl>
 
-                        <!-- Recent Comments Preview -->
                         @if (visibleComments.Any())
                         {
-                            <div class="alert alert-light p-2 small mb-0">
-                                <strong>Latest Update:</strong>
+                            <div class="border rounded p-2 small bg-light">
+                                <strong class="text-muted">Latest Update:</strong>
                                 <p class="mb-0 text-truncate">@visibleComments.Last().Comment</p>
                                 <small class="text-muted">@visibleComments.Last().CreatedAt.ToString("M/d HH:mm")</small>
                             </div>
                         }
                     </div>
-                    <div class="card-footer bg-light">
-                        <a asp-page="./TicketDetail" asp-route-id="@ticket.Id" class="btn btn-sm btn-primary">
+                    <div class="card-footer">
+                        <a asp-page="./TicketDetail" asp-route-id="@ticket.Id" class="btn btn-sm btn-outline-primary">
                             View Details
                         </a>
                     </div>

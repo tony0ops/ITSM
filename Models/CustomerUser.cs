@@ -5,13 +5,11 @@ using Microsoft.AspNetCore.Identity;
 namespace WebApplication1.Models;
 
 /// <summary>
+/// CustomerUser entity inheriting BaseEntity.
 /// Links an IdentityUser (customer portal user) to a Customer.
-/// Allows multiple portal users per customer with granular permissions.
 /// </summary>
-public class CustomerUser
+public class CustomerUser : BaseEntity
 {
-    public int Id { get; set; }
-
     public int CustomerId { get; set; }
 
     [Required, StringLength(450)]
@@ -21,11 +19,6 @@ public class CustomerUser
     public bool CanViewTickets { get; set; } = true;
     public bool CanAddComments { get; set; } = true;
     public bool IsActive { get; set; } = true;
-
-    [Column("CreatedUtc")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public DateTime? UpdatedAt { get; set; }
 
     // Navigation
     [ForeignKey(nameof(CustomerId))]

@@ -9,77 +9,87 @@
 }
 else
 {
-    <table class="table table-sm table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Number</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Severity</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>SLA</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null)
-            {
-                @foreach (var item in Model)
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:100px;">Number</th>
+                    <th style="width:250px;">Title</th>
+                    <th style="width:90px;">Category</th>
+                    <th style="width:80px;">Severity</th>
+                    <th style="width:100px;">Status</th>
+                    <th style="width:120px;">Customer</th>
+                    <th style="width:100px;">SLA Due</th>
+                    <th style="width:90px;">SLA</th>
+                    <th style="width:100px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null)
                 {
-                    var now = DateTime.Now;
-                    var state = SlaPolicy.GetState(item, now);
-                    var remaining = SlaPolicy.FormatRemaining(item, now);
-
-                    var isClosed = item.Status == TicketStatus.Closed ||
-                                   item.Status == TicketStatus.Resolved ||
-                                   item.Status == TicketStatus.Cancelled;
-
-                    var slaBadge = state switch
+                    @foreach (var item in Model)
                     {
-                        SlaState.Green => "bg-success",
-                        SlaState.Yellow => "bg-warning text-dark",
-                        SlaState.Red => "bg-danger",
-                        SlaState.Breached => "bg-dark",
-                        _ => "bg-secondary"
-                    };
+                        var now = DateTime.Now;
+                        var state = SlaPolicy.GetState(item, now);
+                        var remaining = SlaPolicy.FormatRemaining(item, now);
 
-                    var severityClass = item.Severity switch
-                    {
-                        Severity.Critical => "text-danger fw-semibold",
-                        Severity.High => "text-warning fw-semibold",
-                        _ => ""
-                    };
+                        var isClosed = item.Status == TicketStatus.Closed ||
+                                       item.Status == TicketStatus.Resolved ||
+                                       item.Status == TicketStatus.Cancelled;
 
-                    <tr class="@(isClosed ? "table-secondary opacity-75" : "")">
-                        <td><a asp-page="/Tickets/Details" asp-route-id="@item.Id"><strong>@item.Number</strong></a></td>
-                        <td>@item.Title</td>
-                        <td><small>@item.Category.ToString().Replace("GeneralRequest", "General")</small></td>
-                        <td><small class="@severityClass">@item.Severity</small></td>
-                        <td><small>@item.Status.ToString().Replace("WaitingOnCustomer", "Wait: Customer").Replace("WaitingOnVendor", "Wait: Vendor")</small></td>
-                        <td><small>@item.CreatedAt.ToString("g")</small></td>
-                        <td>
-                            @if (isClosed)
-                            {
-                                <small class="text-muted">Closed</small>
-                            }
-                            else if (SlaPolicy.IsSlaPaused(item.Status))
-                            {
-                                <small class="text-info">Paused</small>
-                            }
-                            else
-                            {
-                                <small><span class="badge @slaBadge">@state - @remaining</span></small>
-                            }
-                        </td>
-                        <td>
-                            <a asp-page="/Tickets/Edit" asp-route-id="@item.Id" class="text-primary text-decoration-none">Update</a>
-                            <span class="text-muted mx-1">|</span>
-                            <a asp-page="/Tickets/Details" asp-route-id="@item.Id" class="text-secondary text-decoration-none">Details</a>
-                        </td>
-                    </tr>
+                        var slaBadge = SlaPolicy.GetBadgeClass(state);
+
+                        var sevDot = item.Severity switch
+                        {
+                            Severity.Critical => "#dc3545",
+                            Severity.High => "#fd7e14",
+                            Severity.Medium => "#0d6efd",
+                            Severity.Low => "#0dcaf0",
+                            Severity.Info => "#6c757d",
+                            _ => "#6c757d"
+                        };
+
+                        <tr class="@(isClosed ? "table-secondary opacity-75" : "")">
+                            <td>
+                                <a asp-page="/Tickets/Details" asp-route-id="@item.Id"><strong>@item.Number</strong></a>
+                            </td>
+                            <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@item.Title">
+                                @item.Title
+                            </td>
+                            <td><small class="text-muted">@item.Category</small></td>
+                            <td>
+                                <span class="status-dot status-dot-sm me-1" style="background:@sevDot;"></span>
+                                <small>@item.Severity</small>
+                            </td>
+                            <td><small>@item.Status</small></td>
+                            <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                <small>
+                                    @if (item.Customer != null)
+                                    { @item.Customer.CompanyName }
+                                    else
+                                    { <span class="text-muted">-</span> }
+                                </small>
+                            </td>
+                            <td class="text-nowrap">
+                                <small class="text-muted">@(item.SlaDueAt?.ToString("M/d/yyyy HH:mm") ?? "N/A")</small>
+                            </td>
+                            <td>
+                                @if (isClosed)
+                                { <small class="text-muted">Closed</small> }
+                                else if (SlaPolicy.IsSlaPaused(item.Status))
+                                { <small class="text-muted">Paused</small> }
+                                else
+                                { <small><span class="badge @slaBadge">@remaining</span></small> }
+                            </td>
+                            <td class="text-nowrap">
+                                <a asp-page="/Tickets/Edit" asp-route-id="@item.Id" class="text-primary text-decoration-none">Edit</a>
+                                <span class="text-muted mx-1">|</span>
+                                <a asp-page="/Tickets/Details" asp-route-id="@item.Id" class="text-secondary text-decoration-none">Details</a>
+                            </td>
+                        </tr>
+                    }
                 }
-            }
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
 }

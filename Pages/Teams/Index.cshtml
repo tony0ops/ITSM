@@ -8,49 +8,88 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Teams</h1>
-    <a asp-page="./Create" class="btn btn-primary">Create Team</a>
+    @if (User.IsInRole("Manager"))
+    {
+        <a asp-page="./Create" class="btn btn-primary">Create Team</a>
+    }
 </div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 @if (!Model.Teams.Any())
 {
     <div class="alert alert-info">
-        No teams found. Create a team to start assigning users.
+        No teams found.
+        @if (User.IsInRole("Manager"))
+        {
+            @:Create a team to start assigning users.
+        }
     </div>
 }
 else
 {
-    <div class="row">
-        @foreach (var team in Model.Teams)
-        {
-            <div class="col-md-4 mb-3">
-                <div class="card h-100">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <strong>@team.Name</strong>
-                        @if (team.IsActive)
-                        {
-                            <span class="badge bg-success">Active</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Inactive</span>
-                        }
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">@team.Description</p>
-                        <p class="mb-1">
-                            <strong>Group:</strong>
-                            <span class="badge bg-info">@team.Group.ToString().Replace("_", " ")</span>
-                        </p>
-                        <p class="mb-0">
-                            <strong>Members:</strong> @team.Members.Count
-                        </p>
-                    </div>
-                    <div class="card-footer">
-                        <a asp-page="./Edit" asp-route-id="@team.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <a asp-page="./Details" asp-route-id="@team.Id" class="btn btn-sm btn-outline-info">View Members</a>
-                    </div>
-                </div>
-            </div>
-        }
+    <p class="text-muted small mb-2">Showing @Model.Teams.Count team(s)</p>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Team Name</th>
+                    <th>Description</th>
+                    <th>Assignment Group</th>
+                    <th>Members</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var team in Model.Teams)
+                {
+                    var statusDot = team.IsActive ? "#198754" : "#6c757d";
+                    var statusText = team.IsActive ? "Active" : "Inactive";
+                    var memberCount = team.Members.Count(m => m.IsActive);
+
+                    <tr class="@(!team.IsActive ? "table-secondary opacity-75" : "")">
+                        <td>
+                            <a asp-page="./Details" asp-route-id="@team.Id" class="fw-semibold text-decoration-none">
+                                @team.Name
+                            </a>
+                        </td>
+                        <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@team.Description">
+                            <small class="text-muted">@(string.IsNullOrEmpty(team.Description) ? "-" : team.Description)</small>
+                        </td>
+                        <td><small>@team.Group.ToString().Replace("_", " ")</small></td>
+                        <td><small class="fw-semibold">@memberCount</small></td>
+                        <td>
+                            <span class="status-dot status-dot-sm me-1" style="background:@statusDot;"></span>
+                            <small>@statusText</small>
+                        </td>
+                        <td class="text-nowrap">
+                            @if (User.IsInRole("Manager"))
+                            {
+                                <a asp-page="./Edit" asp-route-id="@team.Id" class="text-primary text-decoration-none">Edit</a>
+                                <span class="text-muted mx-1">|</span>
+                                <a asp-page="./Delete" asp-route-id="@team.Id" class="text-danger text-decoration-none">Delete</a>
+                                <span class="text-muted mx-1">|</span>
+                            }
+                            <a asp-page="./Details" asp-route-id="@team.Id" class="text-secondary text-decoration-none">Members</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 }

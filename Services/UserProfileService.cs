@@ -98,7 +98,7 @@ public class UserProfileService
         {
             profile.TeamId = teamId;
             profile.ModifiedBy = modifiedBy;
-            profile.UpdatedAt = DateTime.UtcNow;
+            profile.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
         }
     }

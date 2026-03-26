@@ -4,13 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace WebApplication1.Models;
 
 /// <summary>
+/// CustomerSla entity inheriting BaseEntity.
 /// Defines customer-specific SLA response times.
-/// Overrides default SLA durations when a ticket is associated with a customer that has custom SLA terms.
 /// </summary>
-public class CustomerSla
+public class CustomerSla : BaseEntity
 {
-    public int Id { get; set; }
-
     [Required]
     public int CustomerId { get; set; }
 
@@ -54,11 +52,6 @@ public class CustomerSla
     /// </summary>
     [StringLength(500)]
     public string? Notes { get; set; }
-
-    [Column("CreatedUtc")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public DateTime? UpdatedAt { get; set; }
 
     // Navigation
     public Customer Customer { get; set; } = null!;

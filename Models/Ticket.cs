@@ -1,17 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using WebApplication1.Models.Interfaces;
 
 namespace WebApplication1.Models;
 
 /// <summary>
-/// Ticket entity implementing ISoftDeletable.
+/// Ticket entity inheriting BaseEntity and implementing ISoftDeletable.
 /// Tickets are never hard-deleted due to audit and compliance requirements.
 /// </summary>
-public class Ticket : ISoftDeletable
+public class Ticket : BaseEntity, ISoftDeletable
 {
-    public int Id { get; set; }
-
     [Required, StringLength(20)]
     public string Number { get; set; } = "";
 
@@ -35,17 +32,10 @@ public class Ticket : ISoftDeletable
     public int? CustomerId { get; set; }
     public Customer? Customer { get; set; }
 
-    [Column("CreatedUtc")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public DateTime? UpdatedAt { get; set; }
-
-    [Column("SlaDueUtc")]
     public DateTime? SlaDueAt { get; set; }
 
     public DateTime? SlaPausedAt { get; set; }
 
-    [Column(TypeName = "TEXT")]
     public TimeSpan TotalPausedDuration { get; set; } = TimeSpan.Zero;
 
     [StringLength(500)]
@@ -56,10 +46,9 @@ public class Ticket : ISoftDeletable
 
     public DateTime? ResolvedAt { get; set; }
 
-    [Column("ClosedUtc")]
     public DateTime? ClosedAt { get; set; }
 
-    // Audit fields (exist in DB from migration)
+    // Audit fields
     [StringLength(450)]
     public string CreatedBy { get; set; } = "";
 

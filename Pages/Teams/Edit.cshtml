@@ -1,0 +1,92 @@
+﻿@page "{id:int}"
+@model WebApplication1.Pages.Teams.EditModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "Edit Team";
+}
+
+<h1>Edit Team</h1>
+<hr />
+
+@if (Model.Team.IsActive && (Model.MemberCount > 0 || Model.OpenTicketCount > 0))
+{
+    <div class="alert alert-warning" id="deactivateWarning" style="display:none;">
+        <strong>Deactivation Impact:</strong>
+        <ul class="mb-0">
+            @if (Model.MemberCount > 0)
+            {
+                <li><strong>@Model.MemberCount member(s)</strong> will be unassigned from this team</li>
+            }
+            @if (Model.OpenTicketCount > 0)
+            {
+                <li><strong>@Model.OpenTicketCount open ticket(s)</strong> are assigned to group <strong>@Model.Team.Group</strong> - these will need manual reassignment</li>
+            }
+        </ul>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Team.Id" />
+            <input type="hidden" asp-for="Team.CreatedAt" />
+
+            <div class="mb-3">
+                <label asp-for="Team.Name" class="form-label"></label>
+                <input asp-for="Team.Name" class="form-control" />
+                <span asp-validation-for="Team.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Team.Description" class="form-label"></label>
+                <textarea asp-for="Team.Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Team.Description" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Team.Group" class="form-label"></label>
+                <select asp-for="Team.Group" class="form-select"
+                        asp-items="Html.GetEnumSelectList<AssignmentGroup>()"></select>
+                <span asp-validation-for="Team.Group" class="text-danger"></span>
+            </div>
+
+            <div class="form-check mb-3">
+                <input asp-for="Team.IsActive" class="form-check-input" id="isActiveCheckbox" />
+                <label asp-for="Team.IsActive" class="form-check-label"></label>
+            </div>
+
+            @if (Model.MemberCount > 0 || Model.OpenTicketCount > 0)
+            {
+                <div class="mb-3">
+                    <small class="text-muted">
+                        This team has <strong>@Model.MemberCount</strong> active member(s)
+                        and <strong>@Model.OpenTicketCount</strong> open ticket(s) in its group.
+                    </small>
+                </div>
+            }
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <a asp-page="./Details" asp-route-id="@Model.Team.Id" class="btn btn-outline-info">View Members</a>
+                <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var checkbox = document.getElementById('isActiveCheckbox');
+            var warning = document.getElementById('deactivateWarning');
+            if (checkbox && warning) {
+                checkbox.addEventListener('change', function () {
+                    warning.style.display = this.checked ? 'none' : 'block';
+                });
+            }
+        });
+    </script>
+}

@@ -1,0 +1,95 @@
+@page "{id:int}"
+@model WebApplication1.Pages.Teams.DeleteModel
+@using WebApplication1.Models
+
+@{
+    ViewData["Title"] = "Delete Team";
+}
+
+<h1>Delete Team</h1>
+<hr />
+
+@if (!Model.CanDelete)
+{
+    <div class="alert alert-danger">
+        <strong>Cannot delete this team.</strong>
+        This team has <strong>@Model.ActiveMemberCount active member(s)</strong>.
+        Remove all members from the team before deleting it.
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <strong>Are you sure you want to permanently delete this team?</strong>
+        <p class="mb-0">This action cannot be undone. If you just want to disable it, use <strong>Edit > uncheck Active</strong> instead.</p>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>@Model.Team.Name</strong>
+                @if (Model.Team.IsActive)
+                {
+                    <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Inactive</span>
+                }
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Description</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Team.Description) ? "-" : Model.Team.Description)</dd>
+
+                    <dt class="col-sm-4">Assignment Group</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-info">@Model.Team.Group.ToString().Replace("_", " ")</span>
+                    </dd>
+
+                    <dt class="col-sm-4">Active Members</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.ActiveMemberCount > 0)
+                        {
+                            <span class="text-danger fw-semibold">@Model.ActiveMemberCount</span>
+                        }
+                        else
+                        {
+                            <span class="text-success">0 (safe to delete)</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Open Tickets</dt>
+                    <dd class="col-sm-8">
+                        @if (Model.OpenTicketCount > 0)
+                        {
+                            <span class="text-warning fw-semibold">@Model.OpenTicketCount in group @Model.Team.Group.ToString().Replace("_", " ")</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">0</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (Model.CanDelete)
+        {
+            <form method="post" asp-route-id="@Model.Team.Id">
+                <button type="submit" class="btn btn-danger"
+                        onclick="return confirm('Permanently delete team \'@Model.Team.Name\'? This cannot be undone.')">
+                    Delete Permanently
+                </button>
+                <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+            </form>
+        }
+        else
+        {
+            <a asp-page="./Details" asp-route-id="@Model.Team.Id" class="btn btn-primary">Manage Members</a>
+            <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
+        }
+    </div>
+</div>

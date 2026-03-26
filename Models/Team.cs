@@ -1,17 +1,14 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using WebApplication1.Models.Interfaces;
 
 namespace WebApplication1.Models;
 
 /// <summary>
-/// Team entity implementing IActivatable.
+/// Team entity inheriting BaseEntity and implementing IActivatable.
 /// Teams can be deactivated when disbanded or restructured.
 /// </summary>
-public class Team : IActivatable
+public class Team : BaseEntity, IActivatable
 {
-    public int Id { get; set; }
-
     [Required, StringLength(100)]
     public string Name { get; set; } = "";
 
@@ -19,11 +16,6 @@ public class Team : IActivatable
     public string Description { get; set; } = "";
 
     public AssignmentGroup Group { get; set; }
-
-    [Column("CreatedUtc")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public DateTime? UpdatedAt { get; set; }
 
     // IActivatable
     [Display(Name = "Active")]

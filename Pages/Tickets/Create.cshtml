@@ -4,19 +4,17 @@
 @using WebApplication1.Models
 
 @{
-    ViewData["Title"] = "Create";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Create Ticket";
 }
 
 <h1>Create Ticket</h1>
-
-<h4>New Ticket</h4>
 <hr />
+
 <div class="row">
     <div class="col-md-6">
         <form method="post">
             <div asp-validation-summary="All" class="text-danger"></div>
-            
+
             <div class="mb-3">
                 <label asp-for="Ticket.Title" class="form-label"></label>
                 <span class="text-danger">*</span>
@@ -47,28 +45,20 @@
                 </div>
             </div>
 
-            <!-- Customer Dropdown -->
             <div class="mb-3">
                 <label asp-for="Ticket.CustomerId" class="form-label">Customer</label>
                 <select asp-for="Ticket.CustomerId" class="form-select" asp-items="Model.CustomerList">
                     <option value="">-- No Customer --</option>
                 </select>
                 <span asp-validation-for="Ticket.CustomerId" class="text-danger"></span>
-                <div class="form-text">
-                    <a asp-page="/Customers/Create" target="_blank">+ Add New Customer</a>
-                </div>
+                @if (User.IsInRole("Manager"))
+                {
+                    <div class="form-text">
+                        <a asp-page="/Customers/Create" target="_blank">+ Add New Customer</a>
+                    </div>
+                }
             </div>
 
-            <!-- Assignee Dropdown -->
-            <div class="mb-3">
-                <label asp-for="Ticket.AssigneeUserId" class="form-label">Assign To</label>
-                <select asp-for="Ticket.AssigneeUserId" class="form-select" asp-items="Model.AssigneeList">
-                    <option value="">-- Unassigned --</option>
-                </select>
-                <span asp-validation-for="Ticket.AssigneeUserId" class="text-danger"></span>
-            </div>
-
-            <!-- Assignment Group -->
             <div class="mb-3">
                 <label asp-for="Ticket.AssignedGroup" class="form-label">Assignment Group</label>
                 <select asp-for="Ticket.AssignedGroup" class="form-select"
@@ -76,7 +66,14 @@
                 <span asp-validation-for="Ticket.AssignedGroup" class="text-danger"></span>
             </div>
 
-            <!-- Deadline -->
+            <div class="mb-3">
+                <label asp-for="Ticket.AssigneeUserId" class="form-label">Assign To User (Optional)</label>
+                <select asp-for="Ticket.AssigneeUserId" class="form-select" asp-items="Model.AssigneeList">
+                    <option value="">-- Unassigned --</option>
+                </select>
+                <span asp-validation-for="Ticket.AssigneeUserId" class="text-danger"></span>
+            </div>
+
             <div class="mb-3">
                 <label asp-for="Ticket.SlaDueAt" class="form-label">Deadline</label>
                 <input asp-for="Ticket.SlaDueAt" type="datetime-local" class="form-control" />
@@ -93,7 +90,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

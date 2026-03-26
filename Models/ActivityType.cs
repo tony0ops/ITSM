@@ -10,6 +10,6 @@ public enum ActivityType
     CustomerComment,
     SeverityChanged,
     PriorityChanged,
-    SlaPaused,        // NEW
-    SlaResumed        // NEW
+    SlaPaused,
+    SlaResumed
 }

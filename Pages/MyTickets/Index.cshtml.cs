@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -34,11 +35,10 @@ namespace WebApplication1.Pages.MyTickets
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return;
 
-            // Tickets assigned directly to me
             AssignedToMe = await _context.Tickets
                 .Include(t => t.Customer)
                 .Where(t => t.AssigneeUserId == user.Id)
-                .Where(t => t.Status != TicketStatus.Closed && 
+                .Where(t => t.Status != TicketStatus.Closed &&
                            t.Status != TicketStatus.Resolved &&
                            t.Status != TicketStatus.Cancelled)
                 .OrderBy(t => t.SlaDueAt)
@@ -46,7 +46,6 @@ namespace WebApplication1.Pages.MyTickets
 
             TotalAssignedToMe = AssignedToMe.Count;
 
-            // Get user's team information
             var userProfile = await _context.UserProfiles
                 .Include(up => up.Team)
                 .FirstOrDefaultAsync(up => up.UserId == user.Id);
@@ -55,18 +54,11 @@ namespace WebApplication1.Pages.MyTickets
             {
                 TeamName = userProfile.Team.Name;
 
-                // Get all team members
-                var teamMemberIds = await _context.UserProfiles
-                    .Where(up => up.TeamId == userProfile.TeamId)
-                    .Select(up => up.UserId)
-                    .ToListAsync();
-
-                // My team's tickets (assigned to team members or unassigned within the group)
+                // Consistent rule: all open tickets in the team's assignment group
                 MyTeamTickets = await _context.Tickets
                     .Include(t => t.Customer)
                     .Where(t => t.AssignedGroup == userProfile.Team.Group)
-                    .Where(t => string.IsNullOrEmpty(t.AssigneeUserId) || teamMemberIds.Contains(t.AssigneeUserId))
-                    .Where(t => t.Status != TicketStatus.Closed && 
+                    .Where(t => t.Status != TicketStatus.Closed &&
                                t.Status != TicketStatus.Resolved &&
                                t.Status != TicketStatus.Cancelled)
                     .OrderBy(t => t.SlaDueAt)
@@ -75,7 +67,6 @@ namespace WebApplication1.Pages.MyTickets
                 TotalTeamTickets = MyTeamTickets.Count;
             }
 
-            // Calculate at-risk and breached counts
             var now = DateTime.Now;
             AtRiskCount = AssignedToMe.Count(t =>
             {

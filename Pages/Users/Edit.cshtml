@@ -37,11 +37,22 @@
             </div>
 
             <div class="mb-3">
+                <label asp-for="Input.Role" class="form-label">Role</label>
+                <select asp-for="Input.Role" class="form-select" asp-items="Model.RoleList">
+                    <option value="">-- No Role --</option>
+                </select>
+                <div class="form-text">
+                    <strong>Manager</strong> = can manage users, customers, teams, SLA.
+                    <strong>Agent</strong> = works tickets only.
+                </div>
+            </div>
+
+            <div class="mb-3">
                 <label asp-for="Input.TeamId" class="form-label">Team Assignment</label>
                 <select asp-for="Input.TeamId" class="form-select" asp-items="Model.TeamList">
                     <option value="">-- No Team --</option>
                 </select>
-                <div class="form-text">Assign user to a support team for ticket routing.</div>
+                <div class="form-text">Assign to a support team for ticket routing. Managers don't need a team unless they also work tickets.</div>
             </div>
 
             <div class="mb-3 form-check">

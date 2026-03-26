@@ -47,7 +47,7 @@ namespace WebApplication1.Pages.Tickets
             // System fields
             Ticket.CreatedAt = DateTime.Now;
 
-            // INC number — use IgnoreQueryFilters to include soft-deleted tickets
+            // INC number
             var maxId = await _context.Tickets
                 .IgnoreQueryFilters()
                 .OrderByDescending(t => t.Id)
@@ -108,7 +108,7 @@ namespace WebApplication1.Pages.Tickets
             _context.Tickets.Add(Ticket);
             await _context.SaveChangesAsync();
 
-            // Log ticket creation activity with real user ID
+            // Log ticket creation activity
             var userName = currentUser?.Email ?? currentUser?.UserName ?? "Anonymous";
             var activity = new TicketActivity
             {
@@ -122,7 +122,8 @@ namespace WebApplication1.Pages.Tickets
             _context.TicketActivities.Add(activity);
             await _context.SaveChangesAsync();
 
-            return RedirectToPage("./Index");
+            TempData["SuccessMessage"] = $"Ticket {Ticket.Number} created successfully!";
+            return RedirectToPage("./Details", new { id = Ticket.Id });
         }
     }
 }

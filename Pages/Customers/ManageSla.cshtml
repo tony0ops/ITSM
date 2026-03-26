@@ -13,7 +13,7 @@
 <div class="row">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header bg-primary text-white">
+            <div class="card-header">
                 <h5 class="mb-0">Response Time SLA</h5>
             </div>
             <div class="card-body">
@@ -70,7 +70,7 @@
 
                     <div class="mb-3">
                         <label asp-for="Sla.Notes" class="form-label">Notes</label>
-                        <textarea asp-for="Sla.Notes" class="form-control" rows="3" 
+                        <textarea asp-for="Sla.Notes" class="form-control" rows="3"
                                   placeholder="Add any notes about this SLA agreement..."></textarea>
                     </div>
 
@@ -90,25 +90,25 @@
 
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header bg-info text-white">
+            <div class="card-header">
                 <h6 class="mb-0">Default System SLA</h6>
             </div>
             <div class="card-body small">
-                <dl>
+                <dl class="mb-0">
                     <dt>Critical</dt>
                     <dd>4 hours</dd>
-                    
+
                     <dt>High</dt>
                     <dd>8 hours</dd>
-                    
+
                     <dt>Medium</dt>
                     <dd>24 hours</dd>
-                    
+
                     <dt>Low</dt>
                     <dd>3 days</dd>
-                    
+
                     <dt>Info</dt>
-                    <dd>7 days</dd>
+                    <dd class="mb-0">7 days</dd>
                 </dl>
             </div>
         </div>

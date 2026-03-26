@@ -37,6 +37,12 @@ namespace WebApplication1.Pages.Portal
             if (user == null)
                 return Unauthorized();
 
+            // Internal staff should use /Tickets/Details
+            if (User.IsInRole("Manager") || User.IsInRole("Agent"))
+            {
+                return RedirectToPage("/Tickets/Details", new { id });
+            }
+
             // Verify user has access to this ticket
             var customerUser = await _context.CustomerUsers
                 .FirstOrDefaultAsync(cu => cu.UserId == user.Id && cu.IsActive);
@@ -76,6 +82,10 @@ namespace WebApplication1.Pages.Portal
             if (user == null)
                 return Unauthorized();
 
+            // Block internal staff from posting via portal
+            if (User.IsInRole("Manager") || User.IsInRole("Agent"))
+                return Forbid();
+
             // Verify user has access and permission
             var customerUser = await _context.CustomerUsers
                 .FirstOrDefaultAsync(cu => cu.UserId == user.Id && cu.IsActive);
@@ -103,7 +113,7 @@ namespace WebApplication1.Pages.Portal
             _context.TicketComments.Add(comment);
             await _context.SaveChangesAsync();
 
-            return RedirectToPage(new { id = id });
+            return RedirectToPage(new { id });
         }
     }
 }

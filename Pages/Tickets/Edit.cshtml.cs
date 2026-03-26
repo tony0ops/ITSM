@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -12,13 +13,16 @@ namespace WebApplication1.Pages.Tickets
     {
         private readonly ApplicationDbContext _context;
         private readonly SelectListService _selectListService;
+        private readonly UserManager<IdentityUser> _userManager;
 
         public EditModel(
             ApplicationDbContext context,
-            SelectListService selectListService)
+            SelectListService selectListService,
+            UserManager<IdentityUser> userManager)
         {
             _context = context;
             _selectListService = selectListService;
+            _userManager = userManager;
         }
 
         [BindProperty]
@@ -73,8 +77,12 @@ namespace WebApplication1.Pages.Tickets
                 return Page();
             }
 
+            // Resolve current user identity
+            var currentUser = await _userManager.GetUserAsync(User);
+            var userId = currentUser?.Id ?? "";
+            var userName = currentUser?.Email ?? currentUser?.UserName ?? "System";
+
             var activities = new List<TicketActivity>();
-            var userName = User.Identity?.Name ?? "System";
 
             // Track status change
             if (existing.Status != Ticket.Status)
@@ -92,7 +100,7 @@ namespace WebApplication1.Pages.Tickets
                         TicketId = existing.Id,
                         Type = ActivityType.StatusChanged,
                         CreatedAt = DateTime.Now,
-                        UserId = User.Identity?.Name ?? "system",
+                        UserId = userId,
                         UserName = userName,
                         Description = $"SLA paused: {existing.PauseReason}",
                         OldValue = existing.Status.ToString(),
@@ -114,7 +122,7 @@ namespace WebApplication1.Pages.Tickets
                             TicketId = existing.Id,
                             Type = ActivityType.StatusChanged,
                             CreatedAt = DateTime.Now,
-                            UserId = User.Identity?.Name ?? "system",
+                            UserId = userId,
                             UserName = userName,
                             Description = $"SLA resumed (was paused for {SlaPolicy.FormatPausedDuration(pauseDuration)})",
                             OldValue = existing.Status.ToString(),
@@ -130,7 +138,7 @@ namespace WebApplication1.Pages.Tickets
                         TicketId = existing.Id,
                         Type = ActivityType.StatusChanged,
                         CreatedAt = DateTime.Now,
-                        UserId = User.Identity?.Name ?? "system",
+                        UserId = userId,
                         UserName = userName,
                         Description = "Status changed",
                         OldValue = existing.Status.ToString(),
@@ -149,7 +157,7 @@ namespace WebApplication1.Pages.Tickets
                     TicketId = existing.Id,
                     Type = ActivityType.SeverityChanged,
                     CreatedAt = DateTime.Now,
-                    UserId = User.Identity?.Name ?? "system",
+                    UserId = userId,
                     UserName = userName,
                     Description = "Severity changed",
                     OldValue = existing.Severity.ToString(),
@@ -160,16 +168,19 @@ namespace WebApplication1.Pages.Tickets
 
             if (existing.AssigneeUserId != Ticket.AssigneeUserId)
             {
+                var oldName = await ResolveUserNameAsync(existing.AssigneeUserId);
+                var newName = await ResolveUserNameAsync(Ticket.AssigneeUserId);
+
                 activities.Add(new TicketActivity
                 {
                     TicketId = existing.Id,
                     Type = ActivityType.Reassigned,
                     CreatedAt = DateTime.Now,
-                    UserId = User.Identity?.Name ?? "system",
+                    UserId = userId,
                     UserName = userName,
                     Description = "Ticket reassigned",
-                    OldValue = existing.AssigneeUserId ?? "Unassigned",
-                    NewValue = Ticket.AssigneeUserId ?? "Unassigned",
+                    OldValue = oldName,
+                    NewValue = newName,
                     IsInternal = false
                 });
             }
@@ -181,7 +192,7 @@ namespace WebApplication1.Pages.Tickets
             existing.AssignedGroup = Ticket.AssignedGroup;
             existing.Category = Ticket.Category;
             existing.UpdatedAt = DateTime.Now;
-            existing.ModifiedBy = User.Identity?.Name;
+            existing.ModifiedBy = userId;
 
             if (Ticket.CustomerId.HasValue && Ticket.CustomerId != existing.CustomerId)
             {
@@ -198,10 +209,40 @@ namespace WebApplication1.Pages.Tickets
                 existing.CustomerName = null;
             }
 
+            // SLA deadline: track changes and log activity
+            var oldSlaDue = existing.SlaDueAt;
             if (Ticket.SlaDueAt.HasValue)
+            {
                 existing.SlaDueAt = Ticket.SlaDueAt.Value;
+            }
             else
+            {
+                // Recalculate from the NEW severity (already applied above)
                 existing.SlaDueAt = existing.CreatedAt + SlaPolicy.GetSlaDuration(existing, _context);
+            }
+
+            // Log SLA change if the deadline actually moved
+            if (oldSlaDue != existing.SlaDueAt)
+            {
+                var oldDisplay = oldSlaDue?.ToString("M/d/yyyy HH:mm") ?? "Auto";
+                var newDisplay = existing.SlaDueAt?.ToString("M/d/yyyy HH:mm") ?? "None";
+                var reason = Ticket.SlaDueAt.HasValue
+                    ? "Deadline manually updated"
+                    : "Deadline auto-recalculated from severity";
+
+                activities.Add(new TicketActivity
+                {
+                    TicketId = existing.Id,
+                    Type = ActivityType.StatusChanged,
+                    CreatedAt = DateTime.Now,
+                    UserId = userId,
+                    UserName = userName,
+                    Description = reason,
+                    OldValue = oldDisplay,
+                    NewValue = newDisplay,
+                    IsInternal = true
+                });
+            }
 
             if (existing.Status == TicketStatus.Resolved)
             {
@@ -224,6 +265,15 @@ namespace WebApplication1.Pages.Tickets
 
             await _context.SaveChangesAsync();
             return RedirectToPage("./Details", new { id = existing.Id });
+        }
+
+        private async Task<string> ResolveUserNameAsync(string? userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return "Unassigned";
+
+            var user = await _userManager.FindByIdAsync(userId);
+            return user?.Email ?? user?.UserName ?? "Unknown";
         }
     }
 }

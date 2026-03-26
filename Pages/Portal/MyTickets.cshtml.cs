@@ -40,16 +40,26 @@ namespace WebApplication1.Pages.Portal
             if (user == null)
                 return Unauthorized();
 
+            // Portal pages are only for customer-linked users.
+            // Internal staff (Manager/Agent) should use /Tickets instead.
+            if (User.IsInRole("Manager") || User.IsInRole("Agent"))
+            {
+                return RedirectToPage("/Tickets/Index");
+            }
+
             // Find customer linked to this portal user
             var customerUser = await _context.CustomerUsers
                 .Include(cu => cu.Customer)
                 .FirstOrDefaultAsync(cu => cu.UserId == user.Id && cu.IsActive);
 
             if (customerUser == null)
-                return NotFound("You are not linked to any customer account.");
+            {
+                TempData["ErrorMessage"] = "Your account is not linked to a customer. Contact support for assistance.";
+                return RedirectToPage("/Index");
+            }
 
             if (!customerUser.CanViewTickets)
-                return Forbid("You do not have permission to view tickets.");
+                return Forbid();
 
             CustomerInfo = customerUser.Customer;
             CustomerName = customerUser.Customer.CompanyName;
@@ -70,29 +80,45 @@ namespace WebApplication1.Pages.Portal
             // Apply search filter
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
+                var term = SearchTerm.ToLower();
                 query = query.Where(t =>
-                    t.Number.Contains(SearchTerm) ||
-                    t.Title.Contains(SearchTerm) ||
-                    t.Description.Contains(SearchTerm));
+                    t.Number.ToLower().Contains(term) ||
+                    t.Title.ToLower().Contains(term) ||
+                    t.Description.ToLower().Contains(term));
             }
 
             MyTickets = await query
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
 
-            // Calculate statistics
-            var allCustomerTickets = await _context.Tickets
-                .Where(t => t.CustomerId == customerUser.CustomerId)
-                .ToListAsync();
-
-            OpenTicketsCount = allCustomerTickets.Count(t =>
+            // Calculate statistics from already-loaded data where possible
+            OpenTicketsCount = MyTickets.Count(t =>
                 t.Status != TicketStatus.Closed &&
                 t.Status != TicketStatus.Resolved &&
                 t.Status != TicketStatus.Cancelled);
 
-            ResolvedTicketsCount = allCustomerTickets.Count(t =>
-                t.Status == TicketStatus.Closed ||
-                t.Status == TicketStatus.Resolved);
+            // For resolved count, need unfiltered data if filters are active
+            if (StatusFilter.HasValue || !string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                var allCustomerTickets = await _context.Tickets
+                    .Where(t => t.CustomerId == customerUser.CustomerId)
+                    .ToListAsync();
+
+                OpenTicketsCount = allCustomerTickets.Count(t =>
+                    t.Status != TicketStatus.Closed &&
+                    t.Status != TicketStatus.Resolved &&
+                    t.Status != TicketStatus.Cancelled);
+
+                ResolvedTicketsCount = allCustomerTickets.Count(t =>
+                    t.Status == TicketStatus.Closed ||
+                    t.Status == TicketStatus.Resolved);
+            }
+            else
+            {
+                ResolvedTicketsCount = MyTickets.Count(t =>
+                    t.Status == TicketStatus.Closed ||
+                    t.Status == TicketStatus.Resolved);
+            }
 
             return Page();
         }

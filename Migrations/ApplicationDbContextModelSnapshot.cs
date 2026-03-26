@@ -237,7 +237,8 @@ namespace WebApplication1.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CreatedAt");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("TEXT");
@@ -288,6 +289,9 @@ namespace WebApplication1.Migrations
 
                     b.Property<string>("State")
                         .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -430,6 +434,10 @@ namespace WebApplication1.Migrations
                     b.HasIndex("Group")
                         .HasDatabaseName("IX_Teams_Group");
 
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Teams_Name_Unique");
+
                     b.ToTable("Teams");
                 });
 
@@ -557,7 +565,8 @@ namespace WebApplication1.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CreatedAt");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -583,6 +592,9 @@ namespace WebApplication1.Migrations
 
                     b.Property<int>("Type")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserId")
                         .IsRequired()
