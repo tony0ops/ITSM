@@ -9,17 +9,10 @@ using WebApplication1.Models;
 namespace WebApplication1.Pages.Users
 {
     [Authorize(Roles = "Manager")]
-    public class IndexModel : PageModel
+    public class IndexModel(
+        UserManager<IdentityUser> userManager,
+        ApplicationDbContext context) : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly ApplicationDbContext _context;
-
-        public IndexModel(UserManager<IdentityUser> userManager, ApplicationDbContext context)
-        {
-            _userManager = userManager;
-            _context = context;
-        }
-
         public List<UserViewModel> Users { get; set; } = [];
 
         [BindProperty(SupportsGet = true)]
@@ -27,43 +20,47 @@ namespace WebApplication1.Pages.Users
 
         public async Task OnGetAsync()
         {
-            var users = await _userManager.Users.ToListAsync();
-            var profiles = await _context.UserProfiles
+            // Load only internal staff: users who have a UserProfile.
+            // Customer portal users are managed from the Customers page only.
+            var profiles = await context.UserProfiles
                 .Include(up => up.Team)
+                .Include(up => up.User)
+                .AsNoTracking()
                 .ToListAsync();
 
             var viewModels = new List<UserViewModel>();
-            foreach (var u in users)
+            foreach (var profile in profiles)
             {
-                var profile = profiles.FirstOrDefault(p => p.UserId == u.Id);
-                var roles = await _userManager.GetRolesAsync(u);
+                var u = profile.User;
+                if (u == null) continue;
+
+                var roles = await userManager.GetRolesAsync(u);
 
                 viewModels.Add(new UserViewModel
                 {
-                    UserId = u.Id,
-                    Email = u.Email ?? "N/A",
-                    UserName = u.UserName ?? "N/A",
-                    DisplayName = profile?.DisplayName ?? u.Email ?? "Unknown",
-                    Department = profile?.Department,
-                    JobTitle = profile?.JobTitle,
-                    TeamId = profile?.TeamId,
-                    TeamName = profile?.Team?.Name,
-                    IsActive = profile?.IsActive ?? true,
-                    HasProfile = profile != null,
-                    Role = roles.FirstOrDefault() ?? "None"
+                    UserId      = u.Id,
+                    Email       = u.Email ?? "N/A",
+                    UserName    = u.UserName ?? "N/A",
+                    DisplayName = profile.DisplayName,
+                    Department  = profile.Department,
+                    JobTitle    = profile.JobTitle,
+                    TeamId      = profile.TeamId,
+                    TeamName    = profile.Team?.Name,
+                    IsActive    = profile.IsActive,
+                    HasProfile  = true,
+                    Role        = roles.FirstOrDefault() ?? "None"
                 });
             }
 
-            Users = viewModels.OrderBy(u => u.Email).ToList();
+            Users = [.. viewModels.OrderBy(u => u.Email)];
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
-                Users = Users.Where(u =>
+                Users = [.. Users.Where(u =>
                     (u.Email?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (u.DisplayName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (u.TeamName?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (u.Role?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-                ).ToList();
+                    (u.Role?.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase) ?? false))];
             }
         }
 

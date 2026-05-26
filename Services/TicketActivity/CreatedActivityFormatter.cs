@@ -9,10 +9,7 @@ public class CreatedActivityFormatter : ITicketActivityFormatter
 {
     public bool CanHandle(ActivityType type) => type == ActivityType.Created;
 
-    public string Format(Models.TicketActivity activity)
-    {
-        return $"Ticket created: {activity.Description}";
-    }
+    public string Format(Models.TicketActivity activity) => activity.Description;
 
     public string GetIcon() => "bi-plus-circle";
 

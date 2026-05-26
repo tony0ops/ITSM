@@ -46,7 +46,7 @@
             </div>
 
             <div class="mb-3">
-                <label asp-for="Team.Group" class="form-label"></label>
+                <label asp-for="Team.Group" class="form-label">Assignment Group</label>
                 <select asp-for="Team.Group" class="form-select"
                         asp-items="Html.GetEnumSelectList<AssignmentGroup>()"></select>
                 <span asp-validation-for="Team.Group" class="text-danger"></span>
@@ -73,6 +73,17 @@
                 <a asp-page="./Index" class="btn btn-secondary">Cancel</a>
             </div>
         </form>
+    </div>
+
+    <div class="col-md-6">
+        <div class="alert alert-info">
+            <h6>How Teams Work</h6>
+            <ul class="mb-0">
+                <li><strong>Team</strong> = a group of support agents (e.g., "ServiceDesk L1")</li>
+                <li><strong>Assignment Group</strong> = the ticket routing queue this team handles</li>
+                <li><strong>Role</strong> (Manager/Agent) = permissions, managed separately on the Users page</li>
+            </ul>
+        </div>
     </div>
 </div>
 

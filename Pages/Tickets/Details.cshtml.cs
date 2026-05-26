@@ -8,81 +8,48 @@ using WebApplication1.Services.TicketActivity;
 
 namespace WebApplication1.Pages.Tickets
 {
-    public class DetailsModel : PageModel
+    public class DetailsModel(
+        ApplicationDbContext context,
+        UserManager<IdentityUser> userManager,
+        TicketActivityFormatterFactory formatterFactory) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly TicketActivityFormatterFactory _formatterFactory;
-
-        public DetailsModel(
-            ApplicationDbContext context,
-            UserManager<IdentityUser> userManager,
-            TicketActivityFormatterFactory formatterFactory)
-        {
-            _context = context;
-            _userManager = userManager;
-            _formatterFactory = formatterFactory;
-        }
-
         public Ticket Ticket { get; set; } = default!;
         public string AssigneeDisplayName { get; set; } = "Unassigned";
-        public List<Models.TicketActivity> Activities { get; set; } = new();
-        public List<TicketComment> Comments { get; set; } = new();
+        public List<TicketActivity> Activities { get; set; } = [];
+        public List<TicketComment> Comments { get; set; } = [];
         public TimeSpan TotalTimeSpent { get; set; }
-
-        public Dictionary<int, string> FormattedActivities { get; set; } = new();
-        public Dictionary<int, string> ActivityIcons { get; set; } = new();
-        public Dictionary<int, string> ActivityCssClasses { get; set; } = new();
+        public Dictionary<int, ActivityDisplayInfo> ActivityDisplayMap { get; set; } = [];
 
         public bool ShowLogTimeError { get; set; }
-
-        // Edit tracking
         public int? EditingCommentId { get; set; }
         public int? EditingActivityId { get; set; }
 
-        [BindProperty]
-        public int Hours { get; set; }
+        [BindProperty] public int Hours { get; set; }
+        [BindProperty] public int Minutes { get; set; }
+        [BindProperty] public string TimeDescription { get; set; } = "";
+        [BindProperty] public bool IsInternal { get; set; }
+        [BindProperty] public string NewComment { get; set; } = "";
+        [BindProperty] public bool IsInternalComment { get; set; }
+        [BindProperty] public string EditCommentText { get; set; } = "";
+        [BindProperty] public int EditCommentId { get; set; }
+        [BindProperty] public int EditActivityId { get; set; }
+        [BindProperty] public string EditActivityDescription { get; set; } = "";
+        [BindProperty] public int EditActivityHours { get; set; }
+        [BindProperty] public int EditActivityMinutes { get; set; }
 
-        [BindProperty]
-        public int Minutes { get; set; }
-
-        [BindProperty]
-        public string TimeDescription { get; set; } = "";
-
-        [BindProperty]
-        public bool IsInternal { get; set; }
-
-        [BindProperty]
-        public string NewComment { get; set; } = "";
-
-        [BindProperty]
-        public bool IsInternalComment { get; set; }
-
-        // Edit fields
-        [BindProperty]
-        public string EditCommentText { get; set; } = "";
-
-        [BindProperty]
-        public int EditCommentId { get; set; }
-
-        [BindProperty]
-        public int EditActivityId { get; set; }
-
-        [BindProperty]
-        public string EditActivityDescription { get; set; } = "";
-
-        [BindProperty]
-        public int EditActivityHours { get; set; }
-
-        [BindProperty]
-        public int EditActivityMinutes { get; set; }
+        public class ActivityDisplayInfo
+        {
+            public string FormattedText { get; set; } = "";
+            public string Icon { get; set; } = "";
+            public string CssClass { get; set; } = "";
+        }
 
         public async Task<IActionResult> OnGetAsync(int? id, int? editComment, int? editActivity)
         {
             if (id == null)
                 return NotFound();
 
-            var ticket = await _context.Tickets
+            var ticket = await context.Tickets
                 .Include(t => t.Activities)
                 .Include(t => t.Comments)
                 .Include(t => t.Customer)
@@ -93,15 +60,14 @@ namespace WebApplication1.Pages.Tickets
 
             Ticket = ticket;
 
-            // Resolve assignee display name
             if (!string.IsNullOrEmpty(ticket.AssigneeUserId))
             {
-                var assignee = await _userManager.FindByIdAsync(ticket.AssigneeUserId);
+                var assignee = await userManager.FindByIdAsync(ticket.AssigneeUserId);
                 AssigneeDisplayName = assignee?.Email ?? assignee?.UserName ?? "Unknown";
             }
 
-            Activities = ticket.Activities.OrderByDescending(a => a.CreatedAt).ToList();
-            Comments = ticket.Comments.OrderBy(c => c.CreatedAt).ToList();
+            Activities = [.. ticket.Activities.OrderByDescending(a => a.CreatedAt)];
+            Comments   = [.. ticket.Comments.OrderBy(c => c.CreatedAt)];
 
             TotalTimeSpent = TimeSpan.FromMinutes(
                 ticket.Activities
@@ -111,34 +77,36 @@ namespace WebApplication1.Pages.Tickets
 
             foreach (var activity in Activities)
             {
-                FormattedActivities[activity.Id] = _formatterFactory.Format(activity);
-                ActivityIcons[activity.Id] = _formatterFactory.GetIcon(activity);
-                ActivityCssClasses[activity.Id] = _formatterFactory.GetCssClass(activity);
+                ActivityDisplayMap[activity.Id] = new ActivityDisplayInfo
+                {
+                    FormattedText = formatterFactory.Format(activity),
+                    Icon          = formatterFactory.GetIcon(activity),
+                    CssClass      = formatterFactory.GetCssClass(activity)
+                };
             }
 
-            // Handle inline edit mode
             if (editComment.HasValue)
             {
                 var comment = Comments.FirstOrDefault(c => c.Id == editComment.Value);
                 if (comment != null)
                 {
                     EditingCommentId = comment.Id;
-                    EditCommentText = comment.Comment;
-                    EditCommentId = comment.Id;
+                    EditCommentText  = comment.Comment;
+                    EditCommentId    = comment.Id;
                 }
             }
 
             if (editActivity.HasValue)
             {
-                var activity = Activities.FirstOrDefault(a => a.Id == editActivity.Value
-                    && a.Type == ActivityType.TimeRegistered);
+                var activity = Activities.FirstOrDefault(a =>
+                    a.Id == editActivity.Value && a.Type == ActivityType.TimeRegistered);
                 if (activity != null)
                 {
-                    EditingActivityId = activity.Id;
+                    EditingActivityId       = activity.Id;
                     EditActivityDescription = activity.Description;
-                    EditActivityHours = activity.TimeSpent.HasValue ? (int)activity.TimeSpent.Value.TotalHours : 0;
-                    EditActivityMinutes = activity.TimeSpent.HasValue ? activity.TimeSpent.Value.Minutes : 0;
-                    EditActivityId = activity.Id;
+                    EditActivityHours       = activity.TimeSpent.HasValue ? (int)activity.TimeSpent.Value.TotalHours : 0;
+                    EditActivityMinutes     = activity.TimeSpent.HasValue ? activity.TimeSpent.Value.Minutes : 0;
+                    EditActivityId          = activity.Id;
                 }
             }
 
@@ -150,7 +118,7 @@ namespace WebApplication1.Pages.Tickets
             if (id == null)
                 return NotFound();
 
-            var ticket = await _context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
+            var ticket = await context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
             if (ticket == null)
                 return NotFound();
 
@@ -175,26 +143,23 @@ namespace WebApplication1.Pages.Tickets
                 return await OnGetAsync(id, null, null);
             }
 
-            var user = await _userManager.GetUserAsync(User);
+            var user     = await userManager.GetUserAsync(User);
             var userName = user?.Email ?? user?.UserName ?? "Anonymous";
-            var userId = user?.Id ?? "";
+            var userId   = user?.Id ?? "";
 
-            var timeSpent = new TimeSpan(Hours, Minutes, 0);
-            var activity = new Models.TicketActivity
+            context.TicketActivities.Add(new TicketActivity
             {
-                TicketId = ticket.Id,
-                Type = ActivityType.TimeRegistered,
-                CreatedAt = DateTime.Now,
-                UserId = userId,
-                UserName = userName,
-                TimeSpent = timeSpent,
+                TicketId    = ticket.Id,
+                Type        = ActivityType.TimeRegistered,
+                CreatedAt   = DateTime.Now,
+                UserId      = userId,
+                UserName    = userName,
+                TimeSpent   = new TimeSpan(Hours, Minutes, 0),
                 Description = TimeDescription.Trim(),
-                IsInternal = IsInternal
-            };
+                IsInternal  = IsInternal
+            });
 
-            _context.TicketActivities.Add(activity);
-            await _context.SaveChangesAsync();
-
+            await context.SaveChangesAsync();
             return RedirectToPage(new { id });
         }
 
@@ -203,7 +168,7 @@ namespace WebApplication1.Pages.Tickets
             if (id == null)
                 return NotFound();
 
-            var ticket = await _context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
+            var ticket = await context.Tickets.FirstOrDefaultAsync(m => m.Id == id);
             if (ticket == null)
                 return NotFound();
 
@@ -213,28 +178,24 @@ namespace WebApplication1.Pages.Tickets
                 return await OnGetAsync(id, null, null);
             }
 
-            var user = await _userManager.GetUserAsync(User);
+            var user     = await userManager.GetUserAsync(User);
             var userName = user?.Email ?? user?.UserName ?? "Anonymous";
-            var userId = user?.Id ?? "";
-
-            // Resolve actual role from Identity
-            var roles = await _userManager.GetRolesAsync(user!);
+            var userId   = user?.Id ?? "";
+            var roles    = await userManager.GetRolesAsync(user!);
             var userRole = roles.FirstOrDefault() ?? "Agent";
 
-            var comment = new TicketComment
+            context.TicketComments.Add(new TicketComment
             {
-                TicketId = ticket.Id,
-                UserId = userId,
-                UserName = userName,
-                UserRole = userRole,
-                Comment = NewComment.Trim(),
-                IsInternal = IsInternalComment,
+                TicketId          = ticket.Id,
+                UserId            = userId,
+                UserName          = userName,
+                UserRole          = userRole,
+                Comment           = NewComment.Trim(),
+                IsInternal        = IsInternalComment,
                 IsCustomerVisible = !IsInternalComment
-            };
+            });
 
-            _context.TicketComments.Add(comment);
-            await _context.SaveChangesAsync();
-
+            await context.SaveChangesAsync();
             return RedirectToPage(new { id });
         }
 
@@ -243,11 +204,15 @@ namespace WebApplication1.Pages.Tickets
             if (id == null)
                 return NotFound();
 
-            var comment = await _context.TicketComments.FindAsync(EditCommentId);
+            var comment = await context.TicketComments.FindAsync(EditCommentId);
             if (comment == null)
                 return NotFound();
 
-            var user = await _userManager.GetUserAsync(User);
+            // Verify comment belongs to the ticket in the route
+            if (comment.TicketId != id.Value)
+                return Forbid();
+
+            var user = await userManager.GetUserAsync(User);
             if (user == null || comment.UserId != user.Id)
                 return Forbid();
 
@@ -257,9 +222,9 @@ namespace WebApplication1.Pages.Tickets
                 return await OnGetAsync(id, EditCommentId, null);
             }
 
-            comment.Comment = EditCommentText.Trim();
+            comment.Comment   = EditCommentText.Trim();
             comment.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Comment updated.";
             return RedirectToPage(new { id });
@@ -270,13 +235,23 @@ namespace WebApplication1.Pages.Tickets
             if (id == null)
                 return NotFound();
 
-            var activity = await _context.TicketActivities.FindAsync(EditActivityId);
+            var activity = await context.TicketActivities.FindAsync(EditActivityId);
             if (activity == null || activity.Type != ActivityType.TimeRegistered)
                 return NotFound();
 
-            var user = await _userManager.GetUserAsync(User);
+            // Verify activity belongs to the ticket in the route
+            if (activity.TicketId != id.Value)
+                return Forbid();
+
+            var user = await userManager.GetUserAsync(User);
             if (user == null || activity.UserId != user.Id)
                 return Forbid();
+
+            if (EditActivityHours < 0 || EditActivityMinutes < 0)
+            {
+                ModelState.AddModelError("", "Time values cannot be negative.");
+                return await OnGetAsync(id, null, EditActivityId);
+            }
 
             if (EditActivityHours == 0 && EditActivityMinutes == 0)
             {
@@ -290,10 +265,10 @@ namespace WebApplication1.Pages.Tickets
                 return await OnGetAsync(id, null, EditActivityId);
             }
 
-            activity.TimeSpent = new TimeSpan(EditActivityHours, EditActivityMinutes, 0);
+            activity.TimeSpent   = new TimeSpan(EditActivityHours, EditActivityMinutes, 0);
             activity.Description = EditActivityDescription.Trim();
-            activity.UpdatedAt = DateTime.Now;
-            await _context.SaveChangesAsync();
+            activity.UpdatedAt   = DateTime.Now;
+            await context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Time entry updated.";
             return RedirectToPage(new { id });

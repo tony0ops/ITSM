@@ -72,10 +72,6 @@ public static class SlaPolicy
 
         return baseDeadline.Add(totalPause);
     }
-
-    public static SlaState GetState(Ticket t)
-        => GetState(t, DateTime.Now);
-
     public static SlaState GetState(Ticket t, DateTime now)
     {
         if (IsSlaPaused(t.Status))
@@ -120,10 +116,6 @@ public static class SlaPolicy
         SlaState.Breached => "bg-dark",
         _ => "bg-secondary"
     };
-
-    public static string FormatRemaining(Ticket t)
-        => FormatRemaining(t, DateTime.Now);
-
     public static string FormatRemaining(Ticket t, DateTime now)
     {
         if (IsSlaPaused(t.Status))

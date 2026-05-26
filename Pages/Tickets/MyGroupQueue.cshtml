@@ -26,11 +26,10 @@
 else
 {
     <p class="text-muted">
-        Team: <strong>@Model.TeamName</strong> —
+        Team: <strong>@Model.TeamName</strong> -
         Group: <strong>@Model.GroupName</strong>
     </p>
 
-    <!-- Summary Cards -->
     <div class="row mb-4">
         <div class="col-md-3 mb-3">
             <div class="card border-primary h-100">
@@ -65,9 +64,9 @@ else
         <div class="col-md-3 mb-3">
             <div class="card border-info h-100">
                 <div class="card-body">
-                    <h6 class="card-title text-muted">In Progress</h6>
-                    <p class="h3 mb-0">@Model.InProgressCount</p>
-                    <small class="text-muted">Being worked on</small>
+                    <h6 class="card-title text-muted">Customer Replied</h6>
+                    <p class="h3 mb-0 text-primary">@Model.CustomerRepliedCount</p>
+                    <small class="text-muted">Awaiting response</small>
                 </div>
             </div>
         </div>
@@ -81,11 +80,11 @@ else
     }
     else
     {
-        <!-- Ticket List Card -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">@Model.GroupName Tickets (@Model.Tickets.Count)</h5>
             </div>
+
             <div class="card-body">
                 <ul class="nav nav-tabs mb-3" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -93,16 +92,25 @@ else
                             All (@Model.Tickets.Count)
                         </button>
                     </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="custreply-tab" data-bs-toggle="tab" data-bs-target="#custreply" type="button" role="tab">
+                            Customer Replied (@Model.CustomerRepliedCount)
+                        </button>
+                    </li>
+
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="atrisk-tab" data-bs-toggle="tab" data-bs-target="#atrisk" type="button" role="tab">
                             At Risk (@Model.AtRiskCount)
                         </button>
                     </li>
+
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="breached-tab" data-bs-toggle="tab" data-bs-target="#breached" type="button" role="tab">
                             Breached (@Model.BreachedCount)
                         </button>
                     </li>
+
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="inprogress-tab" data-bs-toggle="tab" data-bs-target="#inprogress" type="button" role="tab">
                             In Progress (@Model.InProgressCount)
@@ -114,12 +122,19 @@ else
                     <div class="tab-pane fade show active" id="all" role="tabpanel">
                         @await Html.PartialAsync("Shared/_TicketTable", Model.Tickets)
                     </div>
+
+                    <div class="tab-pane fade" id="custreply" role="tabpanel">
+                        @await Html.PartialAsync("Shared/_TicketTable", Model.GetCustomerRepliedTickets())
+                    </div>
+
                     <div class="tab-pane fade" id="atrisk" role="tabpanel">
                         @await Html.PartialAsync("Shared/_TicketTable", Model.GetAtRiskTickets())
                     </div>
+
                     <div class="tab-pane fade" id="breached" role="tabpanel">
                         @await Html.PartialAsync("Shared/_TicketTable", Model.GetBreachedTickets())
                     </div>
+
                     <div class="tab-pane fade" id="inprogress" role="tabpanel">
                         @await Html.PartialAsync("Shared/_TicketTable", Model.GetInProgressTickets())
                     </div>
@@ -128,10 +143,10 @@ else
         </div>
     }
 
-    <!-- Quick Actions -->
     <div class="card bg-light">
         <div class="card-body">
             <h6 class="card-title mb-3">Quick Actions</h6>
+
             <div class="d-flex flex-wrap gap-2">
                 <a asp-page="/Tickets/Create" class="btn btn-primary">Create Ticket</a>
                 <a asp-page="/Tickets/Index" class="btn btn-outline-primary">View All Tickets</a>

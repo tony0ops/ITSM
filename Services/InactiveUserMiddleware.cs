@@ -6,8 +6,9 @@ using WebApplication1.Data;
 namespace WebApplication1.Services;
 
 /// <summary>
-/// Middleware that signs out users whose UserProfile has been deactivated.
-/// Uses a short-lived cache to avoid querying the database on every request.
+/// Signs out users whose staff profile or customer portal account has been
+/// deactivated. Also signs out portal users whose parent customer is inactive.
+/// Uses a short-lived cache to avoid a database query on every request.
 /// </summary>
 public class InactiveUserMiddleware
 {
@@ -38,8 +39,29 @@ public class InactiveUserMiddleware
                         .AsNoTracking()
                         .FirstOrDefaultAsync(p => p.UserId == user.Id);
 
-                    // If no profile exists yet, treat as active
-                    isActive = profile?.IsActive ?? true;
+                    if (profile != null)
+                    {
+                        // Internal staff - enforce staff profile active flag.
+                        isActive = profile.IsActive;
+                    }
+                    else
+                    {
+                        // Customer portal user - check both the portal user record
+                        // and the parent customer active status.
+                        var customerUser = await dbContext.CustomerUsers
+                            .AsNoTracking()
+                            .Include(cu => cu.Customer)
+                            .FirstOrDefaultAsync(cu => cu.UserId == user.Id);
+
+                        isActive = customerUser != null
+                            && customerUser.IsActive
+                            && customerUser.Customer != null
+                            && customerUser.Customer.IsActive;
+
+                        // If no profile of any kind exists, treat as active (new user still setting up).
+                        if (customerUser == null)
+                            isActive = true;
+                    }
 
                     cache.Set(cacheKey, isActive, TimeSpan.FromMinutes(2));
                 }

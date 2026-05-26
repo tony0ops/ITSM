@@ -9,46 +9,32 @@ using WebApplication1.Models;
 namespace WebApplication1.Pages.Portal
 {
     [Authorize]
-    public class MyTicketsModel : PageModel
+    public class MyTicketsModel(
+        ApplicationDbContext context,
+        UserManager<IdentityUser> userManager) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-
-        public MyTicketsModel(
-            ApplicationDbContext context,
-            UserManager<IdentityUser> userManager)
-        {
-            _context = context;
-            _userManager = userManager;
-        }
-
-        public List<Ticket> MyTickets { get; set; } = new();
+        public List<TicketRowViewModel> TicketRows { get; set; } = [];
         public Customer? CustomerInfo { get; set; }
         public string CustomerName { get; set; } = "Your Company";
+        public int TotalTicketsCount { get; set; }
+        public int TotalComments { get; set; }
         public int OpenTicketsCount { get; set; }
-        public int ResolvedTicketsCount { get; set; }
+        public int ClosedTicketsCount { get; set; }
 
-        [BindProperty(SupportsGet = true)]
-        public TicketStatus? StatusFilter { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public string? SearchTerm { get; set; }
+        [BindProperty(SupportsGet = true)] public TicketStatus? StatusFilter { get; set; }
+        [BindProperty(SupportsGet = true)] public string? SearchTerm { get; set; }
+        [BindProperty(SupportsGet = true)] public string? SortBy { get; set; } = "updated_desc";
 
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await _userManager.GetUserAsync(User);
+            var user = await userManager.GetUserAsync(User);
             if (user == null)
                 return Unauthorized();
 
-            // Portal pages are only for customer-linked users.
-            // Internal staff (Manager/Agent) should use /Tickets instead.
             if (User.IsInRole("Manager") || User.IsInRole("Agent"))
-            {
                 return RedirectToPage("/Tickets/Index");
-            }
 
-            // Find customer linked to this portal user
-            var customerUser = await _context.CustomerUsers
+            var customerUser = await context.CustomerUsers
                 .Include(cu => cu.Customer)
                 .FirstOrDefaultAsync(cu => cu.UserId == user.Id && cu.IsActive);
 
@@ -58,82 +44,92 @@ namespace WebApplication1.Pages.Portal
                 return RedirectToPage("/Index");
             }
 
+            // Block access if the parent customer company is deactivated.
+            if (!customerUser.Customer.IsActive)
+            {
+                TempData["ErrorMessage"] = "Your company account has been deactivated. Contact support for assistance.";
+                return RedirectToPage("/Index");
+            }
+
             if (!customerUser.CanViewTickets)
                 return Forbid();
 
             CustomerInfo = customerUser.Customer;
             CustomerName = customerUser.Customer.CompanyName;
 
-            // Build query for customer's tickets
-            var query = _context.Tickets
+            var allTickets = await context.Tickets
                 .Include(t => t.Comments)
-                .Include(t => t.Activities)
                 .Where(t => t.CustomerId == customerUser.CustomerId)
-                .AsQueryable();
+                .ToListAsync();
 
-            // Apply status filter
-            if (StatusFilter.HasValue)
+            TotalTicketsCount = allTickets.Count;
+
+            // Open = anything not in a terminal state (Closed/Resolved/Cancelled).
+            OpenTicketsCount = allTickets.Count(t => !TicketHelper.IsClosedLike(t.Status));
+
+            // Closed = Resolved, Closed, or Cancelled - consistent with IsClosedLike.
+            ClosedTicketsCount = allTickets.Count(t => TicketHelper.IsClosedLike(t.Status));
+
+            TotalComments = allTickets
+                .SelectMany(t => t.Comments)
+                .Count(c => c.IsCustomerVisible && !c.IsInternal);
+
+            var rows = allTickets.Select(t =>
             {
-                query = query.Where(t => t.Status == StatusFilter.Value);
-            }
+                var lastVisibleComment = t.Comments
+                    .Where(c => c.IsCustomerVisible && !c.IsInternal)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .FirstOrDefault();
 
-            // Apply search filter
+                return new TicketRowViewModel
+                {
+                    Id             = t.Id,
+                    Number         = t.Number,
+                    Title          = t.Title,
+                    Status         = t.Status,
+                    Severity       = t.Severity,
+                    Category       = t.Category,
+                    CreatedAt      = t.CreatedAt,
+                    LastUpdated    = lastVisibleComment?.CreatedAt ?? t.UpdatedAt ?? t.CreatedAt,
+                    LastUpdateNote = lastVisibleComment?.Comment
+                };
+            }).AsQueryable();
+
+            if (StatusFilter.HasValue)
+                rows = rows.Where(r => r.Status == StatusFilter.Value);
+
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
                 var term = SearchTerm.ToLower();
-                query = query.Where(t =>
-                    t.Number.ToLower().Contains(term) ||
-                    t.Title.ToLower().Contains(term) ||
-                    t.Description.ToLower().Contains(term));
+                rows = rows.Where(r =>
+                    r.Number.ToLower().Contains(term) ||
+                    r.Title.ToLower().Contains(term));
             }
 
-            MyTickets = await query
-                .OrderByDescending(t => t.CreatedAt)
-                .ToListAsync();
-
-            // Calculate statistics from already-loaded data where possible
-            OpenTicketsCount = MyTickets.Count(t =>
-                t.Status != TicketStatus.Closed &&
-                t.Status != TicketStatus.Resolved &&
-                t.Status != TicketStatus.Cancelled);
-
-            // For resolved count, need unfiltered data if filters are active
-            if (StatusFilter.HasValue || !string.IsNullOrWhiteSpace(SearchTerm))
+            TicketRows = SortBy switch
             {
-                var allCustomerTickets = await _context.Tickets
-                    .Where(t => t.CustomerId == customerUser.CustomerId)
-                    .ToListAsync();
-
-                OpenTicketsCount = allCustomerTickets.Count(t =>
-                    t.Status != TicketStatus.Closed &&
-                    t.Status != TicketStatus.Resolved &&
-                    t.Status != TicketStatus.Cancelled);
-
-                ResolvedTicketsCount = allCustomerTickets.Count(t =>
-                    t.Status == TicketStatus.Closed ||
-                    t.Status == TicketStatus.Resolved);
-            }
-            else
-            {
-                ResolvedTicketsCount = MyTickets.Count(t =>
-                    t.Status == TicketStatus.Closed ||
-                    t.Status == TicketStatus.Resolved);
-            }
+                "updated_asc"  => [.. rows.OrderBy(r => r.LastUpdated)],
+                "created_desc" => [.. rows.OrderByDescending(r => r.CreatedAt)],
+                "created_asc"  => [.. rows.OrderBy(r => r.CreatedAt)],
+                "status"       => [.. rows.OrderBy(r => r.Status)],
+                "severity"     => [.. rows.OrderBy(r => r.Severity)],
+                _              => [.. rows.OrderByDescending(r => r.LastUpdated)]
+            };
 
             return Page();
         }
 
-        /// <summary>
-        /// Get customer-visible comments only
-        /// </summary>
-        public List<TicketComment> GetVisibleComments(int ticketId)
+        public class TicketRowViewModel
         {
-            return MyTickets
-                .FirstOrDefault(t => t.Id == ticketId)?
-                .Comments
-                .Where(c => c.IsCustomerVisible && !c.IsInternal)
-                .OrderBy(c => c.CreatedAt)
-                .ToList() ?? new();
+            public int Id { get; set; }
+            public string Number { get; set; } = "";
+            public string Title { get; set; } = "";
+            public TicketStatus Status { get; set; }
+            public Severity Severity { get; set; }
+            public TicketCategory Category { get; set; }
+            public DateTime CreatedAt { get; set; }
+            public DateTime LastUpdated { get; set; }
+            public string? LastUpdateNote { get; set; }
         }
     }
 }

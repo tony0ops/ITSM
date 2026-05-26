@@ -13,14 +13,14 @@ public class TimeRegisteredActivityFormatter : ITicketActivityFormatter
     {
         if (activity.TimeSpent.HasValue)
         {
-            var hours = activity.TimeSpent.Value.TotalHours;
+            var hours   = activity.TimeSpent.Value.TotalHours;
             var timeStr = hours >= 1
                 ? $"{hours:F1} hours"
                 : $"{activity.TimeSpent.Value.TotalMinutes:F0} minutes";
 
             return string.IsNullOrWhiteSpace(activity.Description)
                 ? $"Work logged: {timeStr}"
-                : $"Work logged: {timeStr} — {activity.Description}";
+                : $"Work logged: {timeStr} - {activity.Description}";
         }
 
         return $"Work logged: {activity.Description}";

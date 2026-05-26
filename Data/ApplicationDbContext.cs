@@ -22,98 +22,64 @@ public class ApplicationDbContext : IdentityDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // ── BaseEntity column mappings ──────────────────────────────────
-        modelBuilder.Entity<Ticket>()
-            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
-        modelBuilder.Entity<TicketComment>()
-            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
-        modelBuilder.Entity<Team>()
-            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
-        modelBuilder.Entity<UserProfile>()
-            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
-        modelBuilder.Entity<CustomerSla>()
-            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
-        modelBuilder.Entity<CustomerUser>()
-            .Property(e => e.CreatedAt).HasColumnName("CreatedUtc");
+        // BaseEntity column mappings
+        modelBuilder.Entity<Ticket>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<TicketComment>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<Team>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<UserProfile>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<CustomerSla>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<CustomerUser>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<Customer>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<TicketActivity>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
 
-        modelBuilder.Entity<Customer>()
-            .Property(e => e.CreatedAt).HasColumnName("CreatedAt");
-        modelBuilder.Entity<TicketActivity>()
-            .Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        // Ticket-specific column aliases
+        modelBuilder.Entity<Ticket>().Property(t => t.ClosedAt).HasColumnName("ClosedAt");
+        modelBuilder.Entity<Ticket>().Property(t => t.SlaDueAt).HasColumnName("SlaDueAt");
 
-        // ── Ticket-specific column aliases ──────────────────────────────
+        // Relationships
         modelBuilder.Entity<Ticket>()
-            .Property(t => t.ClosedAt).HasColumnName("ClosedUtc");
-        modelBuilder.Entity<Ticket>()
-            .Property(t => t.SlaDueAt).HasColumnName("SlaDueUtc");
-
-        // ── Relationships ───────────────────────────────────────────────
-        modelBuilder.Entity<Ticket>()
-            .HasOne(t => t.Customer)
-            .WithMany(c => c.Tickets)
-            .HasForeignKey(t => t.CustomerId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasOne(t => t.Customer).WithMany(c => c.Tickets)
+            .HasForeignKey(t => t.CustomerId).OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<TicketActivity>()
-            .HasOne(a => a.Ticket)
-            .WithMany(t => t.Activities)
-            .HasForeignKey(a => a.TicketId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(a => a.Ticket).WithMany(t => t.Activities)
+            .HasForeignKey(a => a.TicketId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<TicketComment>()
-            .HasOne(c => c.Ticket)
-            .WithMany(t => t.Comments)
-            .HasForeignKey(c => c.TicketId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(c => c.Ticket).WithMany(t => t.Comments)
+            .HasForeignKey(c => c.TicketId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UserProfile>()
-            .HasOne(up => up.User)
-            .WithMany()
-            .HasForeignKey(up => up.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(up => up.User).WithMany()
+            .HasForeignKey(up => up.UserId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<UserProfile>()
-            .HasOne(up => up.Team)
-            .WithMany(t => t.Members)
-            .HasForeignKey(up => up.TeamId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasOne(up => up.Team).WithMany(t => t.Members)
+            .HasForeignKey(up => up.TeamId).OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<CustomerSla>()
-            .HasOne(cs => cs.Customer)
-            .WithMany()
-            .HasForeignKey(cs => cs.CustomerId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(cs => cs.Customer).WithMany()
+            .HasForeignKey(cs => cs.CustomerId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<CustomerUser>()
-            .HasOne(cu => cu.Customer)
-            .WithMany()
-            .HasForeignKey(cu => cu.CustomerId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(cu => cu.Customer).WithMany()
+            .HasForeignKey(cu => cu.CustomerId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<CustomerUser>()
-            .HasOne(cu => cu.User)
-            .WithMany()
-            .HasForeignKey(cu => cu.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(cu => cu.User).WithMany()
+            .HasForeignKey(cu => cu.UserId).OnDelete(DeleteBehavior.Cascade);
 
-        // ── Global query filters ────────────────────────────────────────
-        // Parent entities
+        // Global query filters
+        modelBuilder.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
+        modelBuilder.Entity<Customer>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<TicketActivity>().HasQueryFilter(a => !a.Ticket.IsDeleted);
+        modelBuilder.Entity<TicketComment>().HasQueryFilter(c => !c.Ticket.IsDeleted);
+        modelBuilder.Entity<CustomerSla>().HasQueryFilter(cs => !cs.Customer.IsDeleted);
+        modelBuilder.Entity<CustomerUser>().HasQueryFilter(cu => !cu.Customer.IsDeleted);
+
+        // Indexes
         modelBuilder.Entity<Ticket>()
-            .HasQueryFilter(t => !t.IsDeleted);
-        modelBuilder.Entity<Customer>()
-            .HasQueryFilter(c => !c.IsDeleted);
-
-        // Child entities — match parent filters to prevent orphan warnings
-        modelBuilder.Entity<TicketActivity>()
-            .HasQueryFilter(a => !a.Ticket.IsDeleted);
-        modelBuilder.Entity<TicketComment>()
-            .HasQueryFilter(c => !c.Ticket.IsDeleted);
-        modelBuilder.Entity<CustomerSla>()
-            .HasQueryFilter(cs => !cs.Customer.IsDeleted);
-        modelBuilder.Entity<CustomerUser>()
-            .HasQueryFilter(cu => !cu.Customer.IsDeleted);
-
-        // ── Indexes ─────────────────────────────────────────────────────
+            .HasIndex(t => t.Number).IsUnique().HasDatabaseName("IX_Tickets_Number_Unique");
         modelBuilder.Entity<Ticket>()
             .HasIndex(t => t.CustomerId).HasDatabaseName("IX_Tickets_CustomerId");
         modelBuilder.Entity<Ticket>()

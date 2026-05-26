@@ -5,24 +5,18 @@ using WebApplication1.Models;
 
 namespace WebApplication1.Pages.Tickets
 {
-    public class NewQueueModel : PageModel
+    // IDE0290: primary constructor
+    public class NewQueueModel(ApplicationDbContext context) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-
-        public NewQueueModel(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public List<Ticket> Tickets { get; set; } = [];
 
         public async Task OnGetAsync()
         {
-            // Show all New tickets without an individual assignee
-            Tickets = await _context.Tickets
+            Tickets = await context.Tickets
                 .Include(t => t.Customer)
-                .Where(t => t.Status == TicketStatus.New &&
-                            (t.AssigneeUserId == null || t.AssigneeUserId == ""))
+                .Include(t => t.Comments)
+                .Include(t => t.Activities)
+                .Where(t => t.Status == TicketStatus.New && string.IsNullOrEmpty(t.AssigneeUserId))
                 .OrderBy(t => t.CreatedAt)
                 .ToListAsync();
         }

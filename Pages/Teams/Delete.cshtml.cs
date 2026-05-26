@@ -64,7 +64,7 @@ namespace WebApplication1.Pages.Teams
             var activeMembers = team.Members.Count(m => m.IsActive);
             if (activeMembers > 0)
             {
-                TempData["ErrorMessage"] = $"Cannot delete team '{team.Name}' — it still has {activeMembers} active member(s). Remove them first.";
+                TempData["ErrorMessage"] = $"Cannot delete team '{team.Name}' - it still has {activeMembers} active member(s). Remove them first.";
                 return RedirectToPage("./Details", new { id });
             }
 

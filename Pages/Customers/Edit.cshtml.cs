@@ -42,7 +42,7 @@ namespace WebApplication1.Pages.Customers
             if (existing == null)
                 return NotFound();
 
-            // Update only user-editable fields — preserve system fields
+            // Update only user-editable fields - preserve system fields
             existing.CompanyName = Customer.CompanyName;
             existing.PrimaryContactName = Customer.PrimaryContactName;
             existing.PrimaryEmail = Customer.PrimaryEmail;

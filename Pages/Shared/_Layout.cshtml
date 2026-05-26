@@ -14,14 +14,26 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid px-4">
-                <a class="navbar-brand fw-bold text-primary" asp-page="/Dashboard/Index">ITSM</a>
+                @if (SignInManager.IsSignedIn(User) && (User.IsInRole("Manager") || User.IsInRole("Agent")))
+                {
+                    <a class="navbar-brand fw-bold text-primary" asp-page="/Dashboard/Index">ITSM</a>
+                }
+                else if (SignInManager.IsSignedIn(User))
+                {
+                    <a class="navbar-brand fw-bold text-primary" asp-page="/Portal/MyTickets">ITSM Portal</a>
+                }
+                else
+                {
+                    <a class="navbar-brand fw-bold text-primary" href="/">ITSM</a>
+                }
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    @if (SignInManager.IsSignedIn(User))
+                    @if (SignInManager.IsSignedIn(User) && (User.IsInRole("Manager") || User.IsInRole("Agent")))
                     {
+                        @* Internal staff navigation *@
                         <ul class="navbar-nav flex-grow-1">
                             <li class="nav-item">
                                 <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Dashboard/Index">Dashboard</a>
@@ -49,6 +61,15 @@
                             }
                             <li class="nav-item">
                                 <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Teams/Index">Teams</a>
+                            </li>
+                        </ul>
+                    }
+                    else if (SignInManager.IsSignedIn(User))
+                    {
+                        @* Customer portal navigation *@
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item">
+                                <a class="nav-link text-dark text-decoration-none text-nowrap" asp-page="/Portal/MyTickets">My Tickets</a>
                             </li>
                         </ul>
                     }

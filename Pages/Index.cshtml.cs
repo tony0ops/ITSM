@@ -9,12 +9,18 @@ namespace WebApplication1.Pages
     {
         public IActionResult OnGet()
         {
-            if (User.Identity?.IsAuthenticated == true)
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+
+            // Route internal staff to dashboard, customer users to portal
+            if (User.IsInRole("Manager") || User.IsInRole("Agent"))
             {
                 return RedirectToPage("/Dashboard/Index");
             }
 
-            return RedirectToPage("/Account/Login", new { area = "Identity" });
+            return RedirectToPage("/Portal/MyTickets");
         }
     }
 }

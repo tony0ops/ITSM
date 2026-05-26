@@ -13,7 +13,6 @@
 
 <div class="row">
     <div class="col-md-8">
-        <!-- Ticket Details -->
         <div class="card mb-4">
             <div class="card-header">
                 <h5 class="mb-0">Ticket Information</h5>
@@ -23,15 +22,15 @@
                     <dt class="col-sm-3">Status</dt>
                     <dd class="col-sm-9">
                         <span class="badge bg-@(Model.Ticket.Status switch {
-                            TicketStatus.New => "primary",
-                            TicketStatus.Assigned => "info text-dark",
-                            TicketStatus.InProgress => "warning text-dark",
+                            TicketStatus.New              => "primary",
+                            TicketStatus.Assigned         => "info text-dark",
+                            TicketStatus.InProgress       => "warning text-dark",
                             TicketStatus.WaitingOnCustomer => "secondary",
-                            TicketStatus.WaitingOnVendor => "secondary",
-                            TicketStatus.Resolved => "success",
-                            TicketStatus.Closed => "dark",
-                            TicketStatus.Cancelled => "danger",
-                            _ => "secondary"
+                            TicketStatus.WaitingOnVendor  => "secondary",
+                            TicketStatus.Resolved         => "success",
+                            TicketStatus.Closed           => "dark",
+                            TicketStatus.Cancelled        => "danger",
+                            _                             => "secondary"
                         })">@Model.Ticket.Status</span>
                     </dd>
 
@@ -39,11 +38,11 @@
                     <dd class="col-sm-9">
                         <span class="badge bg-@(Model.Ticket.Severity switch {
                             Severity.Critical => "danger",
-                            Severity.High => "warning text-dark",
-                            Severity.Medium => "primary",
-                            Severity.Low => "info text-dark",
-                            Severity.Info => "secondary",
-                            _ => "secondary"
+                            Severity.High     => "warning text-dark",
+                            Severity.Medium   => "primary",
+                            Severity.Low      => "info text-dark",
+                            Severity.Info     => "secondary",
+                            _                 => "secondary"
                         })">@Model.Ticket.Severity</span>
                     </dd>
 
@@ -63,7 +62,6 @@
             </div>
         </div>
 
-        <!-- Comments Section -->
         <div class="card">
             <div class="card-header bg-info text-white">
                 <h5 class="mb-0">Communication (@Model.VisibleComments.Count)</h5>
@@ -96,22 +94,29 @@
                     </div>
                 }
 
-                <!-- Add Comment Form -->
-                <hr />
-                <h6>Add a Comment</h6>
-                <form method="post" asp-page-handler="AddComment" asp-route-id="@Model.Ticket.Id">
-                    <div class="mb-3">
-                        <textarea asp-for="NewComment" class="form-control" rows="3" 
-                                  placeholder="Share your feedback or ask a question..." required></textarea>
-                        <span asp-validation-for="NewComment" class="text-danger"></span>
+                @if (Model.CanAddComments)
+                {
+                    <hr />
+                    <h6>Add a Comment</h6>
+                    <form method="post" asp-page-handler="AddComment" asp-route-id="@Model.Ticket.Id">
+                        <div class="mb-3">
+                            <textarea asp-for="NewComment" class="form-control" rows="3"
+                                      placeholder="Share your feedback or ask a question..." required></textarea>
+                            <span asp-validation-for="NewComment" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
+                    </form>
+                }
+                else
+                {
+                    <div class="alert alert-secondary mt-3 mb-0">
+                        <small>Commenting is not enabled for your account. Contact support for assistance.</small>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
-                </form>
+                }
             </div>
         </div>
     </div>
 
-    <!-- Sidebar Info -->
     <div class="col-md-4">
         <div class="card mb-3">
             <div class="card-header">

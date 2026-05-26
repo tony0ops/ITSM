@@ -7,14 +7,13 @@ namespace WebApplication1.Services.TicketActivity;
 /// </summary>
 public class SeverityChangedActivityFormatter : ITicketActivityFormatter
 {
-    public bool CanHandle(ActivityType type) =>
-        type == ActivityType.SeverityChanged || type == ActivityType.PriorityChanged;
+    public bool CanHandle(ActivityType type) => type == ActivityType.SeverityChanged;
 
     public string Format(Models.TicketActivity activity)
     {
         var oldVal = string.IsNullOrWhiteSpace(activity.OldValue) ? "Unknown" : activity.OldValue;
         var newVal = string.IsNullOrWhiteSpace(activity.NewValue) ? "Unknown" : activity.NewValue;
-        return $"Severity changed: {oldVal} → {newVal}";
+        return $"Severity changed: {oldVal} -> {newVal}";
     }
 
     public string GetIcon() => "bi-exclamation-triangle";

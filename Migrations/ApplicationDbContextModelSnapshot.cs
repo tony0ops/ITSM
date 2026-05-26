@@ -310,7 +310,7 @@ namespace WebApplication1.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
-                        .HasColumnName("CreatedUtc");
+                        .HasColumnName("CreatedAt");
 
                     b.Property<TimeSpan>("CriticalResponseTime")
                         .HasColumnType("TEXT");
@@ -369,7 +369,7 @@ namespace WebApplication1.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
-                        .HasColumnName("CreatedUtc");
+                        .HasColumnName("CreatedAt");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("INTEGER");
@@ -408,7 +408,7 @@ namespace WebApplication1.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
-                        .HasColumnName("CreatedUtc");
+                        .HasColumnName("CreatedAt");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -458,11 +458,11 @@ namespace WebApplication1.Migrations
 
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("TEXT")
-                        .HasColumnName("ClosedUtc");
+                        .HasColumnName("ClosedAt");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
-                        .HasColumnName("CreatedUtc");
+                        .HasColumnName("CreatedAt");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
@@ -516,7 +516,7 @@ namespace WebApplication1.Migrations
 
                     b.Property<DateTime?>("SlaDueAt")
                         .HasColumnType("TEXT")
-                        .HasColumnName("SlaDueUtc");
+                        .HasColumnName("SlaDueAt");
 
                     b.Property<DateTime?>("SlaPausedAt")
                         .HasColumnType("TEXT");
@@ -548,6 +548,10 @@ namespace WebApplication1.Migrations
 
                     b.HasIndex("IsDeleted")
                         .HasDatabaseName("IX_Tickets_IsDeleted");
+
+                    b.HasIndex("Number")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Tickets_Number_Unique");
 
                     b.HasIndex("Severity")
                         .HasDatabaseName("IX_Tickets_Severity");
@@ -630,7 +634,7 @@ namespace WebApplication1.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
-                        .HasColumnName("CreatedUtc");
+                        .HasColumnName("CreatedAt");
 
                     b.Property<bool>("IsCustomerVisible")
                         .HasColumnType("INTEGER");
@@ -681,7 +685,7 @@ namespace WebApplication1.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT")
-                        .HasColumnName("CreatedUtc");
+                        .HasColumnName("CreatedAt");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()

@@ -40,7 +40,6 @@ else
                     var now = DateTime.Now;
                     var state = SlaPolicy.GetState(item, now);
                     var remaining = SlaPolicy.FormatRemaining(item, now);
-
                     var slaBadge = SlaPolicy.GetBadgeClass(state);
 
                     var sevDot = item.Severity switch
@@ -53,23 +52,32 @@ else
                         _ => "#6c757d"
                     };
 
+                    var sevDotStyle = $"background-color:{sevDot};";
+
                     <tr>
-                        <td><a asp-page="./Details" asp-route-id="@item.Id"><strong>@item.Number</strong></a></td>
+                        <td class="text-nowrap">
+                            <a asp-page="./Details" asp-route-id="@item.Id"><small>@item.Number</small></a>
+                        </td>
                         <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@item.Title">
-                            @item.Title
+                            <small>@item.Title</small>
                         </td>
                         <td><small class="text-muted">@item.Category</small></td>
                         <td>
-                            <span class="status-dot status-dot-sm me-1" style="background:@sevDot;"></span>
+                            <span class="status-dot status-dot-sm me-1" style="@sevDotStyle"></span>
                             <small>@item.Severity</small>
                         </td>
                         <td><small>@(item.AssignedGroup != AssignmentGroup.Unassigned ? item.AssignedGroup.ToString().Replace("_", " ") : "-")</small></td>
                         <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                             <small>
                                 @if (item.Customer != null)
-                                { @item.Customer.CompanyName }
+                                {
+                                    @item.Customer.CompanyName
+                                }
                                 else
-                                { <span class="text-muted">-</span> }
+                                {
+
+                                    <span class="text-muted">-</span>
+                                }
                             </small>
                         </td>
                         <td class="text-nowrap"><small class="text-muted">@item.CreatedAt.ToString("M/d/yyyy HH:mm")</small></td>

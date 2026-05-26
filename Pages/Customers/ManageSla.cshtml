@@ -18,8 +18,9 @@
             </div>
             <div class="card-body">
                 <form method="post">
-                    <input type="hidden" asp-for="Sla.Id" />
-                    <input type="hidden" asp-for="Sla.CustomerId" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+                    <input type="hidden" asp-for="Form.Id" />
+                    <input type="hidden" asp-for="Form.CustomerId" />
 
                     <div class="alert alert-info">
                         <strong>Note:</strong> These SLA terms override the default system SLA for all tickets created by this customer.
@@ -27,56 +28,61 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Sla.CriticalResponseTime" class="form-label">Critical Severity</label>
+                            <label class="form-label">Critical Severity</label>
                             <div class="input-group">
-                                <input type="number" asp-for="Sla.CriticalResponseTime" class="form-control" step="1" />
+                                <input type="number" asp-for="Form.CriticalHours" class="form-control" min="1" max="168" />
                                 <span class="input-group-text">hours</span>
                             </div>
+                            <span asp-validation-for="Form.CriticalHours" class="text-danger"></span>
                             <small class="form-text text-muted">Ticket must receive response within this time</small>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Sla.HighResponseTime" class="form-label">High Severity</label>
+                            <label class="form-label">High Severity</label>
                             <div class="input-group">
-                                <input type="number" asp-for="Sla.HighResponseTime" class="form-control" step="1" />
+                                <input type="number" asp-for="Form.HighHours" class="form-control" min="1" max="168" />
                                 <span class="input-group-text">hours</span>
                             </div>
+                            <span asp-validation-for="Form.HighHours" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Sla.MediumResponseTime" class="form-label">Medium Severity</label>
+                            <label class="form-label">Medium Severity</label>
                             <div class="input-group">
-                                <input type="number" asp-for="Sla.MediumResponseTime" class="form-control" step="1" />
+                                <input type="number" asp-for="Form.MediumHours" class="form-control" min="1" max="168" />
                                 <span class="input-group-text">hours</span>
                             </div>
+                            <span asp-validation-for="Form.MediumHours" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Sla.LowResponseTime" class="form-label">Low Severity</label>
+                            <label class="form-label">Low Severity</label>
                             <div class="input-group">
-                                <input type="number" asp-for="Sla.LowResponseTime" class="form-control" step="1" />
+                                <input type="number" asp-for="Form.LowDays" class="form-control" min="1" max="90" />
                                 <span class="input-group-text">days</span>
                             </div>
+                            <span asp-validation-for="Form.LowDays" class="text-danger"></span>
                         </div>
 
                         <div class="col-md-6 mb-3">
-                            <label asp-for="Sla.InfoResponseTime" class="form-label">Info Severity</label>
+                            <label class="form-label">Info Severity</label>
                             <div class="input-group">
-                                <input type="number" asp-for="Sla.InfoResponseTime" class="form-control" step="1" />
+                                <input type="number" asp-for="Form.InfoDays" class="form-control" min="1" max="90" />
                                 <span class="input-group-text">days</span>
                             </div>
+                            <span asp-validation-for="Form.InfoDays" class="text-danger"></span>
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label asp-for="Sla.Notes" class="form-label">Notes</label>
-                        <textarea asp-for="Sla.Notes" class="form-control" rows="3"
+                        <label asp-for="Form.Notes" class="form-label">Notes</label>
+                        <textarea asp-for="Form.Notes" class="form-control" rows="3"
                                   placeholder="Add any notes about this SLA agreement..."></textarea>
                     </div>
 
                     <div class="mb-3 form-check">
-                        <input type="checkbox" asp-for="Sla.IsActive" class="form-check-input" />
-                        <label class="form-check-label" asp-for="Sla.IsActive">
+                        <input type="checkbox" asp-for="Form.IsActive" class="form-check-input" />
+                        <label class="form-check-label" asp-for="Form.IsActive">
                             Active (use this SLA for tickets)
                         </label>
                     </div>
@@ -95,22 +101,17 @@
             </div>
             <div class="card-body small">
                 <dl class="mb-0">
-                    <dt>Critical</dt>
-                    <dd>4 hours</dd>
-
-                    <dt>High</dt>
-                    <dd>8 hours</dd>
-
-                    <dt>Medium</dt>
-                    <dd>24 hours</dd>
-
-                    <dt>Low</dt>
-                    <dd>3 days</dd>
-
-                    <dt>Info</dt>
-                    <dd class="mb-0">7 days</dd>
+                    <dt>Critical</dt><dd>4 hours</dd>
+                    <dt>High</dt><dd>8 hours</dd>
+                    <dt>Medium</dt><dd>24 hours</dd>
+                    <dt>Low</dt><dd>3 days</dd>
+                    <dt>Info</dt><dd class="mb-0">7 days</dd>
                 </dl>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

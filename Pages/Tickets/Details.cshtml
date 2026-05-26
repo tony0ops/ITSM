@@ -122,8 +122,8 @@
         }
 
         @if (Model.Ticket.Status == TicketStatus.Resolved ||
-             Model.Ticket.Status == TicketStatus.Closed ||
-             Model.Ticket.Status == TicketStatus.Cancelled)
+                Model.Ticket.Status == TicketStatus.Closed ||
+                Model.Ticket.Status == TicketStatus.Cancelled)
         {
             <div class="card mb-4">
                 <div class="card-header">
@@ -268,9 +268,10 @@
         {
             @foreach (var activity in Model.Activities)
             {
-                var formatted = Model.FormattedActivities[activity.Id];
-                var icon = Model.ActivityIcons[activity.Id];
-                var cssClass = Model.ActivityCssClasses[activity.Id];
+                var display = Model.ActivityDisplayMap[activity.Id];
+                var formatted = display.FormattedText;
+                var icon = display.Icon;
+                var cssClass = display.CssClass;
                 var bgClass = activity.IsInternal ? "bg-warning bg-opacity-10" : "";
                 var isTimeEntry = activity.Type == ActivityType.TimeRegistered;
                 var isAuthor = activity.UserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -340,7 +341,7 @@
                             {
                                 <div class="small mt-1">
                                     <span class="text-danger">@activity.OldValue</span>
-                                    <span class="text-muted mx-1">&rarr;</span>
+                                    <span class="text-muted mx-1">-></span>
                                     <span class="text-success">@activity.NewValue</span>
                                 </div>
                             }

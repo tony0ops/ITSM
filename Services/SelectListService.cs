@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
+using WebApplication1.Models;
 
 namespace WebApplication1.Services;
 
@@ -36,23 +37,64 @@ public class SelectListService
     }
 
     /// <summary>
-    /// Get all application users sorted by email.
+    /// Get all active internal staff users sorted by email.
     /// </summary>
     public async Task<SelectList> GetUsersAsync()
     {
-        var users = await _userManager.Users
-            .OrderBy(u => u.Email)
+        var staffProfiles = await _context.UserProfiles
+            .Include(up => up.User)
+            .Where(up => up.IsActive)
+            .OrderBy(up => up.User.Email)
             .AsNoTracking()
             .ToListAsync();
 
         return new SelectList(
-            users.Select(u => new
+            staffProfiles.Select(up => new
             {
-                Id = u.Id,
-                Name = u.Email ?? u.UserName ?? "Unknown"
+                Id = up.UserId,
+                Name = up.User?.Email ?? up.DisplayName
             }),
             "Id",
             "Name"
         );
+    }
+
+    /// <summary>
+    /// Get users belonging to the team mapped to a specific assignment group.
+    /// - Unassigned: returns all active staff (used for unfiltered dropdowns).
+    /// - Named group with an active team and members: returns only those members.
+    /// - Named group with no active team or no members: returns an empty list.
+    ///   The caller's UI should indicate no assignees are available for that group.
+    /// </summary>
+    public async Task<SelectList> GetUsersByGroupAsync(AssignmentGroup group)
+    {
+        if (group == AssignmentGroup.Unassigned)
+            return await GetUsersAsync();
+
+        var team = await _context.Teams
+            .Include(t => t.Members)
+                .ThenInclude(m => m.User)
+            .FirstOrDefaultAsync(t => t.Group == group && t.IsActive);
+
+        if (team != null)
+        {
+            var members = team.Members
+                .Where(m => m.IsActive && m.User != null)
+                .OrderBy(m => m.User.Email)
+                .Select(m => new
+                {
+                    Id = m.UserId,
+                    Name = m.User.Email ?? m.DisplayName
+                })
+                .ToList();
+
+            if (members.Count > 0)
+                return new SelectList(members, "Id", "Name");
+        }
+
+        // No active team or no members mapped to this group.
+        // Return an empty list - the assignee dropdown will be empty,
+        // and the Unassigned+assignee validation will prevent an inconsistent save.
+        return new SelectList(Enumerable.Empty<object>(), "Id", "Name");
     }
 }

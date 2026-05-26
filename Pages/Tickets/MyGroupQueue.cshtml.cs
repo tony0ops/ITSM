@@ -24,6 +24,7 @@ namespace WebApplication1.Pages.Tickets
         public int AtRiskCount { get; set; }
         public int BreachedCount { get; set; }
         public int InProgressCount { get; set; }
+        public int CustomerRepliedCount { get; set; }
         public bool HasTeamAssignment { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
@@ -38,7 +39,6 @@ namespace WebApplication1.Pages.Tickets
 
             if (profile?.Team == null)
             {
-                // No team assigned — show empty queue with message
                 HasTeamAssignment = false;
                 return Page();
             }
@@ -48,13 +48,14 @@ namespace WebApplication1.Pages.Tickets
             GroupName = profile.Team.Group.ToString().Replace("_", " ");
             TeamName = profile.Team.Name;
 
-            // Consistent rule: all open tickets assigned to the group
             Tickets = await _context.Tickets
                 .Include(t => t.Customer)
+                .Include(t => t.Comments)
+                .Include(t => t.Activities)
                 .Where(t => t.AssignedGroup == userGroup &&
-                           t.Status != TicketStatus.Closed &&
-                           t.Status != TicketStatus.Cancelled &&
-                           t.Status != TicketStatus.Resolved)
+                            t.Status != TicketStatus.Closed &&
+                            t.Status != TicketStatus.Cancelled &&
+                            t.Status != TicketStatus.Resolved)
                 .OrderBy(t => t.SlaDueAt)
                 .ToListAsync();
 
@@ -67,6 +68,11 @@ namespace WebApplication1.Pages.Tickets
 
             BreachedCount = Tickets.Count(t => SlaPolicy.GetState(t, now) == SlaState.Breached);
             InProgressCount = Tickets.Count(t => t.Status == TicketStatus.InProgress);
+            CustomerRepliedCount = Tickets.Count(t =>
+            {
+                var last = t.Comments.OrderByDescending(c => c.CreatedAt).FirstOrDefault();
+                return last?.UserRole == "Customer";
+            });
 
             return Page();
         }
@@ -74,28 +80,27 @@ namespace WebApplication1.Pages.Tickets
         public List<Ticket> GetAtRiskTickets()
         {
             var now = DateTime.Now;
-            return Tickets
-                .Where(t =>
-                {
-                    var state = SlaPolicy.GetState(t, now);
-                    return state == SlaState.Yellow || state == SlaState.Red || state == SlaState.Breached;
-                })
-                .ToList();
+            return Tickets.Where(t =>
+            {
+                var state = SlaPolicy.GetState(t, now);
+                return state == SlaState.Yellow || state == SlaState.Red || state == SlaState.Breached;
+            }).ToList();
         }
 
         public List<Ticket> GetBreachedTickets()
         {
             var now = DateTime.Now;
-            return Tickets
-                .Where(t => SlaPolicy.GetState(t, now) == SlaState.Breached)
-                .ToList();
+            return Tickets.Where(t => SlaPolicy.GetState(t, now) == SlaState.Breached).ToList();
         }
 
         public List<Ticket> GetInProgressTickets()
-        {
-            return Tickets
-                .Where(t => t.Status == TicketStatus.InProgress)
-                .ToList();
-        }
+            => Tickets.Where(t => t.Status == TicketStatus.InProgress).ToList();
+
+        public List<Ticket> GetCustomerRepliedTickets()
+            => Tickets.Where(t =>
+            {
+                var last = t.Comments.OrderByDescending(c => c.CreatedAt).FirstOrDefault();
+                return last?.UserRole == "Customer";
+            }).ToList();
     }
 }

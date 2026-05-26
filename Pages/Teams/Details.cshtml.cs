@@ -40,7 +40,7 @@ namespace WebApplication1.Pages.Teams
             Team = team;
             Members = team.Members.Where(m => m.IsActive).OrderBy(m => m.DisplayName).ToList();
 
-            // Only show users with no team — never silently steal from another team
+            // Only show users with no team - never silently steal from another team
             AvailableUsers = await _context.UserProfiles
                 .Include(up => up.User)
                 .Where(up => up.IsActive && up.TeamId == null)

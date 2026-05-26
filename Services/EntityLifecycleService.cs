@@ -60,36 +60,4 @@ public class EntityLifecycleService
         return true;
     }
 
-    /// <summary>
-    /// Restore a soft-deleted entity. Uses IgnoreQueryFilters to find filtered-out records.
-    /// </summary>
-    public async Task<bool> RestoreAsync<T>(int id) where T : class, ISoftDeletable
-    {
-        var entity = await _context.Set<T>()
-            .IgnoreQueryFilters()
-            .FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
-        if (entity == null) return false;
-
-        entity.IsDeleted = false;
-        entity.DeletedAt = null;
-        entity.DeletedBy = null;
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    /// <summary>
-    /// Get all active entities implementing IActivatable.
-    /// </summary>
-    public IQueryable<T> GetActive<T>() where T : class, IActivatable
-    {
-        return _context.Set<T>().Where(e => e.IsActive);
-    }
-
-    /// <summary>
-    /// Get all non-deleted entities implementing ISoftDeletable.
-    /// </summary>
-    public IQueryable<T> GetNonDeleted<T>() where T : class, ISoftDeletable
-    {
-        return _context.Set<T>().Where(e => !e.IsDeleted);
-    }
 }

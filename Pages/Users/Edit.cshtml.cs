@@ -10,22 +10,11 @@ using WebApplication1.Models;
 namespace WebApplication1.Pages.Users
 {
     [Authorize(Roles = "Manager")]
-    public class EditModel : PageModel
+    public class EditModel(
+        UserManager<IdentityUser> userManager,
+        RoleManager<IdentityRole> roleManager,
+        ApplicationDbContext context) : PageModel
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ApplicationDbContext _context;
-
-        public EditModel(
-            UserManager<IdentityUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            ApplicationDbContext context)
-        {
-            _userManager = userManager;
-            _roleManager = roleManager;
-            _context = context;
-        }
-
         [BindProperty]
         public UserEditViewModel Input { get; set; } = new();
 
@@ -38,26 +27,28 @@ namespace WebApplication1.Pages.Users
             if (string.IsNullOrEmpty(id))
                 return NotFound();
 
-            AppUser = await _userManager.FindByIdAsync(id);
+            AppUser = await userManager.FindByIdAsync(id);
             if (AppUser == null)
                 return NotFound();
 
-            var profile = await _context.UserProfiles
-                .FirstOrDefaultAsync(p => p.UserId == id);
+            // Customer portal users must be managed from the Customers page only.
+            if (await IsPortalOnlyUserAsync(AppUser))
+                return RedirectToPage("/Customers/Index");
 
-            var currentRoles = await _userManager.GetRolesAsync(AppUser);
+            var profile      = await context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == id);
+            var currentRoles = await userManager.GetRolesAsync(AppUser);
 
             Input = new UserEditViewModel
             {
-                UserId = id,
-                Email = AppUser.Email ?? "",
+                UserId      = id,
+                Email       = AppUser.Email ?? "",
                 DisplayName = profile?.DisplayName ?? AppUser.Email ?? "",
-                Department = profile?.Department,
-                JobTitle = profile?.JobTitle,
+                Department  = profile?.Department,
+                JobTitle    = profile?.JobTitle,
                 PhoneNumber = profile?.PhoneNumber ?? AppUser.PhoneNumber,
-                TeamId = profile?.TeamId,
-                IsActive = profile?.IsActive ?? true,
-                Role = currentRoles.FirstOrDefault() ?? ""
+                TeamId      = profile?.TeamId,
+                IsActive    = profile?.IsActive ?? true,
+                Role        = currentRoles.FirstOrDefault() ?? ""
             };
 
             await LoadDropdownsAsync();
@@ -66,89 +57,131 @@ namespace WebApplication1.Pages.Users
 
         public async Task<IActionResult> OnPostAsync()
         {
+            var user = await userManager.FindByIdAsync(Input.UserId);
+            if (user == null)
+                return NotFound();
+
+            // Re-check on POST to prevent crafted requests bypassing the GET guard.
+            if (await IsPortalOnlyUserAsync(user))
+                return Forbid();
+
+            var currentUser   = await userManager.GetUserAsync(User);
+            var currentUserId = currentUser?.Id ?? "";
+
+            // Server-side role validation - the dropdown excludes Customer but a
+            // crafted POST could still submit it. Reject any disallowed role value.
+            var allowedRoles = await roleManager.Roles
+                .Where(r => r.Name != null && r.Name != "Customer")
+                .Select(r => r.Name!)
+                .ToListAsync();
+
+            if (!string.IsNullOrEmpty(Input.Role) && !allowedRoles.Contains(Input.Role))
+                ModelState.AddModelError("Input.Role", "Selected role is not valid for internal staff.");
+
+            // Prevent a manager from deactivating their own account.
+            if (currentUserId == user.Id && !Input.IsActive)
+                ModelState.AddModelError("Input.IsActive", "You cannot deactivate your own account.");
+
+            // Prevent a manager from removing their own Manager role.
+            if (currentUserId == user.Id &&
+                await userManager.IsInRoleAsync(user, "Manager") &&
+                Input.Role != "Manager")
+            {
+                ModelState.AddModelError("Input.Role", "You cannot remove the Manager role from your own account.");
+            }
+
             if (!ModelState.IsValid)
             {
+                // Reload AppUser so the view can render the email heading correctly.
+                AppUser = user;
                 await LoadDropdownsAsync();
                 return Page();
             }
 
-            var user = await _userManager.FindByIdAsync(Input.UserId);
-            if (user == null)
-                return NotFound();
-
-            // Update user phone
             user.PhoneNumber = Input.PhoneNumber;
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
-            // Sync IsActive with Identity lockout - prevents inactive users from logging in
             if (!Input.IsActive)
             {
-                await _userManager.SetLockoutEnabledAsync(user, true);
-                await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
+                await userManager.SetLockoutEnabledAsync(user, true);
+                await userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
             }
             else
             {
-                await _userManager.SetLockoutEndDateAsync(user, null);
+                await userManager.SetLockoutEndDateAsync(user, null);
             }
 
-            // Update role assignment
-            var currentRoles = await _userManager.GetRolesAsync(user);
+            var currentRoles = await userManager.GetRolesAsync(user);
             if (currentRoles.Any())
-            {
-                await _userManager.RemoveFromRolesAsync(user, currentRoles);
-            }
-            if (!string.IsNullOrEmpty(Input.Role))
-            {
-                await _userManager.AddToRoleAsync(user, Input.Role);
-            }
+                await userManager.RemoveFromRolesAsync(user, currentRoles);
 
-            // Update or create profile
-            var profile = await _context.UserProfiles
+            if (!string.IsNullOrEmpty(Input.Role))
+                await userManager.AddToRoleAsync(user, Input.Role);
+
+            var profile = await context.UserProfiles
                 .FirstOrDefaultAsync(p => p.UserId == Input.UserId);
 
             if (profile == null)
             {
-                profile = new UserProfile
+                context.UserProfiles.Add(new UserProfile
                 {
-                    UserId = Input.UserId,
+                    UserId      = Input.UserId,
                     DisplayName = Input.DisplayName,
-                    Department = Input.Department,
-                    JobTitle = Input.JobTitle,
+                    Department  = Input.Department,
+                    JobTitle    = Input.JobTitle,
                     PhoneNumber = Input.PhoneNumber,
-                    TeamId = Input.TeamId,
-                    IsActive = Input.IsActive,
-                    CreatedBy = User.Identity?.Name ?? "system"
-                };
-                _context.UserProfiles.Add(profile);
+                    TeamId      = Input.TeamId,
+                    IsActive    = Input.IsActive,
+                    CreatedBy   = currentUserId
+                });
             }
             else
             {
                 profile.DisplayName = Input.DisplayName;
-                profile.Department = Input.Department;
-                profile.JobTitle = Input.JobTitle;
+                profile.Department  = Input.Department;
+                profile.JobTitle    = Input.JobTitle;
                 profile.PhoneNumber = Input.PhoneNumber;
-                profile.TeamId = Input.TeamId;
-                profile.IsActive = Input.IsActive;
-                profile.ModifiedBy = User.Identity?.Name ?? "system";
-                profile.UpdatedAt = DateTime.Now;
+                profile.TeamId      = Input.TeamId;
+                profile.IsActive    = Input.IsActive;
+                profile.ModifiedBy  = currentUserId;
+                profile.UpdatedAt   = DateTime.Now;
             }
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "User updated successfully!";
             return RedirectToPage("./Index");
         }
 
+        /// <summary>
+        /// Returns true when the user has no UserProfile and is not in Manager or Agent role.
+        /// Such users are customer portal accounts and must not be edited here.
+        /// </summary>
+        private async Task<bool> IsPortalOnlyUserAsync(IdentityUser user)
+        {
+            var hasProfile = await context.UserProfiles.AnyAsync(p => p.UserId == user.Id);
+            if (hasProfile) return false;
+
+            var isStaff = await userManager.IsInRoleAsync(user, "Manager") ||
+                          await userManager.IsInRoleAsync(user, "Agent");
+            return !isStaff;
+        }
+
         private async Task LoadDropdownsAsync()
         {
-            var teams = await _context.Teams
+            var teams = await context.Teams
                 .Where(t => t.IsActive)
                 .OrderBy(t => t.Name)
                 .ToListAsync();
 
             TeamList = new SelectList(teams, "Id", "Name");
 
-            var roles = await _roleManager.Roles.OrderBy(r => r.Name).ToListAsync();
+            // Exclude the Customer role - it is not a valid role for internal staff.
+            var roles = await roleManager.Roles
+                .Where(r => r.Name != "Customer")
+                .OrderBy(r => r.Name)
+                .ToListAsync();
+
             RoleList = new SelectList(roles, "Name", "Name");
         }
 

@@ -9,7 +9,6 @@
 <h1>My Tickets</h1>
 <p class="text-muted">Your personal and team ticket queues</p>
 
-<!-- Summary Cards -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
         <div class="card border-primary h-100">
@@ -20,7 +19,15 @@
             </div>
         </div>
     </div>
-
+    <div class="col-md-3 mb-3">
+        <div class="card border-primary h-100">
+            <div class="card-body">
+                <h6 class="card-title text-muted">Customer Replied</h6>
+                <p class="h3 mb-0 text-primary">@Model.CustomerRepliedCount</p>
+                <small class="text-muted">Awaiting your response</small>
+            </div>
+        </div>
+    </div>
     <div class="col-md-3 mb-3">
         <div class="card border-danger h-100">
             <div class="card-body">
@@ -30,20 +37,6 @@
             </div>
         </div>
     </div>
-
-    @if (!string.IsNullOrEmpty(Model.TeamName))
-    {
-        <div class="col-md-3 mb-3">
-            <div class="card border-info h-100">
-                <div class="card-body">
-                    <h6 class="card-title text-muted">@Model.TeamName</h6>
-                    <p class="h3 mb-0">@Model.TotalTeamTickets</p>
-                    <small class="text-muted">Team tickets</small>
-                </div>
-            </div>
-        </div>
-    }
-
     <div class="col-md-3 mb-3">
         <div class="card border-warning h-100">
             <div class="card-body">
@@ -74,6 +67,11 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="my-custreply-tab" data-bs-toggle="tab" data-bs-target="#my-custreply" type="button" role="tab">
+                        Customer Replied (@Model.CustomerRepliedCount)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
                     <button class="nav-link" id="my-atrisk-tab" data-bs-toggle="tab" data-bs-target="#my-atrisk" type="button" role="tab">
                         At Risk (@Model.AtRiskCount)
                     </button>
@@ -93,6 +91,13 @@
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="my-all" role="tabpanel">
                     @await Html.PartialAsync("_MyTicketTable", Model.AssignedToMe)
+                </div>
+                <div class="tab-pane fade" id="my-custreply" role="tabpanel">
+                    @await Html.PartialAsync("_MyTicketTable", Model.AssignedToMe.Where(t =>
+                    {
+                        var last = t.Comments.OrderByDescending(c => c.CreatedAt).FirstOrDefault();
+                        return last?.UserRole == "Customer";
+                    }).ToList())
                 </div>
                 <div class="tab-pane fade" id="my-atrisk" role="tabpanel">
                     @await Html.PartialAsync("_MyTicketTable", Model.GetMyAtRiskTickets())
@@ -129,6 +134,11 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="team-custreply-tab" data-bs-toggle="tab" data-bs-target="#team-custreply" type="button" role="tab">
+                            Customer Replied (@Model.GetTeamCustomerRepliedTickets().Count)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
                         <button class="nav-link" id="team-unassigned-tab" data-bs-toggle="tab" data-bs-target="#team-unassigned" type="button" role="tab">
                             Unassigned (@Model.GetTeamUnassignedTickets().Count)
                         </button>
@@ -149,6 +159,9 @@
                     <div class="tab-pane fade show active" id="team-all" role="tabpanel">
                         @await Html.PartialAsync("_MyTicketTable", Model.MyTeamTickets)
                     </div>
+                    <div class="tab-pane fade" id="team-custreply" role="tabpanel">
+                        @await Html.PartialAsync("_MyTicketTable", Model.GetTeamCustomerRepliedTickets())
+                    </div>
                     <div class="tab-pane fade" id="team-unassigned" role="tabpanel">
                         @await Html.PartialAsync("_MyTicketTable", Model.GetTeamUnassignedTickets())
                     </div>
@@ -164,7 +177,6 @@
     </div>
 }
 
-<!-- Quick Actions -->
 <div class="card bg-light">
     <div class="card-body">
         <h6 class="card-title mb-3">Quick Actions</h6>

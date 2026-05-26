@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -13,11 +14,16 @@ namespace WebApplication1.Pages.Tickets
     {
         private readonly ApplicationDbContext _context;
         private readonly EntityLifecycleService _lifecycle;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public DeleteModel(ApplicationDbContext context, EntityLifecycleService lifecycle)
+        public DeleteModel(
+            ApplicationDbContext context,
+            EntityLifecycleService lifecycle,
+            UserManager<IdentityUser> userManager)
         {
             _context = context;
             _lifecycle = lifecycle;
+            _userManager = userManager;
         }
 
         [BindProperty]
@@ -41,7 +47,8 @@ namespace WebApplication1.Pages.Tickets
             if (id == null)
                 return NotFound();
 
-            var deletedBy = User.Identity?.Name ?? "Unknown";
+            var currentUser = await _userManager.GetUserAsync(User);
+            var deletedBy = currentUser?.Id ?? "";
             await _lifecycle.SoftDeleteAsync<Ticket>(id.Value, deletedBy);
 
             return RedirectToPage("./Index");
