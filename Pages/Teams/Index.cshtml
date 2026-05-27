@@ -64,9 +64,16 @@ else
 
                     <tr class="@(!team.IsActive ? "table-secondary opacity-75" : "")">
                         <td>
-                            <a asp-page="./Details" asp-route-id="@team.Id" class="fw-semibold text-decoration-none">
-                                @team.Name
-                            </a>
+                            @if (User.IsInRole("Manager"))
+                            {
+                                <a asp-page="./Details" asp-route-id="@team.Id" class="fw-semibold text-decoration-none">
+                                    @team.Name
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="fw-semibold">@team.Name</span>
+                            }
                         </td>
                         <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
                             title="@team.Description">
