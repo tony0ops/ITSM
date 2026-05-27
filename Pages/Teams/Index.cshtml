@@ -58,9 +58,9 @@ else
             <tbody>
                 @foreach (var team in Model.Teams)
                 {
-                    var statusDot = team.IsActive ? "#198754" : "#6c757d";
-                    var statusText = team.IsActive ? "Active" : "Inactive";
-                    var memberCount = team.Members.Count(m => m.IsActive);
+                    var statusDotStyle = $"background-color:{(team.IsActive ? "#198754" : "#6c757d")};";
+                    var statusText     = team.IsActive ? "Active" : "Inactive";
+                    var memberCount    = team.Members.Count(m => m.IsActive);
 
                     <tr class="@(!team.IsActive ? "table-secondary opacity-75" : "")">
                         <td>
@@ -68,13 +68,14 @@ else
                                 @team.Name
                             </a>
                         </td>
-                        <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@team.Description">
+                        <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                            title="@team.Description">
                             <small class="text-muted">@(string.IsNullOrEmpty(team.Description) ? "-" : team.Description)</small>
                         </td>
                         <td><small>@team.Group.ToString().Replace("_", " ")</small></td>
                         <td><small class="fw-semibold">@memberCount</small></td>
                         <td>
-                            <span class="status-dot status-dot-sm me-1" style="background:@statusDot;"></span>
+                            <span class="status-dot status-dot-sm me-1" style="@statusDotStyle"></span>
                             <small>@statusText</small>
                         </td>
                         <td class="text-nowrap">
@@ -84,8 +85,8 @@ else
                                 <span class="text-muted mx-1">|</span>
                                 <a asp-page="./Delete" asp-route-id="@team.Id" class="text-danger text-decoration-none">Delete</a>
                                 <span class="text-muted mx-1">|</span>
+                                <a asp-page="./Details" asp-route-id="@team.Id" class="text-secondary text-decoration-none">Members</a>
                             }
-                            <a asp-page="./Details" asp-route-id="@team.Id" class="text-secondary text-decoration-none">Members</a>
                         </td>
                     </tr>
                 }

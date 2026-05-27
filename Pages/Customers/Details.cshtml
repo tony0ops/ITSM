@@ -187,14 +187,13 @@
                             <div class="col-md-4">
                                 <label class="form-label">Password</label>
                                 <input asp-for="NewPortalPassword" type="text" class="form-control"
-                                       required placeholder="Min 6 chars, 1 digit, 1 uppercase" />
-                                <div class="form-text">Shown in plain text so you can share it.</div>
+                                       placeholder="Min 6 chars, 1 digit, 1 uppercase" />
+                                <div class="form-text">Required for new accounts. Leave blank to link an existing user.</div>
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-auto">
                                 <div class="form-check">
-                                    {{!-- Hidden input ensures false is submitted when unchecked --}}
                                     <input type="hidden" asp-for="NewCanViewTickets" value="false" />
                                     <input type="checkbox" asp-for="NewCanViewTickets"
                                            class="form-check-input" id="chkView" />
@@ -209,14 +208,9 @@
                                     <label class="form-check-label" for="chkComment">Can Add Comments</label>
                                 </div>
                             </div>
-                            <div class="col-auto">
-                                <div class="form-check">
-                                    <input type="hidden" asp-for="NewCanCreateTickets" value="false" />
-                                    <input type="checkbox" asp-for="NewCanCreateTickets"
-                                           class="form-check-input" id="chkCreate" />
-                                    <label class="form-check-label" for="chkCreate">Can Create Tickets</label>
-                                </div>
-                            </div>
+                            @* CanCreateTickets is reserved for a future portal ticket creation feature.
+                               The database column is preserved but the checkbox is hidden until
+                               /Portal/CreateTicket is implemented. *@
                         </div>
                         <button type="submit" class="btn btn-success btn-sm">Create & Link User</button>
                         <button type="button" class="btn btn-secondary btn-sm"
@@ -233,9 +227,8 @@
                     <thead class="table-light">
                         <tr>
                             <th>Email</th>
-                            <th>View</th>
-                            <th>Comment</th>
-                            <th>Create</th>
+                            <th>Can View</th>
+                            <th>Can Comment</th>
                             <th>Status</th>
                             <th>Added</th>
                             <th></th>
@@ -244,14 +237,12 @@
                     <tbody>
                         @foreach (var pu in Model.PortalUsers)
                         {
-                            @* Fix CSS warning: use a full style string variable *@
                             var dotColor = pu.IsActive ? "#198754" : "#6c757d";
                             var dotStyle = $"background-color:{dotColor};";
                             <tr class="@(!pu.IsActive ? "table-secondary opacity-75" : "")">
                                 <td><small>@pu.Email</small></td>
                                 <td><small>@(pu.CanViewTickets ? "Yes" : "-")</small></td>
                                 <td><small>@(pu.CanAddComments ? "Yes" : "-")</small></td>
-                                <td><small>@(pu.CanCreateTickets ? "Yes" : "-")</small></td>
                                 <td>
                                     <span class="status-dot status-dot-sm me-1" style="@dotStyle"></span>
                                     <small>@(pu.IsActive ? "Active" : "Inactive")</small>

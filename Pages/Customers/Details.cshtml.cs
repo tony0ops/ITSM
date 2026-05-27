@@ -37,8 +37,8 @@ namespace WebApplication1.Pages.Customers
         [BindProperty]
         public bool NewCanAddComments { get; set; } = true;
 
-        [BindProperty]
-        public bool NewCanCreateTickets { get; set; } = true;
+        // NewCanCreateTickets intentionally omitted - feature not yet implemented.
+        // CanCreateTickets is always saved as false until /Portal/CreateTicket exists.
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -103,23 +103,46 @@ namespace WebApplication1.Pages.Customers
 
         public async Task<IActionResult> OnPostCreatePortalUserAsync(int id)
         {
-            // Class-level [Authorize(Roles = "Manager")] covers this.
-            // Per-handler role checks removed - they were redundant and could
-            // give a misleading Forbid instead of a proper 401/redirect.
             var customer = await context.Customers.FindAsync(id);
             if (customer == null)
                 return NotFound();
 
-            if (string.IsNullOrWhiteSpace(NewPortalEmail) || string.IsNullOrWhiteSpace(NewPortalPassword))
+            // Email is always required. Password is only required when creating
+            // a new account - not when linking an existing Identity user.
+            if (string.IsNullOrWhiteSpace(NewPortalEmail))
             {
-                TempData["ErrorMessage"] = "Email and password are required.";
+                TempData["ErrorMessage"] = "Email is required.";
                 return RedirectToPage(new { id });
             }
 
             var existingUser = await userManager.FindByEmailAsync(NewPortalEmail.Trim());
+
+            if (existingUser == null && string.IsNullOrWhiteSpace(NewPortalPassword))
+            {
+                TempData["ErrorMessage"] = "Password is required when creating a new portal user.";
+                return RedirectToPage(new { id });
+            }
+
             if (existingUser != null)
             {
+                // Block linking internal staff accounts as portal users.
+                var hasStaffProfile = await context.UserProfiles
+                    .AnyAsync(up => up.UserId == existingUser.Id);
+
+                var isStaffRole =
+                    await userManager.IsInRoleAsync(existingUser, "Manager") ||
+                    await userManager.IsInRoleAsync(existingUser, "Agent");
+
+                if (hasStaffProfile || isStaffRole)
+                {
+                    TempData["ErrorMessage"] = $"'{NewPortalEmail}' is an internal staff account and cannot be linked as a portal user.";
+                    return RedirectToPage(new { id });
+                }
+
+                // Use IgnoreQueryFilters so links to soft-deleted customers are still
+                // detected, preventing a unique index violation on CustomerUsers.UserId.
                 var existingLink = await context.CustomerUsers
+                    .IgnoreQueryFilters()
                     .FirstOrDefaultAsync(cu => cu.UserId == existingUser.Id);
 
                 if (existingLink != null)
@@ -134,7 +157,7 @@ namespace WebApplication1.Pages.Customers
                     UserId           = existingUser.Id,
                     CanViewTickets   = NewCanViewTickets,
                     CanAddComments   = NewCanAddComments,
-                    CanCreateTickets = NewCanCreateTickets,
+                    CanCreateTickets = false,
                     IsActive         = true
                 });
 
@@ -169,7 +192,7 @@ namespace WebApplication1.Pages.Customers
                 UserId           = newUser.Id,
                 CanViewTickets   = NewCanViewTickets,
                 CanAddComments   = NewCanAddComments,
-                CanCreateTickets = NewCanCreateTickets,
+                CanCreateTickets = false,
                 IsActive         = true
             });
 
@@ -215,13 +238,12 @@ namespace WebApplication1.Pages.Customers
 
             PortalUsers = [.. customerUsers.Select(cu => new CustomerUserViewModel
             {
-                CustomerUserId   = cu.Id,
-                Email            = cu.User?.Email ?? "Unknown",
-                CanViewTickets   = cu.CanViewTickets,
-                CanAddComments   = cu.CanAddComments,
-                CanCreateTickets = cu.CanCreateTickets,
-                IsActive         = cu.IsActive,
-                CreatedAt        = cu.CreatedAt
+                CustomerUserId = cu.Id,
+                Email          = cu.User?.Email ?? "Unknown",
+                CanViewTickets = cu.CanViewTickets,
+                CanAddComments = cu.CanAddComments,
+                IsActive       = cu.IsActive,
+                CreatedAt      = cu.CreatedAt
             })];
         }
 
@@ -243,7 +265,6 @@ namespace WebApplication1.Pages.Customers
             public string Email { get; set; } = "";
             public bool CanViewTickets { get; set; }
             public bool CanAddComments { get; set; }
-            public bool CanCreateTickets { get; set; }
             public bool IsActive { get; set; }
             public DateTime CreatedAt { get; set; }
         }

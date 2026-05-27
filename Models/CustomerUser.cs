@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Identity;
 namespace WebApplication1.Models;
 
 /// <summary>
-/// CustomerUser entity inheriting BaseEntity.
 /// Links an IdentityUser (customer portal user) to a Customer.
+/// CanCreateTickets is reserved for a future /Portal/CreateTicket feature
+/// and defaults to false until that page is implemented.
 /// </summary>
 public class CustomerUser : BaseEntity
 {
@@ -15,10 +16,10 @@ public class CustomerUser : BaseEntity
     [Required, StringLength(450)]
     public string UserId { get; set; } = "";
 
-    public bool CanCreateTickets { get; set; } = true;
-    public bool CanViewTickets { get; set; } = true;
-    public bool CanAddComments { get; set; } = true;
-    public bool IsActive { get; set; } = true;
+    public bool CanViewTickets   { get; set; } = true;
+    public bool CanAddComments   { get; set; } = true;
+    public bool CanCreateTickets { get; set; } = false;
+    public bool IsActive         { get; set; } = true;
 
     // Navigation
     [ForeignKey(nameof(CustomerId))]

@@ -21,7 +21,7 @@
     <div class="col-md-2">
         <select class="form-select" name="StatusFilter">
             <option value="">All Status</option>
-            <option value="active" selected="@(Model.StatusFilter == "active")">Active</option>
+            <option value="active"   selected="@(Model.StatusFilter == "active")">Active</option>
             <option value="inactive" selected="@(Model.StatusFilter == "inactive")">Inactive</option>
         </select>
     </div>
@@ -63,9 +63,9 @@ else
             <tbody>
                 @foreach (var customer in Model.Customers)
                 {
-                    var statusDot = customer.IsActive ? "#198754" : "#6c757d";
-                    var statusText = customer.IsActive ? "Active" : "Inactive";
-                    var ticketCount = customer.Tickets.Count;
+                    var statusDotStyle = $"background-color:{(customer.IsActive ? "#198754" : "#6c757d")};";
+                    var statusText     = customer.IsActive ? "Active" : "Inactive";
+                    var ticketCount    = customer.Tickets.Count;
 
                     <tr class="@(!customer.IsActive ? "table-secondary opacity-75" : "")">
                         <td>
@@ -86,7 +86,7 @@ else
                         <td><small class="text-muted">@(customer.AccountManager ?? "-")</small></td>
                         <td><small>@customer.HourlyRate.ToString("C")</small></td>
                         <td>
-                            <span class="status-dot status-dot-sm me-1" style="background:@statusDot;"></span>
+                            <span class="status-dot status-dot-sm me-1" style="@statusDotStyle"></span>
                             <small>@statusText</small>
                         </td>
                         <td>
@@ -97,8 +97,8 @@ else
                             {
                                 <a asp-page="./Edit" asp-route-id="@customer.Id" class="text-primary text-decoration-none">Edit</a>
                                 <span class="text-muted mx-1">|</span>
+                                <a asp-page="./Details" asp-route-id="@customer.Id" class="text-secondary text-decoration-none">Details</a>
                             }
-                            <a asp-page="./Details" asp-route-id="@customer.Id" class="text-secondary text-decoration-none">Details</a>
                         </td>
                     </tr>
                 }
