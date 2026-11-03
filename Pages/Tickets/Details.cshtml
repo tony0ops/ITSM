@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model WebApplication1.Pages.Tickets.DetailsModel
 @using WebApplication1.Models
 
@@ -15,6 +15,10 @@
         @TempData["SuccessMessage"]
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["ErrorMessage"]</div>
 }
 
 <div class="row">
@@ -63,15 +67,8 @@
                             var slaState = SlaPolicy.GetState(Model.Ticket, now);
                             var remaining = SlaPolicy.FormatRemaining(Model.Ticket, now);
                             var slaBadge = SlaPolicy.GetBadgeClass(slaState);
-                            <span>@Model.Ticket.SlaDueAt.Value.ToString("M/d/yyyy HH:mm")</span>
-                            if (SlaPolicy.IsSlaPaused(Model.Ticket.Status))
-                            {
-                                <span class="badge bg-info ms-2">Paused</span>
-                            }
-                            else
-                            {
-                                <span class="badge @slaBadge ms-2">@remaining</span>
-                            }
+                            <span>@SlaPolicy.GetEffectiveDueAt(Model.Ticket, now).ToString("M/d/yyyy HH:mm")</span>
+                            <span class="badge @slaBadge ms-2">@remaining</span>
                         }
                         else
                         {
@@ -83,7 +80,14 @@
                     <dd class="col-sm-9">
                         @if (Model.Ticket.Customer != null)
                         {
-                            <a asp-page="/Customers/Details" asp-route-id="@Model.Ticket.Customer.Id">@Model.Ticket.Customer.CompanyName</a>
+                            @if (User.IsInRole("Manager"))
+                            {
+                                <a asp-page="/Customers/Details" asp-route-id="@Model.Ticket.Customer.Id">@Model.Ticket.Customer.CompanyName</a>
+                            }
+                            else
+                            {
+                                @Model.Ticket.Customer.CompanyName
+                            }
                         }
                         else
                         {
@@ -121,9 +125,7 @@
             </dl>
         }
 
-        @if (Model.Ticket.Status == TicketStatus.Resolved ||
-                Model.Ticket.Status == TicketStatus.Closed ||
-                Model.Ticket.Status == TicketStatus.Cancelled)
+        @if (TicketHelper.IsClosedLike(Model.Ticket.Status))
         {
             <div class="card mb-4">
                 <div class="card-header">
@@ -175,6 +177,39 @@
         <a asp-page="./Delete" asp-route-id="@Model.Ticket.Id" class="btn btn-outline-danger">Delete</a>
     }
     <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+</div>
+
+<div class="card mt-4 mb-4">
+    <div class="card-header"><h5 class="mb-0">Ticket-level attachments (@Model.Attachments.Count)</h5></div>
+    <div class="card-body">
+        @if (Model.Attachments.Count == 0)
+        {
+            <p class="text-muted">No standalone ticket attachments. New files are attached to replies below.</p>
+        }
+        else
+        {
+            <ul class="list-group mb-3">
+                @foreach (var attachment in Model.Attachments)
+                {
+                    <li class="list-group-item d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <span>
+                            <a asp-page-handler="DownloadAttachment" asp-route-id="@Model.Ticket.Id" asp-route-attachmentId="@attachment.Id">@attachment.FileName</a>
+                            <small class="text-muted">(@((attachment.FileSize / 1024d).ToString("N0")) KB) · @attachment.UploadedByName · @attachment.CreatedAt.ToString("g")</small>
+                            @if (attachment.IsCustomerVisible) { <span class="badge bg-success">Customer visible</span> }
+                            else { <span class="badge bg-secondary">Internal</span> }
+                        </span>
+                        @if (User.IsInRole("Manager") || attachment.UploadedByUserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                        {
+                            <form method="post" asp-page-handler="DeleteAttachment" asp-route-id="@Model.Ticket.Id" asp-route-attachmentId="@attachment.Id" onsubmit="return confirm('Delete this attachment?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+        <p class="form-text mb-0">Files uploaded with replies appear beneath their reply. Files already attached directly to the ticket remain listed here.</p>
+    </div>
 </div>
 
 <!-- Comments Section -->
@@ -233,6 +268,31 @@
                                 </div>
                             </div>
                             <p class="mb-0 text-break">@comment.Comment</p>
+                            @if (comment.Attachments.Count > 0)
+                            {
+                                <div class="mt-3">
+                                    <strong class="small">Attachments</strong>
+                                    <ul class="list-group list-group-flush mt-1">
+                                        @foreach (var attachment in comment.Attachments.OrderBy(a => a.CreatedAt))
+                                        {
+                                            <li class="list-group-item px-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                                <span>
+                                                    <a asp-page-handler="DownloadAttachment" asp-route-id="@Model.Ticket.Id" asp-route-attachmentId="@attachment.Id">@attachment.FileName</a>
+                                                    <small class="text-muted">(@((attachment.FileSize / 1024d).ToString("N0")) KB)</small>
+                                                    @if (!attachment.IsCustomerVisible) { <span class="badge bg-secondary">Internal</span> }
+                                                    else { <span class="badge bg-success">Customer visible</span> }
+                                                </span>
+                                                @if (User.IsInRole("Manager") || attachment.UploadedByUserId == User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                                                {
+                                                    <form method="post" asp-page-handler="DeleteAttachment" asp-route-id="@Model.Ticket.Id" asp-route-attachmentId="@attachment.Id" onsubmit="return confirm('Delete this attachment?');">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                                    </form>
+                                                }
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
                         }
                     </div>
                 }
@@ -241,7 +301,7 @@
 
         <hr />
         <h6>Add a Comment</h6>
-        <form method="post" asp-page-handler="AddComment" asp-route-id="@Model.Ticket.Id">
+        <form method="post" enctype="multipart/form-data" asp-page-handler="AddComment" asp-route-id="@Model.Ticket.Id">
             <div class="mb-3">
                 <textarea asp-for="NewComment" class="form-control" rows="3"
                           placeholder="Share your thoughts or status update..." required></textarea>
@@ -252,6 +312,11 @@
                 <label class="form-check-label" for="isInternal">
                     Internal note (not visible to customer)
                 </label>
+            </div>
+            <div class="mb-3">
+                <label asp-for="AttachmentFile" class="form-label">Attach a file to this reply (optional)</label>
+                <input asp-for="AttachmentFile" type="file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.log,.csv,.doc,.docx,.xlsx" />
+                <div class="form-text">Maximum 10 MB. File visibility follows the reply: internal notes stay internal.</div>
             </div>
             <button type="submit" class="btn btn-primary btn-sm">Post Comment</button>
         </form>

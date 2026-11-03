@@ -20,7 +20,7 @@ namespace WebApplication1.Pages
                 return RedirectToPage("/Dashboard/Index");
             }
 
-            return RedirectToPage("/Portal/MyTickets");
+            return RedirectToPage(User.IsInRole("Customer") ? "/Portal/MyTickets" : "/AccessSetup");
         }
     }
 }

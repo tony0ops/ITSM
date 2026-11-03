@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using WebApplication1.Data;
 
 namespace WebApplication1.Models;
@@ -58,7 +58,7 @@ public static class SlaPolicy
                status == TicketStatus.WaitingOnVendor;
     }
 
-    public static DateTime GetEffectiveDueAt(Ticket t)
+    public static DateTime GetEffectiveDueAt(Ticket t, DateTime? now = null)
     {
         var baseDeadline = t.SlaDueAt ?? (t.CreatedAt + GetSlaDuration(t.Severity));
 
@@ -66,7 +66,8 @@ public static class SlaPolicy
 
         if (t.SlaPausedAt.HasValue && IsSlaPaused(t.Status))
         {
-            var currentPauseDuration = DateTime.Now - t.SlaPausedAt.Value;
+            var currentPauseDuration = (now ?? DateTime.Now) - t.SlaPausedAt.Value;
+            if (currentPauseDuration < TimeSpan.Zero) currentPauseDuration = TimeSpan.Zero;
             totalPause += currentPauseDuration;
         }
 
@@ -75,9 +76,13 @@ public static class SlaPolicy
     public static SlaState GetState(Ticket t, DateTime now)
     {
         if (IsSlaPaused(t.Status))
-            return SlaState.Green;
-
-        return GetState(t.CreatedAt, GetEffectiveDueAt(t), now);
+        {
+            var pausedAt = t.SlaPausedAt ?? now;
+            var deadlineAtPause = (t.SlaDueAt ?? t.CreatedAt + GetSlaDuration(t.Severity)) + t.TotalPausedDuration;
+            return deadlineAtPause <= pausedAt ? SlaState.Breached : SlaState.Paused;
+        }
+        var evaluatedAt = TicketHelper.IsClosedLike(t.Status) ? t.ResolvedAt ?? t.ClosedAt ?? now : now;
+        return GetState(t.CreatedAt, GetEffectiveDueAt(t, now), evaluatedAt);
     }
 
     public static SlaState GetState(DateTime createdAt, DateTime dueAt, DateTime now)
@@ -114,14 +119,18 @@ public static class SlaPolicy
         SlaState.Yellow => "bg-warning text-dark",
         SlaState.Red => "bg-danger",
         SlaState.Breached => "bg-dark",
+        SlaState.Paused => "bg-info text-dark",
         _ => "bg-secondary"
     };
     public static string FormatRemaining(Ticket t, DateTime now)
     {
         if (IsSlaPaused(t.Status))
-            return "Paused";
+            return GetState(t, now) == SlaState.Breached ? "Paused (breached)" : "Paused";
+        if (t.Status == TicketStatus.Cancelled) return "Cancelled";
+        if (TicketHelper.IsClosedLike(t.Status))
+            return GetState(t, now) == SlaState.Breached ? "Completed late" : "Completed within SLA";
 
-        var dueAt = GetEffectiveDueAt(t);
+        var dueAt = GetEffectiveDueAt(t, now);
         var remaining = dueAt - now;
 
         if (remaining <= TimeSpan.Zero)

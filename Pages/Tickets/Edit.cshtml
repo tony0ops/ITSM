@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model WebApplication1.Pages.Tickets.EditModel
 @using WebApplication1.Models
 
@@ -104,7 +104,8 @@
                        class="form-control"
                        asp-format="{0:yyyy-MM-ddTHH:mm}"
                        step="60" />
-                <div class="form-text">Clear the field and Save to auto-calculate again from Severity.</div>
+                <div class="form-text">Base deadline before pause extensions. Changing severity or customer recalculates an unchanged deadline. Clear it to recalculate, or enter a different deadline to override.</div>
+                <div class="form-check mt-2"><input asp-for="KeepDeadline" class="form-check-input" /><label asp-for="KeepDeadline" class="form-check-label">Keep this deadline when changing severity or customer</label></div>
                 <span asp-validation-for="Ticket.SlaDueAt" class="text-danger"></span>
             </div>
 
@@ -117,6 +118,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/ticket-assignment.js" asp-append-version="true"></script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -124,8 +126,8 @@
             var pauseReasonGroup = document.getElementById('pauseReasonGroup');
             var resolutionNotesGroup = document.getElementById('resolutionNotesGroup');
 
-            var pauseStatuses = ['WaitingOnCustomer', 'WaitingOnVendor'];
-            var closedStatuses = ['Resolved', 'Closed', 'Cancelled'];
+            var pauseStatuses = ['@((int)TicketStatus.WaitingOnCustomer)', '@((int)TicketStatus.WaitingOnVendor)'];
+            var closedStatuses = ['@((int)TicketStatus.Resolved)', '@((int)TicketStatus.Closed)', '@((int)TicketStatus.Cancelled)'];
 
             function updateFields() {
                 var selectedStatus = statusDropdown.value;

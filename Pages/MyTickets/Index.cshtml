@@ -8,6 +8,7 @@
 
 <h1>My Tickets</h1>
 <p class="text-muted">Your personal and team ticket queues</p>
+<p class="small text-muted">Each queue is paged independently. Status tabs below filter tickets on the current page.</p>
 
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
@@ -63,12 +64,12 @@
             <ul class="nav nav-tabs mb-3" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="my-all-tab" data-bs-toggle="tab" data-bs-target="#my-all" type="button" role="tab">
-                        All (@Model.AssignedToMe.Count)
+                        All (@Model.TotalAssignedToMe)
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="my-custreply-tab" data-bs-toggle="tab" data-bs-target="#my-custreply" type="button" role="tab">
-                        Customer Replied (@Model.CustomerRepliedCount)
+                        Customer Replied (@Model.AssignedToMe.Count(TicketHelper.IsCustomerReplied))
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -93,11 +94,7 @@
                     @await Html.PartialAsync("_MyTicketTable", Model.AssignedToMe)
                 </div>
                 <div class="tab-pane fade" id="my-custreply" role="tabpanel">
-                    @await Html.PartialAsync("_MyTicketTable", Model.AssignedToMe.Where(t =>
-                    {
-                        var last = t.Comments.OrderByDescending(c => c.CreatedAt).FirstOrDefault();
-                        return last?.UserRole == "Customer";
-                    }).ToList())
+                    @await Html.PartialAsync("_MyTicketTable", Model.AssignedToMe.Where(TicketHelper.IsCustomerReplied).ToList())
                 </div>
                 <div class="tab-pane fade" id="my-atrisk" role="tabpanel">
                     @await Html.PartialAsync("_MyTicketTable", Model.GetMyAtRiskTickets())
@@ -108,6 +105,7 @@
                 <div class="tab-pane fade" id="my-inprogress" role="tabpanel">
                     @await Html.PartialAsync("_MyTicketTable", Model.GetMyInProgressTickets())
                 </div>
+                <partial name="_Pagination" model="Model.AssignedPagination" />
             </div>
         }
     </div>
@@ -130,7 +128,7 @@
                 <ul class="nav nav-tabs mb-3" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="team-all-tab" data-bs-toggle="tab" data-bs-target="#team-all" type="button" role="tab">
-                            All (@Model.MyTeamTickets.Count)
+                            All (@Model.TotalTeamTickets)
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -172,6 +170,7 @@
                         @await Html.PartialAsync("_MyTicketTable", Model.GetTeamBreachedTickets())
                     </div>
                 </div>
+                <partial name="_Pagination" model="Model.TeamPagination" />
             }
         </div>
     </div>

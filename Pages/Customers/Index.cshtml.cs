@@ -16,6 +16,11 @@ namespace WebApplication1.Pages.Customers
         }
 
         public List<Customer> Customers { get; set; } = new();
+        public PaginationViewModel Pagination { get; set; } = PaginationViewModel.Create(0, 1, 25);
+        public Dictionary<int, int> TicketCounts { get; set; } = [];
+
+        [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
+        [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 25;
 
         [BindProperty(SupportsGet = true)]
         public string? SearchTerm { get; set; }
@@ -25,9 +30,7 @@ namespace WebApplication1.Pages.Customers
 
         public async Task OnGetAsync()
         {
-            var query = _context.Customers
-                .Include(c => c.Tickets)
-                .AsQueryable();
+            var query = _context.Customers.AsNoTracking().AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(SearchTerm))
             {
@@ -46,9 +49,18 @@ namespace WebApplication1.Pages.Customers
                     query = query.Where(c => !c.IsActive);
             }
 
-            Customers = await query
-                .OrderBy(c => c.CompanyName)
-                .ToListAsync();
+            var page = await PagedResult<Customer>.CreateAsync(query.OrderBy(c => c.CompanyName), PageNumber,
+                PageSize, routeValues: PaginationViewModel.ReadRouteValues(Request.Query));
+            Pagination = page.Pagination;
+            Customers = page.Items;
+            var customerIds = Customers.Select(c => c.Id).ToArray();
+            TicketCounts = await _context.Tickets.AsNoTracking()
+                .Where(t => t.CustomerId.HasValue && customerIds.Contains(t.CustomerId.Value))
+                .GroupBy(t => t.CustomerId!.Value)
+                .Select(g => new { CustomerId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CustomerId, x => x.Count);
         }
+
+        public int GetTicketCount(int customerId) => TicketCounts.GetValueOrDefault(customerId);
     }
 }

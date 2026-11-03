@@ -26,6 +26,9 @@ namespace WebApplication1.Pages.Tickets
         public int InProgressCount { get; set; }
         public int CustomerRepliedCount { get; set; }
         public bool HasTeamAssignment { get; set; }
+        public PaginationViewModel Pagination { get; set; } = PaginationViewModel.Create(0, 1, 25);
+        [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
+        [BindProperty(SupportsGet = true)] public int PageSize { get; set; } = 25;
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -48,33 +51,52 @@ namespace WebApplication1.Pages.Tickets
             GroupName = profile.Team.Group.ToString().Replace("_", " ");
             TeamName = profile.Team.Name;
 
-            Tickets = await _context.Tickets
-                .Include(t => t.Customer)
-                .Include(t => t.Comments)
-                .Include(t => t.Activities)
-                .Where(t => t.AssignedGroup == userGroup &&
+            var queueQuery = _context.Tickets.Where(t => t.AssignedGroup == userGroup &&
                             t.Status != TicketStatus.Closed &&
                             t.Status != TicketStatus.Cancelled &&
-                            t.Status != TicketStatus.Resolved)
-                .OrderBy(t => t.SlaDueAt)
-                .ToListAsync();
+                            t.Status != TicketStatus.Resolved);
+            var allTickets = await queueQuery.AsNoTracking().ToListAsync();
 
             var now = DateTime.Now;
-            AtRiskCount = Tickets.Count(t =>
+            AtRiskCount = allTickets.Count(t =>
             {
                 var state = SlaPolicy.GetState(t, now);
                 return state == SlaState.Yellow || state == SlaState.Red || state == SlaState.Breached;
             });
 
-            BreachedCount = Tickets.Count(t => SlaPolicy.GetState(t, now) == SlaState.Breached);
-            InProgressCount = Tickets.Count(t => t.Status == TicketStatus.InProgress);
-            CustomerRepliedCount = Tickets.Count(t =>
+            BreachedCount = allTickets.Count(t => SlaPolicy.GetState(t, now) == SlaState.Breached);
+            InProgressCount = allTickets.Count(t => t.Status == TicketStatus.InProgress);
+            CustomerRepliedCount = await CountCustomerRepliedAsync(queueQuery);
+
+            Pagination = PaginationViewModel.Create(allTickets.Count, PageNumber, PageSize,
+                routeValues: PaginationViewModel.ReadRouteValues(Request.Query));
+            var ids = allTickets.OrderBy(t => SlaPolicy.GetEffectiveDueAt(t, now))
+                .Skip((Pagination.PageNumber - 1) * Pagination.PageSize).Take(Pagination.PageSize)
+                .Select(t => t.Id).ToList();
+            if (ids.Count > 0)
             {
-                var last = t.Comments.OrderByDescending(c => c.CreatedAt).FirstOrDefault();
-                return last?.UserRole == "Customer";
-            });
+                var pageRows = await _context.Tickets.AsNoTracking().AsSplitQuery()
+                    .Include(t => t.Customer).Include(t => t.Comments).Include(t => t.Activities)
+                    .Where(t => ids.Contains(t.Id)).ToListAsync();
+                var byId = pageRows.ToDictionary(t => t.Id);
+                Tickets = ids.Where(byId.ContainsKey).Select(id => byId[id]).ToList();
+            }
 
             return Page();
+        }
+
+        private async Task<int> CountCustomerRepliedAsync(IQueryable<Ticket> ticketQuery)
+        {
+            var ids = ticketQuery.Select(t => t.Id);
+            var customers = await _context.TicketComments.AsNoTracking()
+                .Where(c => ids.Contains(c.TicketId) && c.UserRole == "Customer")
+                .GroupBy(c => c.TicketId).Select(g => new { Id = g.Key, At = g.Max(c => c.CreatedAt) })
+                .ToDictionaryAsync(x => x.Id, x => x.At);
+            var staff = await _context.TicketComments.AsNoTracking()
+                .Where(c => ids.Contains(c.TicketId) && c.UserRole != "Customer" && c.IsCustomerVisible && !c.IsInternal)
+                .GroupBy(c => c.TicketId).Select(g => new { Id = g.Key, At = g.Max(c => c.CreatedAt) })
+                .ToDictionaryAsync(x => x.Id, x => x.At);
+            return customers.Count(item => !staff.TryGetValue(item.Key, out var staffAt) || item.Value > staffAt);
         }
 
         public List<Ticket> GetAtRiskTickets()
@@ -97,10 +119,6 @@ namespace WebApplication1.Pages.Tickets
             => Tickets.Where(t => t.Status == TicketStatus.InProgress).ToList();
 
         public List<Ticket> GetCustomerRepliedTickets()
-            => Tickets.Where(t =>
-            {
-                var last = t.Comments.OrderByDescending(c => c.CreatedAt).FirstOrDefault();
-                return last?.UserRole == "Customer";
-            }).ToList();
+            => Tickets.Where(TicketHelper.IsCustomerReplied).ToList();
     }
 }

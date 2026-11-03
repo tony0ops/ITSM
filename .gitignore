@@ -22,3 +22,16 @@ Thumbs.db
 *.db
 *.db-shm
 *.db-wal
+
+# Private user uploads (keep separate from source exports)
+/App_Data/
+
+# Local reports, exports, and development review notes
+/CourseworkDocumentation/
+/exports/
+/LOGIC_FIXES.md
+/SUBMISSION_REVIEW.md
+/APPLICATION_LOGIC_REVIEW.md
+/APPLICATION_LOGIC_TEST_RESULTS.json
+/Changes.patch
+Properties/*.local.json

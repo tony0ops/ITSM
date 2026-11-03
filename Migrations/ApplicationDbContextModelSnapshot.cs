@@ -591,6 +591,9 @@ namespace WebApplication1.Migrations
                     b.Property<int>("TicketId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("TicketCommentId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<TimeSpan?>("TimeSpent")
                         .HasColumnType("TEXT");
 
@@ -619,6 +622,69 @@ namespace WebApplication1.Migrations
                         .HasDatabaseName("IX_TicketActivities_TicketId");
 
                     b.ToTable("TicketActivities");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.TicketAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsCustomerVisible")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UploadedByName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UploadedByRole")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UploadedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StoredFileName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TicketId")
+                        .HasDatabaseName("IX_TicketAttachments_TicketId");
+
+                    b.HasIndex("TicketCommentId")
+                        .HasDatabaseName("IX_TicketAttachments_TicketCommentId");
+
+                    b.ToTable("TicketAttachments");
                 });
 
             modelBuilder.Entity("WebApplication1.Models.TicketComment", b =>
@@ -841,6 +907,24 @@ namespace WebApplication1.Migrations
                     b.Navigation("Ticket");
                 });
 
+            modelBuilder.Entity("WebApplication1.Models.TicketAttachment", b =>
+                {
+                    b.HasOne("WebApplication1.Models.TicketComment", "TicketComment")
+                        .WithMany("Attachments")
+                        .HasForeignKey("TicketCommentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("WebApplication1.Models.Ticket", "Ticket")
+                        .WithMany("Attachments")
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Ticket");
+
+                    b.Navigation("TicketComment");
+                });
+
             modelBuilder.Entity("WebApplication1.Models.TicketComment", b =>
                 {
                     b.HasOne("WebApplication1.Models.Ticket", "Ticket")
@@ -885,6 +969,13 @@ namespace WebApplication1.Migrations
                     b.Navigation("Activities");
 
                     b.Navigation("Comments");
+
+                    b.Navigation("Attachments");
+                });
+
+            modelBuilder.Entity("WebApplication1.Models.TicketComment", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 #pragma warning restore 612, 618
         }

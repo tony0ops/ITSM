@@ -51,6 +51,11 @@ namespace WebApplication1.Pages.Teams
 
         public async Task<IActionResult> OnPostAsync()
         {
+            Team.Name = Team.Name?.Trim() ?? "";
+            if (Team.Group == AssignmentGroup.Unassigned)
+                ModelState.AddModelError("Team.Group", "Choose a support group; Unassigned is reserved for tickets that have not been routed.");
+            if (await _context.Teams.AnyAsync(t => t.Id != Team.Id && t.Name.ToLower() == Team.Name.ToLower()))
+                ModelState.AddModelError("Team.Name", "A team with this name already exists.");
             if (!ModelState.IsValid)
             {
                 await LoadCounts();
@@ -64,6 +69,14 @@ namespace WebApplication1.Pages.Teams
             if (existing == null)
                 return NotFound();
 
+            if (existing.Group != Team.Group && (existing.Members.Any(m => m.IsActive) ||
+                await _context.Tickets.AnyAsync(t => t.AssignedGroup == existing.Group &&
+                    t.Status != TicketStatus.Closed && t.Status != TicketStatus.Resolved && t.Status != TicketStatus.Cancelled)))
+            {
+                ModelState.AddModelError("Team.Group", "Move active members and open tickets before changing this team's group.");
+                await LoadCounts();
+                return Page();
+            }
             var wasActive = existing.IsActive;
             var isBeingDeactivated = wasActive && !Team.IsActive;
 
@@ -90,7 +103,12 @@ namespace WebApplication1.Pages.Teams
                 }
             }
 
-            await _context.SaveChangesAsync();
+            try { await _context.SaveChangesAsync(); }
+            catch (DbUpdateException ex) when (ex.InnerException is Microsoft.Data.Sqlite.SqliteException { SqliteErrorCode: 19 })
+            {
+                ModelState.AddModelError("Team.Name", "The team could not be saved. Check that its name is unique and reload before trying again.");
+                return Page();
+            }
 
             if (isBeingDeactivated)
             {

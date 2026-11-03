@@ -1,4 +1,4 @@
-﻿@page "{id:int}"
+@page "{id:int}"
 @model WebApplication1.Pages.Teams.EditModel
 @using WebApplication1.Models
 
@@ -47,9 +47,14 @@
 
             <div class="mb-3">
                 <label asp-for="Team.Group" class="form-label">Assignment Group</label>
-                <select asp-for="Team.Group" class="form-select"
-                        asp-items="Html.GetEnumSelectList<AssignmentGroup>()"></select>
+                <select asp-for="Team.Group" class="form-select">
+                    @foreach (var group in Enum.GetValues<AssignmentGroup>().Where(group => group != AssignmentGroup.Unassigned))
+                    {
+                        <option value="@group">@group.ToString().Replace("_", " ")</option>
+                    }
+                </select>
                 <span asp-validation-for="Team.Group" class="text-danger"></span>
+                <div class="form-text">Active teams with the same group share its ticket queue and assignee pool.</div>
             </div>
 
             <div class="form-check mb-3">

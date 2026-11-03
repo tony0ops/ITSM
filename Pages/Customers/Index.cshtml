@@ -43,7 +43,7 @@
 }
 else
 {
-    <p class="text-muted small mb-2">Showing @Model.Customers.Count customer(s)</p>
+    <p class="text-muted small mb-2">Showing @Model.Pagination.TotalCount customer(s)</p>
 
     <div class="table-responsive">
         <table class="table table-sm table-hover align-middle">
@@ -65,13 +65,20 @@ else
                 {
                     var statusDotStyle = $"background-color:{(customer.IsActive ? "#198754" : "#6c757d")};";
                     var statusText     = customer.IsActive ? "Active" : "Inactive";
-                    var ticketCount    = customer.Tickets.Count;
+                    var ticketCount    = Model.GetTicketCount(customer.Id);
 
                     <tr class="@(!customer.IsActive ? "table-secondary opacity-75" : "")">
                         <td>
-                            <a asp-page="./Details" asp-route-id="@customer.Id" class="fw-semibold text-decoration-none">
-                                @customer.CompanyName
-                            </a>
+                            @if (User.IsInRole("Manager"))
+                            {
+                                <a asp-page="./Details" asp-route-id="@customer.Id" class="fw-semibold text-decoration-none">
+                                    @customer.CompanyName
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="fw-semibold">@customer.CompanyName</span>
+                            }
                         </td>
                         <td><small>@(customer.PrimaryContactName ?? "-")</small></td>
                         <td>
@@ -106,3 +113,5 @@ else
         </table>
     </div>
 }
+
+<partial name="_Pagination" model="Model.Pagination" />

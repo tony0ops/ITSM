@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <DefaultItemExcludes>$(DefaultItemExcludes);CourseworkDocumentation/**;exports/**;LOGIC_FIXES.md;SUBMISSION_REVIEW.md;APPLICATION_LOGIC_REVIEW.md;APPLICATION_LOGIC_TEST_RESULTS.json;Changes.patch</DefaultItemExcludes>
     <UserSecretsId>aspnet-WebApplication1-f1a3598d-992c-4abf-a01c-bdcb594aaaf9</UserSecretsId>
   </PropertyGroup>
 

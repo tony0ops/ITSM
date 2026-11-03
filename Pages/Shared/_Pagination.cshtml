@@ -1,0 +1,52 @@
+@model WebApplication1.Models.PaginationViewModel
+
+@if (Model.TotalCount > 0)
+{
+    var start = Math.Max(1, Model.PageNumber - 2);
+    var end = Math.Min(Model.TotalPages, start + 4);
+    start = Math.Max(1, end - 4);
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 mb-3">
+        <small class="text-muted">Showing @Model.FirstItem–@Model.LastItem of @Model.TotalCount</small>
+        <div class="d-flex align-items-center gap-2">
+            <form method="get" class="d-flex align-items-center gap-2">
+                @foreach (var item in Model.RouteValues)
+                {
+                    <input type="hidden" name="@item.Key" value="@item.Value" />
+                }
+                <input type="hidden" name="@Model.PageParameterName" value="1" />
+                <label class="small text-muted" for="pageSize">Rows</label>
+                <select id="pageSize" name="PageSize" class="form-select form-select-sm" onchange="this.form.submit()">
+                    @foreach (var size in new[] { 10, 25, 50, 100 })
+                    {
+                        <option value="@size" selected="@(Model.PageSize == size)">@size</option>
+                    }
+                </select>
+            </form>
+            @if (Model.TotalPages > 1)
+            {
+                <nav aria-label="Pagination">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link" asp-all-route-data="Model.GetRouteValues(1)" aria-label="First">«</a>
+                        </li>
+                        <li class="page-item @(Model.PageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link" asp-all-route-data="Model.GetRouteValues(Model.PageNumber - 1)" aria-label="Previous">‹</a>
+                        </li>
+                        @for (var pageNumber = start; pageNumber <= end; pageNumber++)
+                        {
+                            <li class="page-item @(pageNumber == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" asp-all-route-data="Model.GetRouteValues(pageNumber)">@pageNumber</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" asp-all-route-data="Model.GetRouteValues(Model.PageNumber + 1)" aria-label="Next">›</a>
+                        </li>
+                        <li class="page-item @(Model.PageNumber == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" asp-all-route-data="Model.GetRouteValues(Model.TotalPages)" aria-label="Last">»</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+}

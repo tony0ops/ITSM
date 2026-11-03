@@ -7,7 +7,29 @@
 }
 
 <h1>Unassigned Tickets</h1>
-<p class="text-muted">Tickets waiting for assignment</p>
+<p class="text-muted">Open tickets with no individual assignee. Claim tickets routed to your team, or take an unassigned ticket and route it to your team.</p>
+
+@if (TempData["SuccessMessage"] is string success) { <div class="alert alert-success">@success</div> }
+@if (TempData["ErrorMessage"] is string error) { <div class="alert alert-warning">@error</div> }
+@if (Model.CanClaim)
+{
+    <p class="small text-muted">You will claim tickets as yourself and route unassigned tickets to <strong>@Model.ClaimTeamName</strong>.</p>
+}
+else
+{
+    @if (Model.HasUnroutedTeam)
+    {
+        <div class="alert alert-warning">Team <strong>@Model.ClaimTeamName</strong> has no routing group. Ask a Manager to assign a support group before claiming tickets.</div>
+    }
+    else if (User.IsInRole("Manager"))
+    {
+        <div class="alert alert-info">Assign your account to an active team from Users before claiming team work.</div>
+    }
+    else
+    {
+        <div class="alert alert-info">Ask a Manager to assign your account to an active team before claiming tickets.</div>
+    }
+}
 
 @if (Model.Tickets.Count == 0)
 {
@@ -17,12 +39,14 @@
 }
 else
 {
-    <p class="text-muted small mb-2">@Model.Tickets.Count unassigned ticket(s)</p>
+    <p class="text-muted small mb-2">@Model.Pagination.TotalCount unassigned ticket(s)</p>
 
+    <form method="post" asp-page-handler="ClaimSelected">
     <div class="table-responsive">
         <table class="table table-sm table-hover align-middle">
             <thead class="table-light">
                 <tr>
+                    @if (Model.CanClaim) { <th>Select</th> }
                     <th style="width:100px;">Number</th>
                     <th style="width:250px;">Title</th>
                     <th style="width:90px;">Category</th>
@@ -44,6 +68,14 @@ else
                     var sevDotStyle = $"background-color:{TicketHelper.GetSeverityDotColor(item.Severity)};";
 
                     <tr>
+                        @if (Model.CanClaim && (item.AssignedGroup == AssignmentGroup.Unassigned || item.AssignedGroup == Model.ClaimGroup))
+                        {
+                            <td><input type="checkbox" name="SelectedTicketIds" value="@item.Id" aria-label="Select @item.Number to claim" /></td>
+                        }
+                        else if (Model.CanClaim)
+                        {
+                            <td><span class="text-muted" title="Routed to another team">—</span></td>
+                        }
                         <td class="text-nowrap">
                             <a asp-page="./Details" asp-route-id="@item.Id"><small>@item.Number</small></a>
                         </td>
@@ -85,7 +117,14 @@ else
             </tbody>
         </table>
     </div>
+    @if (Model.CanClaim)
+    {
+        <button type="submit" class="btn btn-success mt-2" onclick="return confirm('Claim the selected tickets for yourself?');">Claim selected for me</button>
+    }
+    </form>
 }
+
+<partial name="_Pagination" model="Model.Pagination" />
 
 <div>
     <a asp-page="./Index" class="btn btn-secondary mt-3">Back to All Tickets</a>

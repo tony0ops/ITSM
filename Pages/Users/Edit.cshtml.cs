@@ -13,7 +13,7 @@ namespace WebApplication1.Pages.Users
     public class EditModel(
         UserManager<IdentityUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        ApplicationDbContext context) : PageModel
+        ApplicationDbContext context, SignInManager<IdentityUser> signInManager) : PageModel
     {
         [BindProperty]
         public UserEditViewModel Input { get; set; } = new();
@@ -48,7 +48,7 @@ namespace WebApplication1.Pages.Users
                 PhoneNumber = profile?.PhoneNumber ?? AppUser.PhoneNumber,
                 TeamId      = profile?.TeamId,
                 IsActive    = profile?.IsActive ?? true,
-                Role        = currentRoles.FirstOrDefault() ?? ""
+                Role        = currentRoles.FirstOrDefault() ?? "Agent"
             };
 
             await LoadDropdownsAsync();
@@ -77,6 +77,9 @@ namespace WebApplication1.Pages.Users
 
             if (!string.IsNullOrEmpty(Input.Role) && !allowedRoles.Contains(Input.Role))
                 ModelState.AddModelError("Input.Role", "Selected role is not valid for internal staff.");
+
+            if (Input.TeamId.HasValue && !await context.Teams.AnyAsync(t => t.Id == Input.TeamId && t.IsActive))
+                ModelState.AddModelError("Input.TeamId", "Select an active team.");
 
             // Prevent a manager from deactivating their own account.
             if (currentUserId == user.Id && !Input.IsActive)
@@ -149,22 +152,20 @@ namespace WebApplication1.Pages.Users
 
             await context.SaveChangesAsync();
 
+            await userManager.UpdateSecurityStampAsync(user);
+            if (currentUserId == user.Id) await signInManager.RefreshSignInAsync(user);
             TempData["SuccessMessage"] = "User updated successfully!";
             return RedirectToPage("./Index");
         }
 
         /// <summary>
-        /// Returns true when the user has no UserProfile and is not in Manager or Agent role.
+        /// Returns true for an actual portal link or Customer role.
         /// Such users are customer portal accounts and must not be edited here.
         /// </summary>
         private async Task<bool> IsPortalOnlyUserAsync(IdentityUser user)
         {
-            var hasProfile = await context.UserProfiles.AnyAsync(p => p.UserId == user.Id);
-            if (hasProfile) return false;
-
-            var isStaff = await userManager.IsInRoleAsync(user, "Manager") ||
-                          await userManager.IsInRoleAsync(user, "Agent");
-            return !isStaff;
+            return await context.CustomerUsers.IgnoreQueryFilters().AnyAsync(c => c.UserId == user.Id)
+                || await userManager.IsInRoleAsync(user, "Customer");
         }
 
         private async Task LoadDropdownsAsync()

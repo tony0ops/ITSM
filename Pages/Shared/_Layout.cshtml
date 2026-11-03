@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<IdentityUser> SignInManager
 <!DOCTYPE html>
 <html lang="en">
@@ -18,7 +18,7 @@
                 {
                     <a class="navbar-brand fw-bold text-primary" asp-page="/Dashboard/Index">ITSM</a>
                 }
-                else if (SignInManager.IsSignedIn(User))
+                else if (SignInManager.IsSignedIn(User) && User.IsInRole("Customer"))
                 {
                     <a class="navbar-brand fw-bold text-primary" asp-page="/Portal/MyTickets">ITSM Portal</a>
                 }
@@ -64,7 +64,7 @@
                             </li>
                         </ul>
                     }
-                    else if (SignInManager.IsSignedIn(User))
+                    else if (SignInManager.IsSignedIn(User) && User.IsInRole("Customer"))
                     {
                         @* Customer portal navigation *@
                         <ul class="navbar-nav flex-grow-1">
@@ -90,7 +90,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container-fluid px-4">
-            &copy; 2026 - ITSM
+            &copy; 2026 - ITSM <span class="ms-3">Times: @TimeZoneInfo.Local.DisplayName (server time)</span>
         </div>
     </footer>
 

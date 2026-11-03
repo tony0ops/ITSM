@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model WebApplication1.Pages.Tickets.CreateModel
 @using Microsoft.AspNetCore.Mvc.Rendering
 @using WebApplication1.Models
@@ -90,5 +90,6 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/ticket-assignment.js" asp-append-version="true"></script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

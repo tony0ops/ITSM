@@ -7,6 +7,7 @@
 }
 
 <h1>Team Queue</h1>
+<p class="small text-muted">Tabs filter the current page. Use the page controls to browse the full queue.</p>
 
 @if (!Model.HasTeamAssignment)
 {
@@ -35,7 +36,7 @@ else
             <div class="card border-primary h-100">
                 <div class="card-body">
                     <h6 class="card-title text-muted">Total Tickets</h6>
-                    <p class="h3 mb-0">@Model.Tickets.Count</p>
+                    <p class="h3 mb-0">@Model.Pagination.TotalCount</p>
                     <small class="text-muted">In group queue</small>
                 </div>
             </div>
@@ -82,20 +83,20 @@ else
     {
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">@Model.GroupName Tickets (@Model.Tickets.Count)</h5>
+                <h5 class="mb-0">@Model.GroupName Tickets (@Model.Pagination.TotalCount)</h5>
             </div>
 
             <div class="card-body">
                 <ul class="nav nav-tabs mb-3" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                            All (@Model.Tickets.Count)
+                            All (@Model.Pagination.TotalCount)
                         </button>
                     </li>
 
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="custreply-tab" data-bs-toggle="tab" data-bs-target="#custreply" type="button" role="tab">
-                            Customer Replied (@Model.CustomerRepliedCount)
+                            Customer Replied (@Model.GetCustomerRepliedTickets().Count)
                         </button>
                     </li>
 
@@ -139,6 +140,7 @@ else
                         @await Html.PartialAsync("Shared/_TicketTable", Model.GetInProgressTickets())
                     </div>
                 </div>
+                <partial name="_Pagination" model="Model.Pagination" />
             </div>
         </div>
     }

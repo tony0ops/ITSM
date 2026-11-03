@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -110,7 +110,7 @@ namespace WebApplication1.Pages.Dashboard
                 .ToDictionaryAsync(x => x.Customer, x => x.Count);
 
             var resolvedData = await query
-                .Where(t => t.ResolvedAt.HasValue || t.ClosedAt.HasValue)
+                .Where(t => t.Status != TicketStatus.Cancelled && (t.ResolvedAt.HasValue || t.ClosedAt.HasValue))
                 .Select(t => new { t.CreatedAt, t.ResolvedAt, t.ClosedAt, t.Severity })
                 .ToListAsync();
 

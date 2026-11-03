@@ -12,6 +12,7 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<TicketActivity> TicketActivities => Set<TicketActivity>();
     public DbSet<TicketComment> TicketComments => Set<TicketComment>();
+    public DbSet<TicketAttachment> TicketAttachments => Set<TicketAttachment>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Team> Teams => Set<Team>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
@@ -25,6 +26,7 @@ public class ApplicationDbContext : IdentityDbContext
         // BaseEntity column mappings
         modelBuilder.Entity<Ticket>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
         modelBuilder.Entity<TicketComment>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
+        modelBuilder.Entity<TicketAttachment>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
         modelBuilder.Entity<Team>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
         modelBuilder.Entity<UserProfile>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
         modelBuilder.Entity<CustomerSla>().Property(e => e.CreatedAt).HasColumnName("CreatedAt");
@@ -48,6 +50,14 @@ public class ApplicationDbContext : IdentityDbContext
         modelBuilder.Entity<TicketComment>()
             .HasOne(c => c.Ticket).WithMany(t => t.Comments)
             .HasForeignKey(c => c.TicketId).OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TicketAttachment>()
+            .HasOne(a => a.Ticket).WithMany(t => t.Attachments)
+            .HasForeignKey(a => a.TicketId).OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TicketAttachment>()
+            .HasOne(a => a.TicketComment).WithMany(c => c.Attachments)
+            .HasForeignKey(a => a.TicketCommentId).OnDelete(DeleteBehavior.SetNull);
 
         modelBuilder.Entity<UserProfile>()
             .HasOne(up => up.User).WithMany()
@@ -74,6 +84,7 @@ public class ApplicationDbContext : IdentityDbContext
         modelBuilder.Entity<Customer>().HasQueryFilter(c => !c.IsDeleted);
         modelBuilder.Entity<TicketActivity>().HasQueryFilter(a => !a.Ticket.IsDeleted);
         modelBuilder.Entity<TicketComment>().HasQueryFilter(c => !c.Ticket.IsDeleted);
+        modelBuilder.Entity<TicketAttachment>().HasQueryFilter(a => !a.Ticket.IsDeleted);
         modelBuilder.Entity<CustomerSla>().HasQueryFilter(cs => !cs.Customer.IsDeleted);
         modelBuilder.Entity<CustomerUser>().HasQueryFilter(cu => !cu.Customer.IsDeleted);
 
@@ -104,6 +115,11 @@ public class ApplicationDbContext : IdentityDbContext
             .HasIndex(c => c.IsInternal).HasDatabaseName("IX_TicketComments_IsInternal");
         modelBuilder.Entity<TicketComment>()
             .HasIndex(c => c.CreatedAt).HasDatabaseName("IX_TicketComments_CreatedAt");
+
+        modelBuilder.Entity<TicketAttachment>()
+            .HasIndex(a => a.TicketId).HasDatabaseName("IX_TicketAttachments_TicketId");
+        modelBuilder.Entity<TicketAttachment>()
+            .HasIndex(a => a.TicketCommentId).HasDatabaseName("IX_TicketAttachments_TicketCommentId");
 
         modelBuilder.Entity<Customer>()
             .HasIndex(c => c.IsDeleted).HasDatabaseName("IX_Customers_IsDeleted");

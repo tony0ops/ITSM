@@ -5,18 +5,21 @@ using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Services.TicketActivity;
+using WebApplication1.Services;
 
 namespace WebApplication1.Pages.Tickets
 {
     public class DetailsModel(
         ApplicationDbContext context,
         UserManager<IdentityUser> userManager,
-        TicketActivityFormatterFactory formatterFactory) : PageModel
+        TicketActivityFormatterFactory formatterFactory,
+        TicketAttachmentStorage attachmentStorage) : PageModel
     {
         public Ticket Ticket { get; set; } = default!;
         public string AssigneeDisplayName { get; set; } = "Unassigned";
         public List<TicketActivity> Activities { get; set; } = [];
         public List<TicketComment> Comments { get; set; } = [];
+        public List<TicketAttachment> Attachments { get; set; } = [];
         public TimeSpan TotalTimeSpent { get; set; }
         public Dictionary<int, ActivityDisplayInfo> ActivityDisplayMap { get; set; } = [];
 
@@ -36,6 +39,7 @@ namespace WebApplication1.Pages.Tickets
         [BindProperty] public string EditActivityDescription { get; set; } = "";
         [BindProperty] public int EditActivityHours { get; set; }
         [BindProperty] public int EditActivityMinutes { get; set; }
+        [BindProperty] public IFormFile? AttachmentFile { get; set; }
 
         public class ActivityDisplayInfo
         {
@@ -50,8 +54,10 @@ namespace WebApplication1.Pages.Tickets
                 return NotFound();
 
             var ticket = await context.Tickets
+                .AsSplitQuery()
                 .Include(t => t.Activities)
                 .Include(t => t.Comments)
+                    .ThenInclude(c => c.Attachments)
                 .Include(t => t.Customer)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -59,6 +65,9 @@ namespace WebApplication1.Pages.Tickets
                 return NotFound();
 
             Ticket = ticket;
+            Attachments = await context.TicketAttachments.AsNoTracking()
+                .Where(a => a.TicketId == ticket.Id && a.TicketCommentId == null)
+                .OrderByDescending(a => a.CreatedAt).ToListAsync();
 
             if (!string.IsNullOrEmpty(ticket.AssigneeUserId))
             {
@@ -111,6 +120,35 @@ namespace WebApplication1.Pages.Tickets
             }
 
             return Page();
+        }
+
+        public async Task<IActionResult> OnGetDownloadAttachmentAsync(int id, int attachmentId)
+        {
+            var attachment = await context.TicketAttachments.AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Id == attachmentId && a.TicketId == id);
+            if (attachment == null) return NotFound();
+            var stream = attachmentStorage.OpenRead(attachment.StoredFileName);
+            if (stream == null) return NotFound();
+            Response.Headers["X-Content-Type-Options"] = "nosniff";
+            return File(stream, attachment.ContentType, attachment.FileName);
+        }
+
+        public async Task<IActionResult> OnPostDeleteAttachmentAsync(int id, int attachmentId,
+            CancellationToken cancellationToken)
+        {
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+            var attachment = await context.TicketAttachments
+                .FirstOrDefaultAsync(a => a.Id == attachmentId && a.TicketId == id, cancellationToken);
+            if (attachment == null) return NotFound();
+            if (!User.IsInRole("Manager") && attachment.UploadedByUserId != user.Id) return Forbid();
+
+            var storedName = attachment.StoredFileName;
+            context.TicketAttachments.Remove(attachment);
+            await context.SaveChangesAsync(cancellationToken);
+            await attachmentStorage.DeleteAsync(storedName);
+            TempData["SuccessMessage"] = "Attachment deleted.";
+            return RedirectToPage(new { id });
         }
 
         public async Task<IActionResult> OnPostLogTimeAsync(int? id)
@@ -172,30 +210,113 @@ namespace WebApplication1.Pages.Tickets
             if (ticket == null)
                 return NotFound();
 
-            if (string.IsNullOrWhiteSpace(NewComment))
+            if (string.IsNullOrWhiteSpace(NewComment) || NewComment.Trim().Length > 4000)
             {
-                ModelState.AddModelError("", "Comment cannot be empty");
+                ModelState.AddModelError("", string.IsNullOrWhiteSpace(NewComment)
+                    ? "Comment cannot be empty"
+                    : "Comments cannot exceed 4,000 characters.");
                 return await OnGetAsync(id, null, null);
             }
 
-            var user     = await userManager.GetUserAsync(User);
-            var userName = user?.Email ?? user?.UserName ?? "Anonymous";
-            var userId   = user?.Id ?? "";
-            var roles    = await userManager.GetRolesAsync(user!);
+            var user = await userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+            if (!IsInternalComment && !TicketConversationFlow.CanPostPublicReply(ticket.Status))
+            {
+                TempData["ErrorMessage"] = "This ticket is closed or cancelled. Reopen it before posting a customer-visible reply.";
+                return RedirectToPage(new { id });
+            }
+
+            var userName = user.Email ?? user.UserName ?? "Staff";
+            if (userName.Length > 100) userName = userName[..100];
+            var userId   = user.Id;
+            var roles    = await userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault() ?? "Agent";
 
-            context.TicketComments.Add(new TicketComment
+            var commentText = NewComment.Trim();
+            var now = DateTime.Now;
+            StoredAttachment? saved = null;
+            if (AttachmentFile != null)
             {
-                TicketId          = ticket.Id,
-                UserId            = userId,
-                UserName          = userName,
-                UserRole          = userRole,
-                Comment           = NewComment.Trim(),
-                IsInternal        = IsInternalComment,
-                IsCustomerVisible = !IsInternalComment
-            });
+                try
+                {
+                    saved = await attachmentStorage.SaveAsync(AttachmentFile);
+                }
+                catch (TicketAttachmentValidationException ex)
+                {
+                    TempData["ErrorMessage"] = ex.Message;
+                    return RedirectToPage(new { id });
+                }
+            }
 
-            await context.SaveChangesAsync();
+            var comment = new TicketComment
+            {
+                TicketId = ticket.Id,
+                CreatedAt = now,
+                UserId = userId,
+                UserName = userName,
+                UserRole = userRole,
+                Comment = commentText,
+                IsInternal = IsInternalComment,
+                IsCustomerVisible = !IsInternalComment
+            };
+            context.TicketComments.Add(comment);
+            if (saved != null)
+            {
+                context.TicketAttachments.Add(new TicketAttachment
+                {
+                    TicketId = ticket.Id,
+                    TicketComment = comment,
+                    FileName = saved.FileName,
+                    StoredFileName = saved.StoredFileName,
+                    ContentType = saved.ContentType,
+                    FileSize = saved.FileSize,
+                    UploadedByUserId = userId,
+                    UploadedByName = userName,
+                    UploadedByRole = User.IsInRole("Manager") ? "Manager" : "Agent",
+                    IsCustomerVisible = !IsInternalComment
+                });
+            }
+            context.TicketActivities.Add(new TicketActivity
+            {
+                TicketId = ticket.Id,
+                Type = ActivityType.CommentAdded,
+                CreatedAt = now,
+                UserId = userId,
+                UserName = userName,
+                Description = IsInternalComment ? "Internal note added" : "Comment added",
+                NewValue = commentText.Length > 450 ? commentText[..450] : commentText,
+                IsInternal = IsInternalComment
+            });
+            if (saved != null)
+            {
+                context.TicketActivities.Add(new TicketActivity
+                {
+                    TicketId = ticket.Id,
+                    Type = ActivityType.AttachmentUploaded,
+                    CreatedAt = now,
+                    UserId = userId,
+                    UserName = userName,
+                    Description = $"Attachment uploaded with reply: {saved.FileName}",
+                    IsInternal = IsInternalComment
+                });
+            }
+            if (!IsInternalComment)
+            {
+                context.TicketActivities.AddRange(
+                    TicketConversationFlow.ApplyPublicReply(ticket, userId, userName, now));
+            }
+            ticket.UpdatedAt = now;
+            ticket.ModifiedBy = userId;
+
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch
+            {
+                if (saved != null) await attachmentStorage.DeleteAsync(saved.StoredFileName);
+                throw;
+            }
             return RedirectToPage(new { id });
         }
 
@@ -224,6 +345,24 @@ namespace WebApplication1.Pages.Tickets
 
             comment.Comment   = EditCommentText.Trim();
             comment.UpdatedAt = DateTime.Now;
+            var editor = await userManager.GetUserAsync(User);
+            context.TicketActivities.Add(new TicketActivity
+            {
+                TicketId = comment.TicketId,
+                Type = ActivityType.CommentAdded,
+                CreatedAt = comment.UpdatedAt.Value,
+                UserId = editor?.Id ?? comment.UserId,
+                UserName = editor?.Email ?? editor?.UserName ?? comment.UserName,
+                Description = comment.IsInternal ? "Internal note edited" : "Comment edited",
+                NewValue = comment.Comment.Length > 450 ? comment.Comment[..450] : comment.Comment,
+                IsInternal = comment.IsInternal
+            });
+            var editedTicket = await context.Tickets.FirstOrDefaultAsync(t => t.Id == comment.TicketId);
+            if (editedTicket != null)
+            {
+                editedTicket.UpdatedAt = comment.UpdatedAt;
+                editedTicket.ModifiedBy = editor?.Id;
+            }
             await context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Comment updated.";

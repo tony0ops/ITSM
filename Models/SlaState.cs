@@ -1,9 +1,10 @@
-﻿namespace WebApplication1.Models;
+namespace WebApplication1.Models;
 
 public enum SlaState
 {
     Green,
     Yellow,
     Red,
-    Breached
+    Breached,
+    Paused
 }

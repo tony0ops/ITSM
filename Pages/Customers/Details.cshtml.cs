@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -37,8 +37,8 @@ namespace WebApplication1.Pages.Customers
         [BindProperty]
         public bool NewCanAddComments { get; set; } = true;
 
-        // NewCanCreateTickets intentionally omitted - feature not yet implemented.
-        // CanCreateTickets is always saved as false until /Portal/CreateTicket exists.
+        [BindProperty]
+        public bool NewCanCreateTickets { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -46,6 +46,7 @@ namespace WebApplication1.Pages.Customers
                 return NotFound();
 
             var customer = await context.Customers
+                .AsSplitQuery()
                 .Include(c => c.Tickets)
                     .ThenInclude(t => t.Activities)
                 .Include(c => c.Tickets)
@@ -79,7 +80,7 @@ namespace WebApplication1.Pages.Customers
                     Status         = t.Status,
                     Severity       = t.Severity,
                     CreatedAt      = t.CreatedAt,
-                    LastUpdated    = lastVisibleComment?.CreatedAt ?? t.UpdatedAt ?? t.CreatedAt,
+                    LastUpdated    = TicketHelper.GetLastActivityAt(t),
                     LastUpdateNote = lastVisibleComment?.Comment
                 };
             });
@@ -112,6 +113,12 @@ namespace WebApplication1.Pages.Customers
             if (string.IsNullOrWhiteSpace(NewPortalEmail))
             {
                 TempData["ErrorMessage"] = "Email is required.";
+                return RedirectToPage(new { id });
+            }
+
+            if (NewCanCreateTickets && !NewCanViewTickets)
+            {
+                TempData["ErrorMessage"] = "Ticket creation also requires permission to view tickets.";
                 return RedirectToPage(new { id });
             }
 
@@ -157,7 +164,7 @@ namespace WebApplication1.Pages.Customers
                     UserId           = existingUser.Id,
                     CanViewTickets   = NewCanViewTickets,
                     CanAddComments   = NewCanAddComments,
-                    CanCreateTickets = false,
+                    CanCreateTickets = NewCanCreateTickets,
                     IsActive         = true
                 });
 
@@ -192,7 +199,7 @@ namespace WebApplication1.Pages.Customers
                 UserId           = newUser.Id,
                 CanViewTickets   = NewCanViewTickets,
                 CanAddComments   = NewCanAddComments,
-                CanCreateTickets = false,
+                CanCreateTickets = NewCanCreateTickets,
                 IsActive         = true
             });
 
@@ -228,6 +235,47 @@ namespace WebApplication1.Pages.Customers
             return RedirectToPage(new { id });
         }
 
+        public async Task<IActionResult> OnPostToggleCreateTicketsAsync(int id, int customerUserId)
+        {
+            var cu = await context.CustomerUsers.FindAsync(customerUserId);
+            if (cu == null || cu.CustomerId != id)
+                return NotFound();
+
+            if (!cu.CanViewTickets)
+            {
+                TempData["ErrorMessage"] = "Ticket creation requires permission to view tickets.";
+                return RedirectToPage(new { id });
+            }
+
+            cu.CanCreateTickets = !cu.CanCreateTickets;
+            cu.UpdatedAt = DateTime.Now;
+            await context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = cu.CanCreateTickets
+                ? "Portal ticket creation enabled."
+                : "Portal ticket creation disabled.";
+            return RedirectToPage(new { id });
+        }
+
+        public async Task<IActionResult> OnPostUpdatePermissionsAsync(int id, int customerUserId,
+            bool canViewTickets, bool canAddComments, bool canCreateTickets)
+        {
+            var link = await context.CustomerUsers.FirstOrDefaultAsync(c => c.Id == customerUserId && c.CustomerId == id);
+            if (link == null) return NotFound();
+            if (canCreateTickets && !canViewTickets)
+            {
+                TempData["ErrorMessage"] = "Creating tickets also requires Can View Tickets.";
+                return RedirectToPage(new { id });
+            }
+            link.CanViewTickets = canViewTickets;
+            link.CanAddComments = canAddComments;
+            link.CanCreateTickets = canCreateTickets;
+            link.UpdatedAt = DateTime.Now;
+            await context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Portal permissions updated.";
+            return RedirectToPage(new { id });
+        }
+
         private async Task LoadPortalUsersAsync(int customerId)
         {
             var customerUsers = await context.CustomerUsers
@@ -242,6 +290,7 @@ namespace WebApplication1.Pages.Customers
                 Email          = cu.User?.Email ?? "Unknown",
                 CanViewTickets = cu.CanViewTickets,
                 CanAddComments = cu.CanAddComments,
+                CanCreateTickets = cu.CanCreateTickets,
                 IsActive       = cu.IsActive,
                 CreatedAt      = cu.CreatedAt
             })];
@@ -265,6 +314,7 @@ namespace WebApplication1.Pages.Customers
             public string Email { get; set; } = "";
             public bool CanViewTickets { get; set; }
             public bool CanAddComments { get; set; }
+            public bool CanCreateTickets { get; set; }
             public bool IsActive { get; set; }
             public DateTime CreatedAt { get; set; }
         }

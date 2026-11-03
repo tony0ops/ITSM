@@ -26,9 +26,14 @@
 
             <div class="mb-3">
                 <label asp-for="Team.Group" class="form-label">Default Assignment Group</label>
-                <select asp-for="Team.Group" class="form-select" asp-items="Html.GetEnumSelectList<AssignmentGroup>()">
+                <select asp-for="Team.Group" class="form-select">
+                    @foreach (var group in Enum.GetValues<AssignmentGroup>().Where(group => group != AssignmentGroup.Unassigned))
+                    {
+                        <option value="@group">@group.ToString().Replace("_", " ")</option>
+                    }
                 </select>
-                <div class="form-text">Tickets assigned to this group will appear in this team's queue. Each team should map to one group.</div>
+                <span asp-validation-for="Team.Group" class="text-danger"></span>
+                <div class="form-text">Active teams with the same group share its ticket queue and assignee pool.</div>
             </div>
 
             <div class="mb-3 form-check">

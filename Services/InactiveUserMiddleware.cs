@@ -1,81 +1,33 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using WebApplication1.Data;
 
 namespace WebApplication1.Services;
 
-/// <summary>
-/// Signs out users whose staff profile or customer portal account has been
-/// deactivated. Also signs out portal users whose parent customer is inactive.
-/// Uses a short-lived cache to avoid a database query on every request.
-/// </summary>
-public class InactiveUserMiddleware
+// Check current activity on every request, before endpoint authorization.
+public class InactiveUserMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public InactiveUserMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
-    public async Task InvokeAsync(
-        HttpContext context,
-        ApplicationDbContext dbContext,
-        SignInManager<IdentityUser> signInManager,
-        UserManager<IdentityUser> userManager,
-        IMemoryCache cache)
+    public async Task InvokeAsync(HttpContext context, ApplicationDbContext db,
+        SignInManager<IdentityUser> signIn, UserManager<IdentityUser> users)
     {
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            var user = await userManager.GetUserAsync(context.User);
+            var user = await users.GetUserAsync(context.User);
             if (user != null)
             {
-                var cacheKey = $"UserActive_{user.Id}";
-
-                if (!cache.TryGetValue(cacheKey, out bool isActive))
+                var profile = await db.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == user.Id);
+                var link = await db.CustomerUsers.IgnoreQueryFilters().Include(c => c.Customer)
+                    .AsNoTracking().FirstOrDefaultAsync(c => c.UserId == user.Id);
+                var active = (profile?.IsActive ?? true) &&
+                    (link == null || (link.IsActive && link.Customer.IsActive && !link.Customer.IsDeleted));
+                if (!active || await users.IsLockedOutAsync(user))
                 {
-                    var profile = await dbContext.UserProfiles
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(p => p.UserId == user.Id);
-
-                    if (profile != null)
-                    {
-                        // Internal staff - enforce staff profile active flag.
-                        isActive = profile.IsActive;
-                    }
-                    else
-                    {
-                        // Customer portal user - check both the portal user record
-                        // and the parent customer active status.
-                        var customerUser = await dbContext.CustomerUsers
-                            .AsNoTracking()
-                            .Include(cu => cu.Customer)
-                            .FirstOrDefaultAsync(cu => cu.UserId == user.Id);
-
-                        isActive = customerUser != null
-                            && customerUser.IsActive
-                            && customerUser.Customer != null
-                            && customerUser.Customer.IsActive;
-
-                        // If no profile of any kind exists, treat as active (new user still setting up).
-                        if (customerUser == null)
-                            isActive = true;
-                    }
-
-                    cache.Set(cacheKey, isActive, TimeSpan.FromMinutes(2));
-                }
-
-                if (!isActive)
-                {
-                    cache.Remove(cacheKey);
-                    await signInManager.SignOutAsync();
+                    await signIn.SignOutAsync();
                     context.Response.Redirect("/Identity/Account/Login");
                     return;
                 }
             }
         }
-
-        await _next(context);
+        await next(context);
     }
 }

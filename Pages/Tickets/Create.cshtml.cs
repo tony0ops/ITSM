@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Models;
 using WebApplication1.Services;
@@ -19,6 +20,14 @@ namespace WebApplication1.Pages.Tickets
         public SelectList CustomerList { get; set; } = default!;
         public SelectList AssigneeList { get; set; } = default!;
 
+        public async Task<IActionResult> OnGetAssigneesAsync(AssignmentGroup group)
+        {
+            if (!ModelState.IsValid || !Enum.IsDefined(group)) return BadRequest();
+            if (group == AssignmentGroup.Unassigned) return new JsonResult(Array.Empty<object>());
+            var choices = await selectListService.GetUsersByGroupAsync(group);
+            return new JsonResult(choices.Select(c => new { value = c.Value, text = c.Text }));
+        }
+
         public async Task<IActionResult> OnGetAsync()
         {
             CustomerList = selectListService.GetActiveCustomers();
@@ -35,6 +44,9 @@ namespace WebApplication1.Pages.Tickets
 
             if (!Ticket.SlaDueAt.HasValue)
                 Ticket.SlaDueAt = Ticket.CreatedAt + SlaPolicy.GetSlaDuration(Ticket, context);
+
+            if (Ticket.CustomerId.HasValue && !await context.Customers.AnyAsync(c => c.Id == Ticket.CustomerId && c.IsActive))
+                ModelState.AddModelError("Ticket.CustomerId", "Select an active customer.");
 
             if (Ticket.CustomerId.HasValue)
             {
@@ -86,7 +98,13 @@ namespace WebApplication1.Pages.Tickets
 
             // Use a unique temporary number to satisfy the unique index
             // while the database Id is not yet known.
-            Ticket.Number = $"TMP-{Guid.NewGuid():N}";
+            Ticket = new Ticket
+            {
+                Number = $"TMP-{Guid.NewGuid():N}", Title = Ticket.Title.Trim(), Description = Ticket.Description.Trim(),
+                Severity = Ticket.Severity, Category = Ticket.Category, AssignedGroup = Ticket.AssignedGroup,
+                AssigneeUserId = Ticket.AssigneeUserId, CustomerId = Ticket.CustomerId, CustomerName = Ticket.CustomerName,
+                SlaDueAt = Ticket.SlaDueAt, CreatedAt = Ticket.CreatedAt, CreatedBy = currentUser?.Id ?? "", Status = TicketStatus.New
+            };
             context.Tickets.Add(Ticket);
             await context.SaveChangesAsync();
 

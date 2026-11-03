@@ -7,7 +7,9 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1>Users</h1>
+    <a asp-page="./Create" class="btn btn-primary">Create Staff User</a>
 </div>
+@if (TempData["SuccessMessage"] is string success) { <div class="alert alert-success">@success</div> }
 
 <form method="get" class="row g-2 mb-3">
     <div class="col-md-4">
@@ -28,7 +30,7 @@
 }
 else
 {
-    <p class="text-muted small mb-2">Showing @Model.Users.Count user(s)</p>
+    <p class="text-muted small mb-2">Showing @Model.Pagination.TotalCount user(s)</p>
 
     <div class="table-responsive">
         <table class="table table-sm table-hover align-middle">
@@ -47,15 +49,15 @@ else
             <tbody>
                 @foreach (var user in Model.Users)
                 {
-                    var roleDot = user.Role switch
+                    var roleDotColor = user.Role switch
                     {
                         "Manager" => "#dc3545",
-                        "Agent" => "#0d6efd",
-                        _ => "#6c757d"
+                        "Agent"   => "#0d6efd",
+                        _         => "#6c757d"
                     };
-
-                    var statusDot = user.IsActive ? "#198754" : "#6c757d";
-                    var statusText = user.IsActive ? "Active" : "Inactive";
+                    var roleDotStyle   = $"background-color:{roleDotColor};";
+                    var statusDotStyle = $"background-color:{(user.IsActive ? "#198754" : "#6c757d")};";
+                    var statusText     = user.IsActive ? "Active" : "Inactive";
 
                     <tr class="@(!user.IsActive ? "table-secondary opacity-75" : "")">
                         <td><small>@user.Email</small></td>
@@ -63,7 +65,7 @@ else
                         <td><small class="text-muted">@(user.Department ?? "-")</small></td>
                         <td><small class="text-muted">@(user.JobTitle ?? "-")</small></td>
                         <td>
-                            <span class="status-dot status-dot-sm me-1" style="background:@roleDot;"></span>
+                            <span class="status-dot status-dot-sm me-1" style="@roleDotStyle"></span>
                             <small>@user.Role</small>
                         </td>
                         <td>
@@ -73,11 +75,18 @@ else
                             { <small class="text-muted">-</small> }
                         </td>
                         <td>
-                            <span class="status-dot status-dot-sm me-1" style="background:@statusDot;"></span>
+                            <span class="status-dot status-dot-sm me-1" style="@statusDotStyle"></span>
                             <small>@statusText</small>
                         </td>
                         <td class="text-nowrap">
-                            <a asp-page="./Edit" asp-route-id="@user.UserId" class="text-primary text-decoration-none">Edit</a>
+                            @if (user.IsPortal)
+                            {
+                                <a asp-page="/Customers/Index" class="text-primary" hidden="@(user.CustomerId.HasValue)">Manage portal link in Customers</a>
+                                @if (user.CustomerId.HasValue)
+                                { <a asp-page="/Customers/Details" asp-route-id="@user.CustomerId">Portal permissions</a> }
+                            }
+                            else
+                            { <a asp-page="./Edit" asp-route-id="@user.UserId" class="text-primary text-decoration-none">@(user.HasProfile ? "Edit" : "Assign access")</a> }
                         </td>
                     </tr>
                 }
@@ -85,3 +94,5 @@ else
         </table>
     </div>
 }
+
+<partial name="_Pagination" model="Model.Pagination" />

@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model WebApplication1.Pages.Tickets.IndexModel
 @using WebApplication1.Models
 
@@ -7,7 +7,12 @@
     var severityOrder = new[] { Severity.Critical, Severity.High, Severity.Medium, Severity.Low, Severity.Info };
 }
 
-<h1>Tickets</h1>
+<h1>All Tickets</h1>
+<p class="text-muted">Open tickets are shown by default. Select a status below to view resolved, closed or cancelled tickets.</p>
+@if (User.IsInRole("Manager"))
+{
+    <p><a asp-page="./Deleted" class="btn btn-outline-secondary btn-sm">Deleted Tickets / Restore</a></p>
+}
 
 <form method="get" class="mb-3">
     <input type="hidden" name="SortBy" value="@Model.SortBy" />
@@ -63,6 +68,7 @@
                 <option value="">SLA</option>
                 <option value="atrisk" selected="@(Model.Sla == "atrisk")">At risk</option>
                 <option value="green" selected="@(Model.Sla == "green")">Green</option>
+                <option value="paused" selected="@(Model.Sla == "paused")">Paused</option>
                 <option value="yellow" selected="@(Model.Sla == "yellow")">Yellow</option>
                 <option value="red" selected="@(Model.Sla == "red")">Red</option>
                 <option value="breached" selected="@(Model.Sla == "breached")">Breach</option>
@@ -283,7 +289,17 @@
                     </td>
 
                     <td>
-                        <small>@ticket.Status</small>
+                        <span class="badge bg-@(ticket.Status switch {
+                            TicketStatus.New               => "primary",
+                            TicketStatus.Assigned          => "info text-dark",
+                            TicketStatus.InProgress        => "warning text-dark",
+                            TicketStatus.WaitingOnCustomer => "secondary",
+                            TicketStatus.WaitingOnVendor   => "secondary",
+                            TicketStatus.Resolved          => "success",
+                            TicketStatus.Closed            => "dark",
+                            TicketStatus.Cancelled         => "danger",
+                            _                              => "secondary"
+                        })">@ticket.Status</span>
                     </td>
 
                     <td>
@@ -309,11 +325,18 @@
                         <small>
                             @if (ticket.Customer != null)
                             {
-                                <a asp-page="/Customers/Details"
-                                   asp-route-id="@ticket.Customer.Id"
-                                   title="@ticket.Customer.CompanyName">
+                                @if (User.IsInRole("Manager"))
+                                {
+                                    <a asp-page="/Customers/Details"
+                                       asp-route-id="@ticket.Customer.Id"
+                                       title="@ticket.Customer.CompanyName">
+                                        @ticket.Customer.CompanyName
+                                    </a>
+                                }
+                                else
+                                {
                                     @ticket.Customer.CompanyName
-                                </a>
+                                }
                             }
                             else if (!string.IsNullOrEmpty(ticket.CustomerName))
                             {
@@ -342,14 +365,10 @@
                         {
                             <small class="text-muted">Closed</small>
                         }
-                        else if (SlaPolicy.IsSlaPaused(ticket.Status))
-                        {
-                            <small class="text-muted">Paused</small>
-                        }
                         else
                         {
                             <small>
-                                <span class="badge @slaBadge">@remaining</span>
+                                <span class="badge @slaBadge" title="SLA @slaState — @remaining">@remaining</span>
                             </small>
                         }
                     </td>
@@ -377,6 +396,8 @@
         </tbody>
     </table>
 </div>
+
+<partial name="_Pagination" model="Model.Pagination" />
 
 @if (!Model.Tickets.Any())
 {

@@ -56,6 +56,9 @@ namespace WebApplication1.Pages.Teams
             if (profile == null)
                 return NotFound();
 
+            if (!profile.IsActive || !await _context.Teams.AnyAsync(t => t.Id == teamId && t.IsActive))
+                return BadRequest("Select an active team and staff member.");
+
             // Safety check: only assign if user has no team
             if (profile.TeamId != null)
             {
@@ -76,7 +79,7 @@ namespace WebApplication1.Pages.Teams
         public async Task<IActionResult> OnPostRemoveMemberAsync(int teamId, int userId)
         {
             var profile = await _context.UserProfiles.FindAsync(userId);
-            if (profile != null)
+            if (profile != null && profile.TeamId == teamId)
             {
                 var currentUser = await _userManager.GetUserAsync(User);
                 profile.TeamId = null;

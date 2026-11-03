@@ -65,4 +65,5 @@ public class Ticket : BaseEntity, ISoftDeletable
     // Navigation properties
     public ICollection<TicketActivity> Activities { get; set; } = new List<TicketActivity>();
     public ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
+    public ICollection<TicketAttachment> Attachments { get; set; } = new List<TicketAttachment>();
 }

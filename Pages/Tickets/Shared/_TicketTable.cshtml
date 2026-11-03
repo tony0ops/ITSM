@@ -27,17 +27,13 @@ else
             <tbody>
                 @foreach (var item in Model)
                 {
-                    var now            = DateTime.Now;
-                    var state          = SlaPolicy.GetState(item, now);
-                    var remaining      = SlaPolicy.FormatRemaining(item, now);
-                    var slaBadge       = SlaPolicy.GetBadgeClass(state);
-
-                    var isClosed       = item.Status == TicketStatus.Closed ||
-                                         item.Status == TicketStatus.Resolved ||
-                                         item.Status == TicketStatus.Cancelled;
-
-                    var sevDotStyle    = $"background-color:{TicketHelper.GetSeverityDotColor(item.Severity)};";
-                    var lastActivityAt = TicketHelper.GetLastActivityAt(item);
+                    var now             = DateTime.Now;
+                    var state           = SlaPolicy.GetState(item, now);
+                    var remaining       = SlaPolicy.FormatRemaining(item, now);
+                    var slaBadge        = SlaPolicy.GetBadgeClass(state);
+                    var isClosed        = TicketHelper.IsClosedLike(item.Status);
+                    var sevDotStyle     = $"background-color:{TicketHelper.GetSeverityDotColor(item.Severity)};";
+                    var lastActivityAt  = TicketHelper.GetLastActivityAt(item);
                     var customerReplied = TicketHelper.IsCustomerReplied(item);
 
                     <tr class="@(isClosed ? "table-secondary opacity-75" : "")">
@@ -88,10 +84,6 @@ else
                             @if (isClosed)
                             {
                                 <small class="text-muted">Closed</small>
-                            }
-                            else if (SlaPolicy.IsSlaPaused(item.Status))
-                            {
-                                <small class="text-muted">Paused</small>
                             }
                             else
                             {

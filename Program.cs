@@ -1,10 +1,19 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
+using WebApplication1.Models;
 using WebApplication1.Services;
 using WebApplication1.Services.TicketActivity;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// This is a local course app. Keep diagnostics in the console/Visual Studio output;
+// the Windows Event Log provider can itself throw when the current user cannot write
+// to the ".NET Runtime" source, turning an ordinary middleware warning into a crash.
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -14,6 +23,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddMemoryCache();
+builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = 10 * 1024 * 1024 + 128 * 1024);
+builder.Services.AddSingleton<TicketAttachmentStorage>();
 builder.Services.AddScoped<SelectListService>();
 builder.Services.AddScoped<EntityLifecycleService>();
 
@@ -30,6 +41,9 @@ builder.Services.AddScoped<TicketActivityFormatterFactory>();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+    options.ValidationInterval = TimeSpan.Zero);
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("InternalStaff", policy =>
@@ -77,6 +91,9 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    if (builder.Configuration.GetValue<bool>("LabMode:Enabled"))
+        await db.Database.MigrateAsync();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
@@ -87,12 +104,24 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(role));
     }
 
-    string[] managerEmails = ["test1@test.com"];
+    string[] managerEmails = builder.Configuration.GetValue<bool>("LabMode:Enabled") ? ["test1@test.com"] : [];
     foreach (var email in managerEmails)
     {
         var user = await userManager.FindByEmailAsync(email);
-        if (user != null && !await userManager.IsInRoleAsync(user, "Manager"))
+        if (user != null && !await db.CustomerUsers.IgnoreQueryFilters().AnyAsync(c => c.UserId == user.Id)
+            && !await userManager.IsInRoleAsync(user, "Manager"))
             await userManager.AddToRoleAsync(user, "Manager");
+    }
+    // Repair missing staff profiles for previously provisioned lab accounts.
+    foreach (var role in new[] { "Manager", "Agent" })
+    foreach (var user in await userManager.GetUsersInRoleAsync(role))
+    {
+        if (!await db.UserProfiles.AnyAsync(p => p.UserId == user.Id) &&
+            !await db.CustomerUsers.IgnoreQueryFilters().AnyAsync(c => c.UserId == user.Id))
+        {
+            db.UserProfiles.Add(new UserProfile { UserId = user.Id, DisplayName = user.Email ?? user.UserName ?? "Staff", CreatedBy = user.Id });
+            await db.SaveChangesAsync();
+        }
     }
 }
 
@@ -110,7 +139,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
-app.UseAuthorization();
 app.UseMiddleware<InactiveUserMiddleware>();
+app.UseAuthorization();
 app.MapRazorPages();
 app.Run();

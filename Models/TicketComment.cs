@@ -27,4 +27,5 @@ public class TicketComment : BaseEntity
 
     // Navigation
     public Ticket Ticket { get; set; } = null!;
+    public ICollection<TicketAttachment> Attachments { get; set; } = new List<TicketAttachment>();
 }

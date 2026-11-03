@@ -6,8 +6,7 @@ namespace WebApplication1.Models;
 
 /// <summary>
 /// Links an IdentityUser (customer portal user) to a Customer.
-/// CanCreateTickets is reserved for a future /Portal/CreateTicket feature
-/// and defaults to false until that page is implemented.
+/// CanCreateTickets controls whether the portal user can submit support tickets.
 /// </summary>
 public class CustomerUser : BaseEntity
 {

@@ -14,6 +14,11 @@
     }
 </div>
 
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4"><input class="form-control" name="SearchTerm" value="@Model.SearchTerm" placeholder="Search teams..." /></div>
+    <div class="col-auto"><button type="submit" class="btn btn-primary">Search</button><a asp-page="./Index" class="btn btn-outline-secondary ms-1">Clear</a></div>
+</form>
+
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show">
@@ -41,7 +46,7 @@
 }
 else
 {
-    <p class="text-muted small mb-2">Showing @Model.Teams.Count team(s)</p>
+    <p class="text-muted small mb-2">Showing @Model.Pagination.TotalCount team(s)</p>
 
     <div class="table-responsive">
         <table class="table table-sm table-hover align-middle">
@@ -101,3 +106,5 @@ else
         </table>
     </div>
 }
+
+<partial name="_Pagination" model="Model.Pagination" />

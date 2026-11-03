@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model WebApplication1.Pages.Customers.DetailsModel
 @using WebApplication1.Models
 
@@ -194,7 +194,6 @@
                         <div class="row g-3 mb-3">
                             <div class="col-auto">
                                 <div class="form-check">
-                                    <input type="hidden" asp-for="NewCanViewTickets" value="false" />
                                     <input type="checkbox" asp-for="NewCanViewTickets"
                                            class="form-check-input" id="chkView" />
                                     <label class="form-check-label" for="chkView">Can View Tickets</label>
@@ -202,15 +201,19 @@
                             </div>
                             <div class="col-auto">
                                 <div class="form-check">
-                                    <input type="hidden" asp-for="NewCanAddComments" value="false" />
                                     <input type="checkbox" asp-for="NewCanAddComments"
                                            class="form-check-input" id="chkComment" />
                                     <label class="form-check-label" for="chkComment">Can Add Comments</label>
                                 </div>
                             </div>
-                            @* CanCreateTickets is reserved for a future portal ticket creation feature.
-                               The database column is preserved but the checkbox is hidden until
-                               /Portal/CreateTicket is implemented. *@
+                            <div class="col-auto">
+                                <div class="form-check">
+                                    <input type="checkbox" asp-for="NewCanCreateTickets"
+                                           class="form-check-input" id="chkCreate" />
+                                    <label class="form-check-label" for="chkCreate">Can Create Tickets</label>
+                                </div>
+                            </div>
+                            <div class="col-12 form-text">Ticket creation also requires Can View Tickets.</div>
                         </div>
                         <button type="submit" class="btn btn-success btn-sm">Create & Link User</button>
                         <button type="button" class="btn btn-secondary btn-sm"
@@ -229,6 +232,7 @@
                             <th>Email</th>
                             <th>Can View</th>
                             <th>Can Comment</th>
+                            <th>Can Create</th>
                             <th>Status</th>
                             <th>Added</th>
                             <th></th>
@@ -241,18 +245,29 @@
                             var dotStyle = $"background-color:{dotColor};";
                             <tr class="@(!pu.IsActive ? "table-secondary opacity-75" : "")">
                                 <td><small>@pu.Email</small></td>
-                                <td><small>@(pu.CanViewTickets ? "Yes" : "-")</small></td>
-                                <td><small>@(pu.CanAddComments ? "Yes" : "-")</small></td>
+                                <td><input type="checkbox" name="canViewTickets" value="true" checked="@pu.CanViewTickets"
+                                    form="permissions-@pu.CustomerUserId" aria-label="Allow @pu.Email to view tickets" /></td>
+                                <td><input type="checkbox" name="canAddComments" value="true" checked="@pu.CanAddComments"
+                                    form="permissions-@pu.CustomerUserId" aria-label="Allow @pu.Email to add comments" /></td>
+                                <td class="text-nowrap">
+                                    <input type="checkbox" name="canCreateTickets" value="true" checked="@pu.CanCreateTickets"
+                                           form="permissions-@pu.CustomerUserId" aria-label="Allow @pu.Email to create tickets" />
+                                </td>
                                 <td>
                                     <span class="status-dot status-dot-sm me-1" style="@dotStyle"></span>
                                     <small>@(pu.IsActive ? "Active" : "Inactive")</small>
                                 </td>
                                 <td><small class="text-muted">@pu.CreatedAt.ToString("M/d/yyyy")</small></td>
                                 <td class="text-nowrap">
+                                    <form id="permissions-@pu.CustomerUserId" method="post" asp-page-handler="UpdatePermissions"
+                                          asp-route-id="@Model.Customer.Id" asp-route-customerUserId="@pu.CustomerUserId" class="d-inline">
+                                        <button class="btn btn-sm btn-outline-primary" type="submit">Save permissions</button>
+                                    </form>
                                     <form method="post" asp-page-handler="TogglePortalUser"
                                           asp-route-id="@Model.Customer.Id"
                                           asp-route-customerUserId="@pu.CustomerUserId"
-                                          class="d-inline">
+                                          class="d-inline"
+                                          onsubmit="return confirm('Change this portal account activation status?')">
                                         <button type="submit" class="btn btn-sm btn-outline-warning">
                                             @(pu.IsActive ? "Deactivate" : "Activate")
                                         </button>
@@ -261,7 +276,7 @@
                                           asp-route-id="@Model.Customer.Id"
                                           asp-route-customerUserId="@pu.CustomerUserId"
                                           class="d-inline"
-                                          onsubmit="return confirm('Unlink @pu.Email? They will lose access.')">
+                                          onsubmit="return confirm('Unlink this portal account? They will lose access.')">
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Unlink</button>
                                     </form>
                                 </td>

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
@@ -23,14 +23,14 @@ public class SelectListService
     /// <summary>
     /// Get all active customers sorted by company name.
     /// </summary>
-    public SelectList GetActiveCustomers()
+    public SelectList GetActiveCustomers(int? includeCustomerId = null)
     {
         return new SelectList(
             _context.Customers
-                .Where(c => c.IsActive)
+                .Where(c => c.IsActive || c.Id == includeCustomerId)
                 .OrderBy(c => c.CompanyName)
                 .AsNoTracking()
-                .Select(c => new { c.Id, c.CompanyName }),
+                .Select(c => new { c.Id, CompanyName = c.CompanyName + (c.IsActive ? "" : " (inactive)") }),
             "Id",
             "CompanyName"
         );
@@ -43,7 +43,8 @@ public class SelectListService
     {
         var staffProfiles = await _context.UserProfiles
             .Include(up => up.User)
-            .Where(up => up.IsActive)
+            .Where(up => up.IsActive && _context.UserRoles.Any(ur => ur.UserId == up.UserId &&
+                _context.Roles.Any(r => r.Id == ur.RoleId && (r.Name == "Manager" || r.Name == "Agent"))))
             .OrderBy(up => up.User.Email)
             .AsNoTracking()
             .ToListAsync();
@@ -60,7 +61,7 @@ public class SelectListService
     }
 
     /// <summary>
-    /// Get users belonging to the team mapped to a specific assignment group.
+    /// Get active staff from all active teams mapped to an assignment group.
     /// - Unassigned: returns all active staff (used for unfiltered dropdowns).
     /// - Named group with an active team and members: returns only those members.
     /// - Named group with no active team or no members: returns an empty list.
@@ -71,30 +72,13 @@ public class SelectListService
         if (group == AssignmentGroup.Unassigned)
             return await GetUsersAsync();
 
-        var team = await _context.Teams
-            .Include(t => t.Members)
-                .ThenInclude(m => m.User)
-            .FirstOrDefaultAsync(t => t.Group == group && t.IsActive);
-
-        if (team != null)
-        {
-            var members = team.Members
-                .Where(m => m.IsActive && m.User != null)
-                .OrderBy(m => m.User.Email)
-                .Select(m => new
-                {
-                    Id = m.UserId,
-                    Name = m.User.Email ?? m.DisplayName
-                })
-                .ToList();
-
-            if (members.Count > 0)
-                return new SelectList(members, "Id", "Name");
-        }
-
-        // No active team or no members mapped to this group.
-        // Return an empty list - the assignee dropdown will be empty,
-        // and the Unassigned+assignee validation will prevent an inconsistent save.
-        return new SelectList(Enumerable.Empty<object>(), "Id", "Name");
+        // Teams sharing a group share its queue and all active staff are eligible.
+        var members = await _context.UserProfiles.Include(p => p.User)
+            .Where(p => p.IsActive && p.Team != null && p.Team.IsActive && p.Team.Group == group && _context.UserRoles.Any(ur => ur.UserId == p.UserId &&
+                _context.Roles.Any(r => r.Id == ur.RoleId && (r.Name == "Manager" || r.Name == "Agent"))))
+            .OrderBy(p => p.User.Email)
+            .Select(p => new { Id = p.UserId, Name = p.User.Email ?? p.DisplayName })
+            .ToListAsync();
+        return new SelectList(members, "Id", "Name");
     }
 }

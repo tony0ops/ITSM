@@ -1,0 +1,44 @@
+@page
+@model WebApplication1.Pages.Tickets.DeletedModel
+@{
+    ViewData["Title"] = "Deleted Tickets";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Deleted Tickets</h1>
+    <a asp-page="./Index" class="btn btn-outline-secondary">Back to tickets</a>
+</div>
+<p class="text-muted">Soft-deleted tickets remain here until restored. Restoring returns the ticket and its history to normal lists.</p>
+
+@if (TempData["SuccessMessage"] is string success)
+{
+    <div class="alert alert-success">@success</div>
+}
+
+@if (Model.Tickets.Count == 0)
+{
+    <div class="alert alert-info">There are no deleted tickets to restore.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead><tr><th>Number</th><th>Title</th><th>Deleted</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var ticket in Model.Tickets)
+            {
+                <tr>
+                    <td>@ticket.Number</td>
+                    <td>@ticket.Title</td>
+                    <td>@ticket.DeletedAt?.ToString("g")</td>
+                    <td>
+                        <form method="post" asp-page-handler="Restore" asp-route-id="@ticket.Id" onsubmit="return confirm('Restore this ticket?');">
+                            <button type="submit" class="btn btn-sm btn-success">Restore</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

@@ -12,5 +12,11 @@ public enum ActivityType
     SeverityChanged   = 4,
     SlaPaused         = 5,
     SlaResumed        = 6,
-    SlaDeadlineChanged = 7
+    SlaDeadlineChanged = 7,
+    AssignmentGroupChanged = 8,
+    CustomerChanged = 9,
+    ResolutionChanged = 10,
+    CommentAdded = 11,
+    AttachmentUploaded = 12,
+    TicketRestored = 13
 }

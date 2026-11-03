@@ -1,0 +1,21 @@
+@page
+@model WebApplication1.Areas.Identity.Pages.Account.RegisterModel
+@{ ViewData["Title"] = "Register"; }
+<h1>Create an account</h1>
+@if (Model.LabMode)
+{
+    <div class="alert alert-info">Offline registration creates a sign-in account without staff permissions. A Manager can provision it as staff from Users or link it to a company from Customer Details. Email delivery is not required.</div>
+}
+else
+{
+    <p>A Manager must assign your access after registration.</p>
+}
+<form method="post" class="col-md-6">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="Input.Email"></label><input asp-for="Input.Email" class="form-control" autocomplete="username" /></div>
+    <div class="mb-3"><label asp-for="Input.Password"></label><input asp-for="Input.Password" class="form-control" autocomplete="new-password" /></div>
+    <div class="mb-3"><label asp-for="Input.ConfirmPassword"></label><input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" /></div>
+    <button class="btn btn-primary" type="submit">Register</button>
+    <a asp-page="./ForgotPassword" class="btn btn-link">Forgot Password</a>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
