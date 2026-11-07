@@ -230,7 +230,6 @@ Basic validation is not a substitute for malware scanning.
 ## Project Documentation
 
 - [**PROJECT_STRUCTURE.md**](PROJECT_STRUCTURE.md) — project tree and explanations of major files.
-- [**TESTING.md**](TESTING.md) — manual testing checklist.
 
 Local databases, private attachments, build output, Visual Studio settings, generated coursework material, and old export snapshots are excluded from the source package. Third-party frontend libraries and their licence files are kept under `wwwroot/lib/`.
 
