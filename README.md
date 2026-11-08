@@ -14,6 +14,37 @@ This project was developed as part of a course project to bring **support ticket
 
 ---
 
+## Start with the demonstration database
+
+**All three demo accounts use the password `Demo123!`.** Download [the demo data archive](DemoData/ITSM-Demo-Data.zip). It contains 40 fictional tickets, two companies and two teams.
+
+The sample database is intended for local testing. It provides fictional tickets and accounts so you can try the application without creating everything yourself.
+
+1. Download the project and install the **.NET 8 SDK** (or Visual Studio with the ASP.NET and web development workload).
+2. Stop the application before importing data. If you already have data, back up your existing `app.db` and `App_Data/attachments` folder first.
+3. Extract `DemoData/ITSM-Demo-Data.zip` into the folder containing `WebApplication1.csproj`. The resulting database must be named **`app.db`**, beside `appsettings.json`. Keep the archive's `App_Data/attachments` folder in the same project folder.
+4. Open a terminal in that project folder and run:
+
+```powershell
+dotnet restore
+dotnet build
+dotnet run --launch-profile http
+```
+
+5. Open **http://localhost:5019** and sign in with a demo account listed in `DemoData/README.md`. No registration or email confirmation is needed for the imported accounts.
+
+| Login email | Role | What to try |
+| --- | --- | --- |
+| `test1@test.com` | Manager | Manage companies, users and teams; delete and restore tickets. |
+| `test2@test.com` | Agent | Claim eligible tickets, reply, add notes and record working time. |
+| `customer1@test.com` | Customer | View the linked company's tickets, create requests and reply. |
+
+The archive is a starting snapshot. Changes you make after import stay in your local database. Importing it again replaces those changes; it does not merge tickets. If you see an empty database, check that you copied it beside the project file and started the app from that folder. If you are replacing an existing database, stop all running app instances and keep any `app.db-wal` / `app.db-shm` files with the old backup rather than mixing them with the imported database.
+
+Lab Mode must remain enabled for the supplied local demonstration. The app applies existing migrations at startup. These are public test accounts, so use this setup locally only.
+
+---
+
 ## Contents
 
 - [Features](#features)
