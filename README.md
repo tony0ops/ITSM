@@ -13,7 +13,6 @@ This project was developed as part of a course project to bring **support ticket
 **Managers and Agents** work in the internal service desk. **Customers** use a separate portal to follow their company's tickets, submit requests, and reply when permitted.
 
 ---
-
 ## Start with the demonstration database
 
 **All three demo accounts use the password `Demo123!`.** Download [the demo data archive](DemoData/ITSM-Demo-Data.zip). It contains 40 fictional tickets, two companies and two teams.
@@ -39,7 +38,7 @@ dotnet run --launch-profile http
 | `test2@test.com` | Agent | Claim eligible tickets, reply, add notes and record working time. |
 | `customer1@test.com` | Customer | View the linked company's tickets, create requests and reply. |
 
-Password is: Demo123! for all accounts !
+Password is: **`Demo123!`** for all accounts !
 
 The archive is a starting snapshot. Changes you make after import stay in your local database. Importing it again replaces those changes; it does not merge tickets. If you see an empty database, check that you copied it beside the project file and started the app from that folder. If you are replacing an existing database, stop all running app instances and keep any `app.db-wal` / `app.db-shm` files with the old backup rather than mixing them with the imported database.
 
